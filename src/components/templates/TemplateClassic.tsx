@@ -3,9 +3,6 @@
 import React from 'react';
 import { ClassPlan } from '@/lib/types';
 import MonthlyCalendar from './MonthlyCalendar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -19,6 +16,7 @@ interface Props {
   classPlan: ClassPlan;
 }
 
+// 기본형 클래식 템플릿 - 깔끔하고 정돈된 스타일
 const TemplateClassic: React.FC<Props> = ({ classPlan }) => {
   const feeInfo = classPlan.feeInfo;
   
@@ -29,197 +27,155 @@ const TemplateClassic: React.FC<Props> = ({ classPlan }) => {
   });
 
   return (
-    <div className="w-[240mm] min-h-[260mm] bg-[#FFFBF5] flex flex-col text-zinc-900 font-jeju relative" style={{ fontSize: '11pt' }}>
-      {/* 상단 장식 테두리 */}
-      <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700"></div>
-      <div className="absolute top-3 left-0 right-0 h-[2px] bg-amber-400/50"></div>
-      
+    <div className="w-[240mm] min-h-[260mm] bg-white flex flex-col text-zinc-900 font-jeju" style={{ fontSize: '11pt' }}>
       {/* Header */}
-      <div className="px-10 pt-8 pb-4 mt-3">
-        <div className="flex items-center justify-between border-b-2 border-amber-800 pb-4">
-          <div className="text-left">
-            <Badge className="bg-amber-100 text-amber-800 border-amber-300 mb-2 text-xs hover:bg-amber-100">
-              ✦ Winter Special Class
-            </Badge>
-            <h1 className="text-3xl font-black tracking-tight mb-1 text-amber-900">겨울특강 계획서</h1>
-            <p className="text-amber-700 font-bold text-sm tracking-widest">Winter Special Class Plan</p>
+      <div className="px-10 pt-8 pb-6 border-b-2 border-zinc-800">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-zinc-900">겨울특강 강의계획서</h1>
+            <p className="text-zinc-500 mt-1">원리와 해석 수학학원</p>
           </div>
           <img 
             src="/images/1.png" 
             alt="원리와 해석 수학학원" 
-            className="h-16 object-contain"
+            className="h-14 object-contain"
           />
         </div>
       </div>
 
-      <div className="px-8 py-2 flex-1 flex flex-col gap-3" style={{ fontSize: '10pt' }}>
-        {/* 학부모 안내글 */}
-        {classPlan.parentIntro && (
-          <Card className="border-amber-200 bg-amber-50/50 shadow-sm">
-            <CardContent className="p-3">
-              <p className="text-sm leading-6 text-amber-900 whitespace-pre-wrap">{classPlan.parentIntro}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* 기본 정보 카드들 */}
-        <div className="grid grid-cols-12 gap-3">
-          <Card className="col-span-4 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 shadow-sm">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-[10pt] font-bold text-amber-700 uppercase tracking-wider">강좌명</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <div className="text-lg font-bold text-amber-900">{classPlan.title}</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="col-span-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 shadow-sm">
-            <CardHeader className="p-3 pb-1">
-              <CardTitle className="text-[10pt] font-bold text-amber-700 uppercase tracking-wider">담당강사</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <div className="text-base font-bold text-amber-900">{classPlan.teacherName}</div>
-            </CardContent>
-          </Card>
-
-          <Card className="col-span-6 border-amber-200 bg-white shadow-sm">
-            <CardContent className="p-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <span className="text-[10pt] font-bold text-amber-700 uppercase block mb-1">수강대상</span>
-                  <div className="font-bold text-sm text-amber-900">{classPlan.targetStudent}</div>
-                  {classPlan.targetStudentDetail && (
-                    <div className="text-[10pt] text-amber-700">{classPlan.targetStudentDetail}</div>
-                  )}
-                </div>
-                <div>
-                  <span className="text-[10pt] font-bold text-amber-700 uppercase block mb-1">일정</span>
-                  <div className="font-bold text-sm text-amber-900">
-                    {classPlan.classDay} {classPlan.classTime}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="px-8 py-6 flex-1 flex flex-col gap-5" style={{ fontSize: '10pt' }}>
+        {/* 기본 정보 테이블 */}
+        <div className="border border-zinc-200 rounded-lg overflow-hidden">
+          <Table>
+            <TableBody>
+              <TableRow className="border-zinc-200">
+                <TableCell className="py-3 w-28 bg-zinc-100 font-bold text-zinc-700 border-r border-zinc-200">강좌명</TableCell>
+                <TableCell className="py-3">{classPlan.title}</TableCell>
+                <TableCell className="py-3 w-28 bg-zinc-100 font-bold text-zinc-700 border-r border-l border-zinc-200">담당강사</TableCell>
+                <TableCell className="py-3">{classPlan.teacherName}</TableCell>
+              </TableRow>
+              <TableRow className="border-zinc-200">
+                <TableCell className="py-3 bg-zinc-100 font-bold text-zinc-700 border-r border-zinc-200">수강대상</TableCell>
+                <TableCell className="py-3">
+                  {classPlan.targetStudent}
+                  {classPlan.targetStudentDetail && ` (${classPlan.targetStudentDetail})`}
+                </TableCell>
+                <TableCell className="py-3 bg-zinc-100 font-bold text-zinc-700 border-r border-l border-zinc-200">수업일정</TableCell>
+                <TableCell className="py-3">{classPlan.classDay} {classPlan.classTime}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
 
-        {/* 학습과정 및 교재 / 학습목표 및 학습관리 */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="border-amber-200 shadow-sm">
-            <CardHeader className="p-3 pb-2">
-              <CardTitle className="text-sm font-bold text-amber-800 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-amber-600 rounded-sm"></span>
-                학습과정 및 교재
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-amber-200">
-                    <TableHead className="text-[10pt] text-amber-700 h-8 w-14">구분</TableHead>
-                    <TableHead className="text-[10pt] text-amber-700 h-8">과정명</TableHead>
-                    <TableHead className="text-[10pt] text-amber-700 h-8 text-right">교재</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow className="border-amber-100">
-                    <TableCell className="py-2 text-amber-700 font-medium">과정1</TableCell>
-                    <TableCell className="py-2 text-amber-900">{classPlan.course1 || '-'}</TableCell>
-                    <TableCell className="py-2 text-right text-amber-900">{classPlan.material1 || '-'}</TableCell>
-                  </TableRow>
-                  <TableRow className="border-amber-100">
-                    <TableCell className="py-2 text-amber-600 font-medium">과정2</TableCell>
-                    <TableCell className="py-2 text-amber-900">{classPlan.course2 || '-'}</TableCell>
-                    <TableCell className="py-2 text-right text-amber-900">{classPlan.material2 || '-'}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-          
-          <div className="space-y-3">
-            <Card className="border-amber-200 shadow-sm">
-              <CardHeader className="p-3 pb-1">
-                <CardTitle className="text-sm font-bold text-amber-800 border-b-2 border-amber-600 pb-1 inline-block">학습목표</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 pt-1">
-                <p className="text-sm leading-5 text-amber-800 whitespace-pre-wrap border-l-2 border-amber-300 pl-3">
-                  {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-amber-200 shadow-sm">
-              <CardHeader className="p-3 pb-1">
-                <CardTitle className="text-sm font-bold text-amber-800 border-b-2 border-amber-600 pb-1 inline-block">학습관리</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 pt-1">
-                <p className="text-sm leading-5 text-amber-800 whitespace-pre-wrap border-l-2 border-amber-300 pl-3">
-                  {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
-                </p>
-              </CardContent>
-            </Card>
+        {/* 학습목표 */}
+        <div className="space-y-2">
+          <h3 className="font-bold text-base text-zinc-800 border-l-4 border-zinc-800 pl-3">학습목표</h3>
+          <div className="p-4 bg-zinc-50 rounded-lg border border-zinc-200">
+            <p className="text-sm leading-6 whitespace-pre-wrap">
+              {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
+            </p>
           </div>
         </div>
 
-        <Separator className="bg-amber-200" />
+        {/* 학부모 안내글 */}
+        {classPlan.parentIntro && (
+          <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <p className="text-sm leading-6 text-zinc-700 whitespace-pre-wrap">{classPlan.parentIntro}</p>
+          </div>
+        )}
+
+        {/* 학습과정 및 교재 */}
+        <div className="space-y-2">
+          <h3 className="font-bold text-base text-zinc-800 border-l-4 border-zinc-800 pl-3">학습과정 및 교재</h3>
+          <div className="border border-zinc-200 rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-zinc-100 border-zinc-200">
+                  <TableHead className="text-[10pt] h-10 font-bold text-zinc-700 w-24">구분</TableHead>
+                  <TableHead className="text-[10pt] h-10 font-bold text-zinc-700">학습과정</TableHead>
+                  <TableHead className="text-[10pt] h-10 font-bold text-zinc-700 text-right">교재</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow className="border-zinc-200">
+                  <TableCell className="py-3 bg-zinc-50 font-medium">과정 1</TableCell>
+                  <TableCell className="py-3">{classPlan.course1 || '-'}</TableCell>
+                  <TableCell className="py-3 text-right">{classPlan.material1 || '-'}</TableCell>
+                </TableRow>
+                <TableRow className="border-zinc-200">
+                  <TableCell className="py-3 bg-zinc-50 font-medium">과정 2</TableCell>
+                  <TableCell className="py-3">{classPlan.course2 || '-'}</TableCell>
+                  <TableCell className="py-3 text-right">{classPlan.material2 || '-'}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        {/* 학습관리 */}
+        {classPlan.management && (
+          <div className="space-y-2">
+            <h3 className="font-bold text-base text-zinc-800 border-l-4 border-zinc-800 pl-3">학습관리</h3>
+            <div className="p-4 bg-zinc-50 rounded-lg border border-zinc-200">
+              <p className="text-sm leading-6 whitespace-pre-wrap">{classPlan.management}</p>
+            </div>
+          </div>
+        )}
 
         {/* 홍보문구 */}
         {classPlan.etc && (
-          <Card className="border-amber-200 bg-amber-50/50 shadow-sm">
-            <CardContent className="p-3">
-              <p className="text-sm leading-5 text-amber-900 whitespace-pre-wrap">{classPlan.etc}</p>
-            </CardContent>
-          </Card>
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm leading-5 text-zinc-700 whitespace-pre-wrap">{classPlan.etc}</p>
+          </div>
         )}
 
-        {/* 주차별 학습계획 */}
-        <div>
-          <h3 className="font-bold text-sm mb-2 text-amber-900 flex items-center gap-2">
-            <span className="w-1 h-4 bg-amber-600 rounded-sm"></span>
-            주차별 학습계획
-          </h3>
-          <div className="grid grid-cols-2 gap-2">
-            {(classPlan.weeklyPlan || []).slice(0, 8).map((week, i) => {
-              const defaultLabel = `${i + 1}주`;
-              const displayLabel = week.weekLabel || defaultLabel;
-              return (
-                <Card key={i} className="border-amber-100 bg-white shadow-sm hover:shadow-md transition-all">
-                  <CardContent className="p-2 flex items-center gap-2">
-                    <Badge variant="outline" className="border-amber-400 text-amber-700 bg-amber-50 text-[9pt] px-2 py-0.5 shrink-0">
-                      {displayLabel}
-                    </Badge>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-xs text-amber-900 truncate">{week.topic || '-'}</div>
-                      {week.detail && <div className="text-[9pt] text-amber-700 truncate">{week.detail}</div>}
+        {/* 주차별 학습계획 및 달력 */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <h3 className="font-bold text-base text-zinc-800 border-l-4 border-zinc-800 pl-3">주차별 학습계획</h3>
+            <div className="border border-zinc-200 rounded-lg overflow-hidden">
+              <div className="p-3 space-y-1.5">
+                {(classPlan.weeklyPlan || []).slice(0, 8).map((week, i) => {
+                  const defaultLabel = `${i + 1}주`;
+                  const displayLabel = week.weekLabel || defaultLabel;
+                  return (
+                    <div key={i} className="flex items-start gap-3 p-2 rounded hover:bg-zinc-50">
+                      <span className="inline-flex items-center justify-center min-w-[36px] h-6 px-2 text-[9pt] font-bold text-white bg-zinc-700 rounded shrink-0">
+                        {displayLabel}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-xs text-zinc-800">{week.topic || '-'}</div>
+                        {week.detail && <div className="text-[9pt] text-zinc-500">{week.detail}</div>}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="font-bold text-base text-zinc-800 border-l-4 border-zinc-800 pl-3">수업 일정</h3>
+            <MonthlyCalendar classPlan={classPlan} />
           </div>
         </div>
 
-        {/* 달력 */}
-        <MonthlyCalendar classPlan={classPlan} />
-
         {/* 수강료 안내 */}
         {feeInfo && feeInfo.rows.length > 0 && (
-          <Card className="mt-auto border-amber-200 shadow-md overflow-hidden">
-            <CardHeader className="p-3 pb-2 bg-gradient-to-r from-amber-700 to-amber-600 text-white">
-              <CardTitle className="text-sm font-bold">{feeInfo.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
+          <div className="space-y-2 mt-auto">
+            <h3 className="font-bold text-base text-zinc-800 border-l-4 border-zinc-800 pl-3">{feeInfo.title}</h3>
+            <div className="border border-zinc-300 rounded-lg overflow-hidden shadow-sm">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-amber-50 border-amber-200">
-                    <TableHead className="text-[10pt] h-8 font-bold text-amber-800">월</TableHead>
-                    <TableHead className="text-[10pt] h-8 font-bold text-amber-800">수업구분</TableHead>
-                    <TableHead className="text-[10pt] h-8 font-bold text-amber-800">요일</TableHead>
-                    <TableHead className="text-[10pt] h-8 font-bold text-amber-800">시간</TableHead>
-                    <TableHead className="text-[10pt] h-8 font-bold text-amber-800 text-right">수강료</TableHead>
-                    <TableHead className="text-[10pt] h-8 font-bold text-amber-800 text-center">회차</TableHead>
-                    <TableHead className="text-[10pt] h-8 font-bold text-amber-800 text-right">합계</TableHead>
-                    <TableHead className="text-[10pt] h-8 font-bold text-amber-800 text-right">총 합계</TableHead>
+                  <TableRow className="bg-zinc-800 text-white">
+                    <TableHead className="text-[10pt] h-9 font-bold text-white">월</TableHead>
+                    <TableHead className="text-[10pt] h-9 font-bold text-white">수업구분</TableHead>
+                    <TableHead className="text-[10pt] h-9 font-bold text-white">요일</TableHead>
+                    <TableHead className="text-[10pt] h-9 font-bold text-white">시간</TableHead>
+                    <TableHead className="text-[10pt] h-9 font-bold text-white text-right">수강료</TableHead>
+                    <TableHead className="text-[10pt] h-9 font-bold text-white text-center">회차</TableHead>
+                    <TableHead className="text-[10pt] h-9 font-bold text-white text-right">합계</TableHead>
+                    <TableHead className="text-[10pt] h-9 font-bold text-white text-right">총 합계</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -227,18 +183,18 @@ const TemplateClassic: React.FC<Props> = ({ classPlan }) => {
                     const monthTotal = feeInfo.monthlyTotals.find(m => m.month === month)?.total || 
                       rows.reduce((sum, row) => sum + row.subtotal, 0);
                     return rows.map((row, idx) => (
-                      <TableRow key={`${month}-${idx}`} className="border-amber-100">
+                      <TableRow key={`${month}-${idx}`} className="border-zinc-200">
                         {idx === 0 && (
-                          <TableCell className="py-2 font-bold bg-amber-50 text-amber-800" rowSpan={rows.length}>{month}</TableCell>
+                          <TableCell className="py-2 font-bold bg-zinc-100" rowSpan={rows.length}>{month}</TableCell>
                         )}
-                        <TableCell className="py-2 text-amber-900">{row.classType}</TableCell>
-                        <TableCell className="py-2 text-amber-900">{row.day}</TableCell>
-                        <TableCell className="py-2 text-amber-900">{row.time}</TableCell>
-                        <TableCell className="py-2 text-right text-amber-900">{row.unitFee.toLocaleString()}</TableCell>
-                        <TableCell className="py-2 text-center text-amber-900">{row.sessions}</TableCell>
-                        <TableCell className="py-2 text-right font-medium text-amber-900">{row.subtotal.toLocaleString()}</TableCell>
+                        <TableCell className="py-2">{row.classType}</TableCell>
+                        <TableCell className="py-2">{row.day}</TableCell>
+                        <TableCell className="py-2">{row.time}</TableCell>
+                        <TableCell className="py-2 text-right">{row.unitFee.toLocaleString()}</TableCell>
+                        <TableCell className="py-2 text-center">{row.sessions}</TableCell>
+                        <TableCell className="py-2 text-right font-medium">{row.subtotal.toLocaleString()}</TableCell>
                         {idx === 0 && (
-                          <TableCell className="py-2 text-right font-bold text-amber-700 bg-amber-50" rowSpan={rows.length}>
+                          <TableCell className="py-2 text-right font-bold bg-zinc-100" rowSpan={rows.length}>
                             {monthTotal.toLocaleString()}
                           </TableCell>
                         )}
@@ -247,18 +203,19 @@ const TemplateClassic: React.FC<Props> = ({ classPlan }) => {
                   })}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
 
       {/* Footer */}
-      <div className="bg-gradient-to-r from-amber-700 to-amber-600 text-white py-3 px-10 flex justify-between items-center text-[10pt] font-bold tracking-wide">
-        <div>원리와 해석 수학학원</div>
-        <div className="text-amber-200">Principle and Analysis Math Academy</div>
+      <div className="bg-zinc-800 text-white py-3 px-10 mt-4 flex justify-between items-center text-[10pt]">
+        <div className="font-bold">원리와 해석 수학학원</div>
+        <div className="text-zinc-400">Principle and Analysis Math Academy</div>
       </div>
     </div>
   );
 };
 
 export default TemplateClassic;
+

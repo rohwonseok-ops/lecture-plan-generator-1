@@ -1,0 +1,522 @@
+{
+  "designSystem": {
+    "meta": {
+      "version": "2.0.0",
+      "source": "Poster - Artificial Waterway Impact Study",
+      "description": "Tokenized visual system extracted from research-poster style layout for reuse in web/dashboard UI.",
+      "lastUpdated": "2025-12-04"
+    },
+    "foundations": {
+      "colors": {
+        "palette": {
+          "brandPrimary": "#0E6A5B",
+          "brandDark": "#0A4E43",
+          "brandSoft": "#A7D3C7",
+          "brandSoftDeep": "#6FB7A8",
+          "backgroundMain": "#F2F5F4",
+          "backgroundCanvas": "#FFFFFF",
+          "surfacePrimary": "#FFFFFF",
+          "surfaceSecondary": "#E7F1EE",
+          "surfaceMuted": "#F4FAF8",
+          "borderSubtle": "#D9E5E1",
+          "borderStrong": "#A7C2BA",
+          "divider": "#E6ECEA",
+          "textPrimary": "#0F172A",
+          "textSecondary": "#4B5563",
+          "textTertiary": "#6B7280",
+          "textInverse": "#FFFFFF",
+          "accent": "#1BAA8F",
+          "accentSoft": "#CBE8E0",
+          "chartLine": "#6FB7A8",
+          "chartPoint": "#0E6A5B",
+          "chartSegmentA": "#93CFC3",
+          "chartSegmentB": "#0E6A5B",
+          "chartSegmentC": "#2D8C7E",
+          "danger": "#E5533D"
+        },
+        "application": {
+          "page": {
+            "rootBackground": "backgroundMain",
+            "contentBackground": "backgroundCanvas",
+            "headerBand": "backgroundCanvas",
+            "accentStrip": "brandPrimary"
+          },
+          "cards": {
+            "defaultFill": "surfacePrimary",
+            "emphasisFill": "surfaceSecondary",
+            "border": "borderSubtle",
+            "titleBar": "brandPrimary"
+          },
+          "typography": {
+            "pageTitle": "brandPrimary",
+            "sectionTitle": "brandPrimary",
+            "cardTitleOnStrip": "textInverse",
+            "body": "textSecondary",
+            "caption": "textTertiary"
+          },
+          "charts": {
+            "axis": "divider",
+            "axisLabel": "textTertiary",
+            "linePrimary": "chartLine",
+            "linePoint": "chartPoint",
+            "donutSegments": [
+              "chartSegmentA",
+              "chartSegmentB",
+              "chartSegmentC"
+            ]
+          },
+          "infographics": {
+            "iconCircle": "brandPrimary",
+            "iconForeground": "textInverse"
+          }
+        },
+        "gradients": {
+          "headerRibbon": {
+            "type": "linear",
+            "angle": "180deg",
+            "stops": [
+              {
+                "color": "#0E6A5B",
+                "position": "0%"
+              },
+              {
+                "color": "#0A4E43",
+                "position": "100%"
+              }
+            ],
+            "usage": "Top or bottom page ribbons and compact badges. Do not apply to full cards."
+          },
+          "mountainBand": {
+            "type": "linear",
+            "angle": "180deg",
+            "stops": [
+              {
+                "color": "#CBE1DD",
+                "position": "0%"
+              },
+              {
+                "color": "#E4F0ED",
+                "position": "100%"
+              }
+            ],
+            "usage": "Illustrative separators only (hero landscape)."
+          }
+        },
+        "shadows": {
+          "elevationLow": "0 4px 10px rgba(0,0,0,0.04)",
+          "elevationCard": "0 10px 20px rgba(0,0,0,0.06)",
+          "elevationLifted": "0 14px 26px rgba(0,0,0,0.08)"
+        },
+        "radii": {
+          "card": "18px",
+          "panel": "18px",
+          "chip": "10px",
+          "pill": "9999px"
+        },
+        "accessibility": {
+          "contrastPairs": {
+            "brandPrimary_on_white": {
+              "foreground": "#0E6A5B",
+              "background": "#FFFFFF",
+              "ratio": "≈4.7:1",
+              "wcag": "AA for normal text, AAA for large text"
+            },
+            "textPrimary_on_backgroundMain": {
+              "foreground": "#0F172A",
+              "background": "#F2F5F4",
+              "ratio": "≥7:1 (estimated)",
+              "wcag": "AAA"
+            },
+            "textInverse_on_brandPrimary": {
+              "foreground": "#FFFFFF",
+              "background": "#0E6A5B",
+              "ratio": "≥7:1 (estimated)",
+              "wcag": "AAA"
+            }
+          },
+          "guidelines": [
+            "Use textPrimary or brandPrimary only on light surfaces with contrast ratio ≥ 4.5:1.",
+            "Do not place body text directly on brandSoft or chart colors; reserve those for accents and graphics.",
+            "When in doubt, render body copy on pure white or backgroundMain for maximum legibility."
+          ]
+        }
+      },
+      "typography": {
+        "fontFamily": {
+          "display": "Pretendard, Apple SD Gothic Neo, Noto Sans KR, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+          "body": "Pretendard, Apple SD Gothic Neo, Noto Sans KR, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif"
+        },
+        "scale": {
+          "displayLg": {
+            "size": "44px",
+            "weight": 800,
+            "lineHeight": "1.2",
+            "letterSpacing": "-0.02em",
+            "colorToken": "brandPrimary"
+          },
+          "displaySm": {
+            "size": "32px",
+            "weight": 800,
+            "lineHeight": "1.2",
+            "letterSpacing": "-0.02em",
+            "colorToken": "brandPrimary"
+          },
+          "sectionTitle": {
+            "size": "20px",
+            "weight": 700,
+            "lineHeight": "1.4",
+            "letterSpacing": "0",
+            "colorToken": "brandPrimary"
+          },
+          "cardHeading": {
+            "size": "16px",
+            "weight": 700,
+            "lineHeight": "1.4",
+            "letterSpacing": "0",
+            "colorToken": "textInverse"
+          },
+          "subheading": {
+            "size": "15px",
+            "weight": 600,
+            "lineHeight": "1.6",
+            "letterSpacing": "0",
+            "colorToken": "textSecondary"
+          },
+          "body": {
+            "size": "13px",
+            "weight": 400,
+            "lineHeight": "1.7",
+            "letterSpacing": "0",
+            "colorToken": "textSecondary"
+          },
+          "bodyStrong": {
+            "size": "13px",
+            "weight": 600,
+            "lineHeight": "1.7",
+            "letterSpacing": "0",
+            "colorToken": "textPrimary"
+          },
+          "caption": {
+            "size": "12px",
+            "weight": 400,
+            "lineHeight": "1.6",
+            "letterSpacing": "0",
+            "colorToken": "textTertiary"
+          }
+        }
+      },
+      "layout": {
+        "grid": {
+          "columns": 12,
+          "columnGap": 20,
+          "rowGap": 20,
+          "maxWidth": 960,
+          "pagePadding": 36
+        },
+        "sections": {
+          "heroHeight": 160,
+          "cardMinHeight": 220,
+          "panelPadding": "18px 20px"
+        }
+      }
+    },
+    "componentStyles": {
+      "panelContainers": {
+        "pageShell": {
+          "backgroundColorToken": "backgroundMain",
+          "contentBackgroundToken": "backgroundCanvas",
+          "padding": "36px 36px 40px",
+          "maxWidth": "960px",
+          "centered": true,
+          "shadow": null,
+          "borderRadiusToken": null
+        },
+        "contentGrid": {
+          "type": "twoColumn",
+          "columnGap": "20px",
+          "rowGap": "20px",
+          "leftColumnWidth": "1.1fr",
+          "rightColumnWidth": "1fr"
+        },
+        "card": {
+          "surfaceColorToken": "surfacePrimary",
+          "border": {
+            "colorToken": "borderSubtle",
+            "width": "1px",
+            "style": "solid"
+          },
+          "borderRadiusToken": "card",
+          "shadowToken": "elevationCard",
+          "padding": "0",
+          "contentPadding": "16px 18px 18px",
+          "titleBar": {
+            "backgroundColorToken": "brandPrimary",
+            "height": 40,
+            "padding": "10px 18px",
+            "typographyToken": "cardHeading",
+            "divider": null
+          }
+        }
+      },
+      "navigationHeader": {
+        "root": {
+          "backgroundColorToken": "backgroundCanvas",
+          "mountainBandGradientToken": "mountainBand",
+          "paddingTop": 24,
+          "paddingBottom": 28,
+          "layout": "titleLeft-metaRight"
+        },
+        "titleBlock": {
+          "titleTypographyToken": "displayLg",
+          "subtitleTypographyToken": "caption",
+          "subtitleColorToken": "textTertiary"
+        },
+        "metaBlock": {
+          "alignment": "right",
+          "badgeStackGap": 8
+        }
+      },
+      "badgesAndChips": {
+        "universityBadge": {
+          "backgroundGradientToken": "headerRibbon",
+          "textColorToken": "textInverse",
+          "borderRadiusToken": "pill",
+          "padding": "6px 14px",
+          "iconColorToken": "textInverse",
+          "iconSize": 16
+        },
+        "metaChip": {
+          "backgroundColorToken": "surfaceSecondary",
+          "textColorToken": "brandDark",
+          "borderRadiusToken": "pill",
+          "padding": "4px 10px",
+          "iconColorToken": "brandDark"
+        }
+      },
+      "contentSections": {
+        "cardBody": {
+          "paragraphSpacing": 8,
+          "listIndent": 12,
+          "headingSpacing": 10
+        },
+        "sectionLabel": {
+          "backgroundColorToken": "brandPrimary",
+          "textColorToken": "textInverse",
+          "borderRadius": "4px",
+          "uppercase": true,
+          "padding": "2px 6px",
+          "typographyToken": "caption"
+        }
+      },
+      "charts": {
+        "timeSeriesLine": {
+          "container": {
+            "backgroundColorToken": "surfacePrimary",
+            "borderRadiusToken": "card",
+            "padding": "12px 16px 16px",
+            "shadowToken": "elevationLow"
+          },
+          "gridLines": {
+            "strokeColorToken": "divider",
+            "strokeWidth": 1,
+            "dash": [
+              4,
+              4
+            ]
+          },
+          "axes": {
+            "axisColorToken": "divider",
+            "labelTypographyToken": "caption"
+          },
+          "line": {
+            "strokeColorToken": "chartLine",
+            "strokeWidth": 2,
+            "pointFillToken": "chartPoint",
+            "pointRadius": 4
+          }
+        },
+        "donutChart": {
+          "container": {
+            "backgroundColorToken": "surfacePrimary",
+            "borderRadiusToken": "card",
+            "padding": "12px 16px 16px",
+            "shadowToken": "elevationLow"
+          },
+          "segmentsColorTokens": [
+            "chartSegmentA",
+            "chartSegmentB",
+            "chartSegmentC"
+          ],
+          "innerRadiusRatio": 0.6,
+          "outerRadiusRatio": 0.9,
+          "legend": {
+            "position": "right",
+            "itemGap": 6,
+            "labelTypographyToken": "caption"
+          }
+        }
+      },
+      "footerBar": {
+        "root": {
+          "backgroundColorToken": "brandPrimary",
+          "textColorToken": "textInverse",
+          "padding": "10px 18px",
+          "typographyToken": "caption",
+          "layout": "spaceBetween"
+        }
+      },
+      "actionControls": {
+        "primaryActions": {
+          "surfaceColorToken": "brandPrimary",
+          "textColorToken": "textInverse",
+          "borderRadiusToken": "pill",
+          "padding": "8px 16px",
+          "border": null,
+          "interactionStates": {
+            "hoverSurfaceColorToken": "brandDark",
+            "activeSurfaceColorToken": "brandDark",
+            "focusRing": {
+              "colorToken": "accent",
+              "width": "2px",
+              "offset": "2px"
+            },
+            "disabledOpacity": 0.5
+          }
+        },
+        "ghostActions": {
+          "surfaceColorToken": "transparent",
+          "textColorToken": "brandPrimary",
+          "border": {
+            "colorToken": "brandPrimary",
+            "width": "1px",
+            "style": "solid"
+          },
+          "borderRadiusToken": "pill",
+          "interactionStates": {
+            "hoverSurfaceColorToken": "accentSoft",
+            "activeSurfaceColorToken": "accentSoft",
+            "focusRing": {
+              "colorToken": "accent",
+              "width": "2px",
+              "offset": "2px"
+            }
+          }
+        }
+      }
+    },
+    "states": {
+      "componentStates": {
+        "panelContainers.card": {
+          "default": {
+            "shadowToken": "elevationCard",
+            "borderColorToken": "borderSubtle",
+            "backgroundColorToken": "surfacePrimary"
+          },
+          "hover": {
+            "shadowToken": "elevationLifted"
+          },
+          "selected": {
+            "borderColorToken": "accent",
+            "shadowToken": "elevationLifted"
+          },
+          "disabled": {
+            "opacity": 0.6,
+            "shadowToken": "elevationLow"
+          }
+        },
+        "actionControls.primaryActions": {
+          "default": {
+            "surfaceColorToken": "brandPrimary",
+            "textColorToken": "textInverse"
+          },
+          "hover": {
+            "surfaceColorToken": "brandDark"
+          },
+          "active": {
+            "surfaceColorToken": "brandDark"
+          },
+          "focus": {
+            "surfaceColorToken": "brandPrimary",
+            "focusRing": "visible"
+          },
+          "disabled": {
+            "surfaceColorToken": "brandPrimary",
+            "textColorToken": "textInverse",
+            "opacity": 0.5
+          }
+        },
+        "charts.timeSeriesLine": {
+          "default": {
+            "lineStrokeToken": "chartLine",
+            "pointFillToken": "chartPoint"
+          },
+          "hoverPoint": {
+            "pointRadius": 5,
+            "pointOutlineColorToken": "backgroundCanvas",
+            "pointOutlineWidth": 2
+          },
+          "muted": {
+            "lineOpacity": 0.4,
+            "pointOpacity": 0.4
+          }
+        },
+        "charts.donutChart": {
+          "default": {
+            "segmentOpacity": 1.0
+          },
+          "hoverSegment": {
+            "segmentOffset": 4,
+            "segmentOpacity": 1.0
+          },
+          "muted": {
+            "segmentOpacity": 0.4
+          }
+        }
+      }
+    },
+    "effects": {
+      "shadowAssignment": {
+        "pageShell": null,
+        "cards": "elevationCard",
+        "charts": "elevationLow",
+        "badges": null,
+        "footerBar": null
+      },
+      "radiusApplication": {
+        "cards": "card",
+        "charts": "card",
+        "chips": "chip",
+        "pills": "pill",
+        "illustrationContainers": "18px"
+      },
+      "layering": {
+        "zIndex": {
+          "pageBackground": 0,
+          "mountainBand": 1,
+          "cards": 2,
+          "headerMeta": 3,
+          "tooltips": 10
+        },
+        "guidelines": [
+          "Shadows are applied only to high-level containers (cards, chart panels), never to individual icons or text.",
+          "Gradient header ribbons should sit above the page background but below card content.",
+          "Charts should not visually float above card title bars; keep shadows consistent with card body."
+        ]
+      }
+    },
+    "qaGuidelines": {
+      "avoid": [
+        "Applying header gradients to icons or small chips.",
+        "Using brandPrimary as body text color across long paragraphs.",
+        "Placing shadows on text or inner content blocks instead of the outer card container.",
+        "Rendering charts directly on backgroundMain without a card container."
+      ],
+      "ensure": [
+        "All primary headings use brandPrimary on white or backgroundMain with AA contrast or better.",
+        "Cards share consistent radius (18px) and elevation shadows across the entire interface.",
+        "Chart color tokens are reused consistently for line, point, and donut segments.",
+        "Meta labels and chips use surfaceSecondary or accentSoft, not plain white, to visually separate them from body content."
+      ]
+    }
+  }
+}

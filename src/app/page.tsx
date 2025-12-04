@@ -6,12 +6,12 @@ import { Plus, Download, ZoomIn, ZoomOut, Save, RefreshCw, Upload, BookOpen, Lay
 import { ClassPlan, TemplateId } from '@/lib/types';
 import TemplateClassic from '@/components/templates/TemplateClassic';
 import TemplateBlue from '@/components/templates/TemplateBlue';
-import TemplateReport from '@/components/templates/TemplateReport';
-import TemplateModern from '@/components/templates/TemplateModern';
 import TemplatePurple from '@/components/templates/TemplatePurple';
 import TemplateMentoring from '@/components/templates/TemplateMentoring';
 import TemplateAcademic from '@/components/templates/TemplateAcademic';
 import TemplateDark from '@/components/templates/TemplateDark';
+import TemplatePoster from '@/components/templates/TemplatePoster';
+import TemplateTeal from '@/components/templates/TemplateTeal';
 import { downloadAsPng } from '@/lib/download';
 import ClassListDropdown from '@/components/editor/ClassListDropdown';
 import EditorPanel from '@/components/editor/EditorPanel';
@@ -55,12 +55,12 @@ export default function HomePage() {
     const names: Record<TemplateId, string> = {
       classic: '기본형',
       blue: '네이비',
-      report: '리포트',
-      modern: '모던',
       purple: '프로젝트',
       mentoring: '활동형',
       academic: '학술형',
-      dark: '다크'
+      dark: '다크',
+      poster: '포스터',
+      teal: '청록'
     };
     return names[templateId || 'classic'];
   };
@@ -90,12 +90,12 @@ export default function HomePage() {
   const getTemplateComponent = (templateId?: TemplateId) => {
     switch (templateId) {
       case 'blue': return TemplateBlue;
-      case 'report': return TemplateReport;
-      case 'modern': return TemplateModern;
       case 'purple': return TemplatePurple;
       case 'mentoring': return TemplateMentoring;
       case 'academic': return TemplateAcademic;
       case 'dark': return TemplateDark;
+      case 'poster': return TemplatePoster;
+      case 'teal': return TemplateTeal;
       default: return TemplateClassic;
     }
   };
@@ -190,7 +190,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-4">
               <span className="text-[10px] font-bold text-zinc-400 uppercase">템플릿</span>
               <div className="flex bg-zinc-100 rounded-md p-0.5 flex-wrap gap-0.5">
-                {(['classic', 'blue', 'report', 'modern', 'purple', 'mentoring', 'academic', 'dark'] as TemplateId[]).map(t => (
+                {(['classic', 'blue', 'purple', 'mentoring', 'academic', 'dark', 'poster', 'teal'] as TemplateId[]).map(t => (
                   <button
                     key={t}
                     onClick={() => selectedId && updateClassPlan(selectedId, { templateId: t })}
@@ -203,12 +203,12 @@ export default function HomePage() {
                     {{
                       classic: '기본형',
                       blue: '네이비',
-                      report: '리포트',
-                      modern: '모던',
                       purple: '프로젝트',
                       mentoring: '활동형',
                       academic: '학술형',
-                      dark: '다크'
+                      dark: '다크',
+                      poster: '포스터',
+                      teal: '청록'
                     }[t]}
                   </button>
                 ))}

@@ -22,7 +22,7 @@ export interface FeeInfo {
 }
 
 export type SizePreset = 'A4' | '4x5' | '1x1';
-export type TemplateId = 'classic' | 'blue' | 'report' | 'modern' | 'purple' | 'mentoring' | 'academic' | 'dark';
+export type TemplateId = 'classic' | 'blue' | 'purple' | 'mentoring' | 'academic' | 'dark' | 'poster' | 'teal';
 
 export interface ClassPlan {
   id: string;
