@@ -8,8 +8,13 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['"Jeju Gothic"', '"Nanum Square"', 'system-ui', 'sans-serif'],
-        jeju: ['"Jeju Gothic"', '"Nanum Square"', 'sans-serif'],
-        nanum: ['"Nanum Square"', 'sans-serif'],
+        jeju: ['"Jeju Gothic"', 'sans-serif'],
+        'nanum-square': ['"Nanum Square"', 'sans-serif'],
+        'nanum-human': ['"Nanum Myeongjo"', 'serif'],
+        'nanum-barun': ['"Nanum Barun Gothic"', 'sans-serif'],
+        'pretendard': ['"Pretendard"', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        'noto-sans-kr': ['"Noto Sans KR"', 'sans-serif'],
+        'korail': ['"Korail"', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

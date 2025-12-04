@@ -22,15 +22,96 @@ export interface FeeInfo {
 }
 
 export type SizePreset = 'A4' | '4x5' | '1x1';
-export type TemplateId = 'classic' | 'blue' | 'purple' | 'mentoring' | 'academic' | 'dark' | 'poster' | 'teal';
+
+// 폰트 패밀리 타입
+export type FontFamily = 
+  | 'jeju'           // 제주고딕
+  | 'nanum-square'   // 나눔스퀘어
+  | 'nanum-human'    // 나눔휴먼
+  | 'nanum-barun'    // 나눔바른고딕
+  | 'pretendard'     // Pretendard
+  | 'noto-sans-kr'   // Noto Sans KR
+  | 'korail';        // 코레일체
+
+// 타이포그래피 설정
+export interface TypographySettings {
+  titleFont: FontFamily;
+  titleSize: number;      // pt 단위
+  titleWeight?: number;   // 제목 폰트 굵기 (400: 보통, 600: 세미볼드, 700: 볼드)
+  bodyFont: FontFamily;
+  bodySize: number;       // pt 단위
+  bodyWeight?: number;    // 본문 폰트 굵기 (400: 보통, 600: 세미볼드, 700: 볼드)
+  enableFontSizeChange?: boolean;  // 폰트 크기 변경 허용 여부
+}
+
+// 템플릿 카테고리 (레이아웃 스타일)
+export type TemplateCategory = 'style1' | 'style2' | 'style3';
+
+// 색상 테마
+export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green';
+
+// TemplateId = 카테고리-색상 조합 (블루만 사용)
+export type TemplateId = 
+  | 'style1-blue'
+  | 'style2-blue'
+  | 'style3-blue';
+
+// TemplateId에서 카테고리와 색상 추출 유틸리티 (안전한 파싱)
+export const parseTemplateId = (templateId?: string | TemplateId): { category: TemplateCategory; color: ColorTheme } => {
+  // 기본값
+  const defaultCategory: TemplateCategory = 'style1';
+  const defaultColor: ColorTheme = 'blue';
+  
+  if (!templateId || typeof templateId !== 'string') {
+    return { category: defaultCategory, color: defaultColor };
+  }
+  
+  // 기존 형식 호환성 (legacy templateId 처리 - 모두 블루로 변환)
+  const legacyMap: Record<string, { category: TemplateCategory; color: ColorTheme }> = {
+    'blue': { category: 'style1', color: 'blue' },
+    'purple': { category: 'style1', color: 'blue' },
+    'orange': { category: 'style3', color: 'blue' },
+    'dark': { category: 'style1', color: 'blue' },
+    'emerald': { category: 'style2', color: 'blue' },
+    'teal': { category: 'style1', color: 'blue' },
+    'green': { category: 'style1', color: 'blue' },
+  };
+  
+  // 레거시 형식인 경우
+  if (legacyMap[templateId]) {
+    return legacyMap[templateId];
+  }
+  
+    // 새 형식 (style1-blue)
+    const parts = templateId.split('-');
+    if (parts.length === 2) {
+      const category = parts[0] as TemplateCategory;
+      const color = parts[1] as ColorTheme;
+      
+      // 유효성 검사
+      const validCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
+      const validColors: ColorTheme[] = ['blue'];
+      
+      // 블루가 아니면 블루로 변환
+      if (validCategories.includes(category)) {
+        return { category, color: 'blue' };
+      }
+    }
+  
+  // 기본값 반환
+  return { category: defaultCategory, color: defaultColor };
+};
 
 export interface ClassPlan {
   id: string;
   
   // Basic Info
-  title: string;          // 강좌명 (과목)
+  title: string;          // 반명 또는 강좌명
+  titleType?: 'class' | 'name';  // 'class': 반명, 'name': 강좌명
+  showTitle?: boolean;    // 반명/강좌명 표시 여부 (체크박스)
   subject?: string;       // 과목 (별도 표기 시)
   targetStudent: string;  // 대상 (학년 등)
+  showTargetStudent?: boolean;  // 수강대상 표시 여부 (체크박스)
   targetStudentDetail?: string; // 대상 학생 (이름 등)
   teacherName: string;    // 강사명
   
@@ -51,6 +132,8 @@ export interface ClassPlan {
   parentIntro?: string;   // 학부모 안내 문구
   keywords?: string;      // 키워드
   etc?: string;           // 기타 내용 (홍보문구/특이사항)
+  showEtc?: boolean;      // 홍보문구 표시 여부 (체크박스)
+  etcPosition?: 'top' | 'bottom'; // 홍보문구 위치 (맨위: 학부모 안내사항 위, 맨아래: 수강료 아래)
   
   // Weekly Plan (8주차)
   weeklyPlan: WeeklyItem[];
@@ -61,6 +144,7 @@ export interface ClassPlan {
   // Settings
   templateId?: TemplateId;
   sizePreset?: SizePreset;
+  typography?: TypographySettings;
   
   // Meta
   lastSaved?: string;     // 마지막 저장 시간

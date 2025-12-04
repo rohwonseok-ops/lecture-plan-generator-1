@@ -27,7 +27,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
   return (
     <div className="flex flex-col p-2 bg-white">
       <div className="flex items-center justify-between mb-1.5">
-        <h3 className="text-xs font-bold text-zinc-700">📅 주차별 수업 계획 (8주)</h3>
+        <h3 className="text-xs font-bold text-blue-600">📅 주차별 수업 계획 (8주)</h3>
       </div>
       
       <div className="grid grid-cols-2 gap-1.5">

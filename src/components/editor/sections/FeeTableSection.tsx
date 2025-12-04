@@ -10,7 +10,7 @@ interface Props {
 }
 
 const defaultFeeInfo: FeeInfo = {
-  title: '[수1/수2] 몰입특강 수강료',
+  title: '수강료 안내',
   rows: [
     { month: '1월', classType: '진도수업', day: '월수금', time: '각4시간', unitFee: 52500, sessions: 10, subtotal: 525000 },
     { month: '1월', classType: '확인학습', day: '', time: '매회', unitFee: 8000, sessions: 8, subtotal: 64000 },
@@ -63,9 +63,13 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
   };
 
   const addRow = () => {
-    const lastRow = feeInfo.rows[feeInfo.rows.length - 1];
+    if (!selectedMonth) {
+      setShowMessage('월을 선택해 주세요.');
+      setTimeout(() => setShowMessage(''), 2000);
+      return;
+    }
     const newRow: FeeRow = {
-      month: lastRow?.month || '1월',
+      month: selectedMonth,
       classType: '진도수업',
       day: '',
       time: '',
@@ -76,12 +80,25 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
     const newRows = [...feeInfo.rows, newRow];
     const monthlyTotals = calculateMonthlyTotals(newRows);
     onChange({ feeInfo: { ...feeInfo, rows: newRows, monthlyTotals } });
+    setShowMessage('');
   };
 
   const removeRow = (index: number) => {
+    if (!selectedMonth) {
+      setShowMessage('월을 선택해 주세요.');
+      setTimeout(() => setShowMessage(''), 2000);
+      return;
+    }
+    const rowToRemove = feeInfo.rows[index];
+    if (rowToRemove.month !== selectedMonth) {
+      setShowMessage('선택한 월의 행만 삭제할 수 있습니다.');
+      setTimeout(() => setShowMessage(''), 2000);
+      return;
+    }
     const newRows = feeInfo.rows.filter((_, i) => i !== index);
     const monthlyTotals = calculateMonthlyTotals(newRows);
     onChange({ feeInfo: { ...feeInfo, rows: newRows, monthlyTotals } });
+    setShowMessage('');
   };
 
   const formatCurrency = (value: number) => {
@@ -98,19 +115,14 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
     groupedByMonth[row.month].indices.push(idx);
   });
 
+  const [selectedMonth, setSelectedMonth] = React.useState<string | null>(null);
+  const [showMessage, setShowMessage] = React.useState<string>('');
+
   return (
     <div className="h-full flex flex-col p-3 bg-white overflow-hidden">
       <div className="flex items-center justify-between mb-2 flex-shrink-0">
-        <div className="flex items-center space-x-2">
-          <h3 className="text-xs font-bold text-zinc-700">💰 수강료 안내</h3>
-          <input
-            type="text"
-            className="text-sm px-2.5 py-1 bg-white border border-zinc-300 rounded focus:border-blue-500 outline-none w-52 text-zinc-800 placeholder:text-zinc-400"
-            value={feeInfo.title}
-            onChange={(e) => updateFeeInfo({ title: e.target.value })}
-            placeholder="수강료 안내 제목"
-          />
-        </div>
+          <h3 className="text-xs font-bold text-blue-600">💰 수강료 안내</h3>
+        <div className="flex items-center gap-2">
         <button
           onClick={addRow}
           className="flex items-center space-x-1 text-xs px-2.5 py-1 bg-zinc-800 text-white rounded hover:bg-zinc-900 transition"
@@ -118,7 +130,31 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
           <Plus className="w-3.5 h-3.5" />
           <span>행 추가</span>
         </button>
+          <button
+            onClick={() => {
+              if (!selectedMonth) {
+                setShowMessage('월을 선택해 주세요.');
+                setTimeout(() => setShowMessage(''), 2000);
+                return;
+              }
+              const monthIndices = feeInfo.rows
+                .map((row, idx) => row.month === selectedMonth ? idx : -1)
+                .filter(idx => idx !== -1);
+              if (monthIndices.length > 0) {
+                const lastIndex = monthIndices[monthIndices.length - 1];
+                removeRow(lastIndex);
+              }
+            }}
+            className="flex items-center space-x-1 text-xs px-2.5 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>행 삭제</span>
+          </button>
+        </div>
       </div>
+      {showMessage && (
+        <div className="mb-2 text-xs text-red-600 font-medium">{showMessage}</div>
+      )}
 
       <div className="flex-1 overflow-auto min-h-0">
         <table className="w-full text-xs border-collapse">
@@ -147,13 +183,19 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 return (
                   <tr key={globalIdx} className="border-b border-zinc-200 hover:bg-blue-50/50">
                     {isFirstOfMonth && (
-                      <td className="px-2 py-1.5 font-bold text-zinc-700 border-r border-zinc-200 bg-zinc-50" rowSpan={monthRows.length}>
-                        <input
-                          type="text"
-                          className="w-full px-1 py-0.5 bg-transparent border-none outline-none font-bold text-zinc-700 text-xs"
-                          value={row.month}
-                          onChange={(e) => updateRow(globalIdx, 'month', e.target.value)}
-                        />
+                      <td 
+                        className={`px-2 py-1.5 font-bold text-zinc-700 border-r border-zinc-200 bg-zinc-50 cursor-pointer transition-colors ${
+                          selectedMonth === month ? 'ring-2 ring-blue-500 ring-offset-1' : ''
+                        }`}
+                        rowSpan={monthRows.length}
+                        onClick={() => {
+                          setSelectedMonth(month);
+                          setShowMessage('');
+                        }}
+                      >
+                        <div className="w-full px-1 py-0.5 font-bold text-zinc-700 text-xs">
+                          {row.month}
+                        </div>
                       </td>
                     )}
                     <td className="px-1.5 py-1.5 border-r border-zinc-200">

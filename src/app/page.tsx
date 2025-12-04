@@ -3,20 +3,23 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useClassPlanStore } from '@/store/classPlanStore';
 import { Plus, Download, ZoomIn, ZoomOut, Save, RefreshCw, Upload, BookOpen, Layout } from 'lucide-react';
-import { ClassPlan, TemplateId } from '@/lib/types';
-import TemplateClassic from '@/components/templates/TemplateClassic';
-import TemplateBlue from '@/components/templates/TemplateBlue';
-import TemplatePurple from '@/components/templates/TemplatePurple';
-import TemplateMentoring from '@/components/templates/TemplateMentoring';
-import TemplateAcademic from '@/components/templates/TemplateAcademic';
-import TemplateDark from '@/components/templates/TemplateDark';
-import TemplatePoster from '@/components/templates/TemplatePoster';
-import TemplateTeal from '@/components/templates/TemplateTeal';
+import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings } from '@/lib/types';
+import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
+import { getDefaultTypography } from '@/lib/utils';
+import TemplateStyle1 from '@/components/templates/TemplateStyle1';
+import TemplateStyle2 from '@/components/templates/TemplateStyle2';
+import TemplateStyle3 from '@/components/templates/TemplateStyle3';
 import { downloadAsPng } from '@/lib/download';
 import ClassListDropdown from '@/components/editor/ClassListDropdown';
 import EditorPanel from '@/components/editor/EditorPanel';
 import CsvUploadModal from '@/components/import/CsvUploadModal';
 import TeacherDropdown from '@/components/editor/TeacherDropdown';
+
+// 템플릿 카테고리 목록
+const templateCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
+
+// 색상 테마 목록
+const colorThemeList: ColorTheme[] = ['blue'];
 
 export default function HomePage() {
   const { classPlans, selectedId, addClassPlan, updateClassPlan, setSelectedId, saveToStorage } = useClassPlanStore();
@@ -32,16 +35,22 @@ export default function HomePage() {
     : classPlans;
   const selectedPlan = filteredPlans.find(p => p.id === selectedId) || classPlans.find(p => p.id === selectedId);
 
+  // 현재 선택된 템플릿에서 카테고리와 색상 추출 (안전한 파싱)
+  const currentTemplateId = selectedPlan?.templateId || 'style1-blue';
+  const { category: currentCategory, color: currentColor } = parseTemplateId(currentTemplateId);
+
   const handleAddNew = () => {
     const newPlan: ClassPlan = {
       id: crypto.randomUUID(),
-      title: '새로운 강의',
+      title: '',
+      titleType: 'class',
       subject: '',
       targetStudent: '',
+      showTargetStudent: false,
       teacherName: '',
       classDay: '',
       classTime: '',
-      templateId: 'classic',
+      templateId: 'style1-blue',
       sizePreset: 'A4',
       weeklyPlan: Array.from({ length: 8 }, (_, i) => ({
         weekLabel: `${i + 1}주차`,
@@ -52,22 +61,14 @@ export default function HomePage() {
   };
 
   const getTemplateNameKorean = (templateId?: TemplateId) => {
-    const names: Record<TemplateId, string> = {
-      classic: '기본형',
-      blue: '네이비',
-      purple: '프로젝트',
-      mentoring: '활동형',
-      academic: '학술형',
-      dark: '다크',
-      poster: '포스터',
-      teal: '청록'
-    };
-    return names[templateId || 'classic'];
+    if (!templateId) return '스타일1 블루';
+    const { category, color } = parseTemplateId(templateId);
+    return `${templateCategoryNames[category]} ${colorThemeNames[color]}`;
   };
 
   const handleDownload = () => {
     if (selectedPlan && canvasRef.current) {
-      const year = new Date().getFullYear().toString().slice(-2); // 26
+      const year = new Date().getFullYear().toString().slice(-2);
       const templateName = getTemplateNameKorean(selectedPlan.templateId);
       const fileName = `${year}년_겨울특강_${selectedPlan.title || '강좌명'}_${selectedPlan.teacherName || '강사명'}_${templateName}`;
       downloadAsPng(canvasRef, fileName.replace(/\s+/g, '_'));
@@ -82,25 +83,73 @@ export default function HomePage() {
     setTimeout(() => setIsSaving(false), 500);
   };
 
-  const handleApplyToTemplate = () => {
-    // 템플릿에 반영 (이미 실시간 반영되지만, 명시적 저장)
-    handleSave();
-  };
-
-  const getTemplateComponent = (templateId?: TemplateId) => {
-    switch (templateId) {
-      case 'blue': return TemplateBlue;
-      case 'purple': return TemplatePurple;
-      case 'mentoring': return TemplateMentoring;
-      case 'academic': return TemplateAcademic;
-      case 'dark': return TemplateDark;
-      case 'poster': return TemplatePoster;
-      case 'teal': return TemplateTeal;
-      default: return TemplateClassic;
+  // 카테고리 변경
+  const handleCategoryChange = (newCategory: TemplateCategory) => {
+    if (selectedId) {
+      const newTemplateId = `${newCategory}-${currentColor}` as TemplateId;
+      updateClassPlan(selectedId, { templateId: newTemplateId });
     }
   };
-  
-  const TemplateComponent = getTemplateComponent(selectedPlan?.templateId);
+
+  // 색상 변경
+  const handleColorChange = (newColor: ColorTheme) => {
+    if (selectedId) {
+      const newTemplateId = `${currentCategory}-${newColor}` as TemplateId;
+      updateClassPlan(selectedId, { templateId: newTemplateId });
+    }
+  };
+
+  // 타이포그래피 설정 가져오기
+  const typography = selectedPlan?.typography || getDefaultTypography();
+
+  // 폰트 옵션
+  const fontOptions: { value: FontFamily; label: string }[] = [
+    { value: 'jeju', label: '제주고딕' },
+    { value: 'nanum-square', label: '나눔스퀘어' },
+    { value: 'nanum-human', label: '나눔휴먼' },
+    { value: 'nanum-barun', label: '나눔바른고딕' },
+    { value: 'pretendard', label: 'Pretendard' },
+    { value: 'noto-sans-kr', label: 'Noto Sans KR' },
+    { value: 'korail', label: '코레일체' },
+  ];
+
+  // 타이포그래피 변경
+  const handleTypographyChange = (field: keyof TypographySettings, value: FontFamily | number | boolean) => {
+    if (selectedId) {
+      updateClassPlan(selectedId, {
+        typography: {
+          ...typography,
+          [field]: value,
+        },
+      });
+    }
+  };
+
+  // 폰트 굵기 옵션 (차이를 확연하게 구별)
+  const fontWeightOptions = [
+    { value: 300, label: '보통' },    // 300: Light
+    { value: 500, label: '중간' },    // 500: Medium
+    { value: 600, label: '세미볼드' }, // 600: SemiBold
+    { value: 700, label: '볼드' },    // 700: Bold
+  ];
+
+  // 템플릿 컴포넌트 렌더링
+  const renderTemplate = () => {
+    if (!selectedPlan) return null;
+    
+    const props = { classPlan: selectedPlan, colorTheme: currentColor };
+    
+    switch (currentCategory) {
+      case 'style1':
+        return <TemplateStyle1 {...props} />;
+      case 'style2':
+        return <TemplateStyle2 {...props} />;
+      case 'style3':
+        return <TemplateStyle3 {...props} />;
+      default:
+        return <TemplateStyle1 {...props} />;
+    }
+  };
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
@@ -186,62 +235,162 @@ export default function HomePage() {
         {/* Right Panel: Preview */}
         <div className="flex-1 bg-zinc-200/50 flex flex-col overflow-hidden">
           {/* Preview Toolbar */}
-          <div className="h-11 bg-white border-b border-zinc-200 flex items-center justify-between px-4 flex-shrink-0">
+          <div className="h-auto bg-white border-b border-zinc-200 flex flex-col px-4 py-2 flex-shrink-0 gap-2">
+            {/* 첫 번째 줄: 스타일 선택 + 폰트 설정 */}
             <div className="flex items-center space-x-4">
-              <span className="text-[10px] font-bold text-zinc-400 uppercase">템플릿</span>
-              <div className="flex bg-zinc-100 rounded-md p-0.5 flex-wrap gap-0.5">
-                {(['classic', 'blue', 'purple', 'mentoring', 'academic', 'dark', 'poster', 'teal'] as TemplateId[]).map(t => (
+              <div className="flex bg-zinc-100 rounded-md p-0.5 gap-0.5">
+                {templateCategories.map(cat => (
                   <button
-                    key={t}
-                    onClick={() => selectedId && updateClassPlan(selectedId, { templateId: t })}
-                    className={`px-2 py-1 text-[10px] rounded font-medium transition-all ${
-                      selectedPlan?.templateId === t 
+                    key={cat}
+                    onClick={() => handleCategoryChange(cat)}
+                    className={`px-2.5 py-1 text-[10px] rounded font-medium transition-all ${
+                      currentCategory === cat 
                         ? 'bg-white text-blue-600 shadow-sm' 
                         : 'text-zinc-500 hover:text-zinc-900'
                     }`}
                   >
-                    {{
-                      classic: '기본형',
-                      blue: '네이비',
-                      purple: '프로젝트',
-                      mentoring: '활동형',
-                      academic: '학술형',
-                      dark: '다크',
-                      poster: '포스터',
-                      teal: '청록'
-                    }[t]}
+                    {templateCategoryNames[cat]}
                   </button>
                 ))}
               </div>
+              
+              {/* 폰트 설정 */}
+              <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-zinc-200">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={typography.enableFontSizeChange || false}
+                    onChange={(e) => handleTypographyChange('enableFontSizeChange', e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-4 h-4 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center">
+                    {typography.enableFontSizeChange && (
+                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                </label>
+                <span className="text-[8px] text-zinc-500">크기조정</span>
+                
+                <span className="text-[9px] font-bold text-zinc-400 uppercase ml-2">제목</span>
+                <select
+                  value={typography.titleFont}
+                  onChange={(e) => handleTypographyChange('titleFont', e.target.value as FontFamily)}
+                  className="text-[9px] px-1.5 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                >
+                  {fontOptions.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+                <select
+                  value={typography.titleWeight || 300}
+                  onChange={(e) => handleTypographyChange('titleWeight', parseInt(e.target.value) || 300)}
+                  className="text-[9px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-14"
+                  title="제목 굵기"
+                >
+                  {fontWeightOptions.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min="8"
+                  max="32"
+                  value={typography.titleSize}
+                  onChange={(e) => handleTypographyChange('titleSize', parseInt(e.target.value) || 16)}
+                  disabled={!typography.enableFontSizeChange}
+                  className={`w-10 text-[9px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none ${
+                    !typography.enableFontSizeChange ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : ''
+                  }`}
+                  title="제목 크기 (pt)"
+                />
+                <span className="text-[8px] text-zinc-400">pt</span>
+                
+                <span className="text-[9px] font-bold text-zinc-400 uppercase ml-2">본문</span>
+                <select
+                  value={typography.bodyFont}
+                  onChange={(e) => handleTypographyChange('bodyFont', e.target.value as FontFamily)}
+                  className="text-[9px] px-1.5 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                >
+                  {fontOptions.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+                <select
+                  value={typography.bodyWeight || 300}
+                  onChange={(e) => handleTypographyChange('bodyWeight', parseInt(e.target.value) || 300)}
+                  className="text-[9px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-14"
+                  title="본문 굵기"
+                >
+                  {fontWeightOptions.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min="8"
+                  max="24"
+                  value={typography.bodySize}
+                  onChange={(e) => handleTypographyChange('bodySize', parseInt(e.target.value) || 13)}
+                  disabled={!typography.enableFontSizeChange}
+                  className={`w-10 text-[9px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none ${
+                    !typography.enableFontSizeChange ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : ''
+                  }`}
+                  title="본문 크기 (pt)"
+                />
+                <span className="text-[8px] text-zinc-400">pt</span>
+              </div>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center bg-zinc-100 rounded-md p-0.5">
-                <button 
-                  onClick={() => setScale(s => Math.max(0.2, s - 0.05))}
-                  className="p-1 hover:bg-white rounded text-zinc-500"
-                >
-                  <ZoomOut className="w-3.5 h-3.5" />
-                </button>
-                <span className="text-[10px] font-medium text-zinc-500 w-10 text-center">
-                  {Math.round(scale * 100)}%
-                </span>
-                <button 
-                  onClick={() => setScale(s => Math.min(1, s + 0.05))}
-                  className="p-1 hover:bg-white rounded text-zinc-500"
-                >
-                  <ZoomIn className="w-3.5 h-3.5" />
-                </button>
+            {/* 두 번째 줄: 색상 선택 + 줌/다운로드 */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center space-x-4 flex-1">
+                <div className="flex bg-zinc-100 rounded-md p-0.5 gap-0.5">
+                  {colorThemeList.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => handleColorChange(color)}
+                      className={`px-2 py-1 text-[10px] rounded font-medium transition-all ${
+                        currentColor === color 
+                          ? 'bg-white text-blue-600 shadow-sm' 
+                          : 'text-zinc-500 hover:text-zinc-900'
+                      }`}
+                    >
+                      {colorThemeNames[color]}
+                    </button>
+                  ))}
+                </div>
               </div>
               
-              <button 
-                onClick={handleDownload}
-                disabled={!selectedPlan}
-                className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>PNG 다운로드</span>
-              </button>
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                <div className="flex items-center bg-zinc-100 rounded-md p-0.5">
+                  <button 
+                    onClick={() => setScale(s => Math.max(0.2, s - 0.05))}
+                    className="p-1 hover:bg-white rounded text-zinc-500"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-[10px] font-medium text-zinc-500 w-10 text-center">
+                    {Math.round(scale * 100)}%
+                  </span>
+                  <button 
+                    onClick={() => setScale(s => Math.min(1, s + 0.05))}
+                    className="p-1 hover:bg-white rounded text-zinc-500"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                
+                <button 
+                  onClick={handleDownload}
+                  disabled={!selectedPlan}
+                  className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>PNG 다운로드</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -256,7 +405,7 @@ export default function HomePage() {
                 className="shadow-2xl"
               >
                 <div ref={canvasRef}>
-                  <TemplateComponent classPlan={selectedPlan} />
+                  {renderTemplate()}
                 </div>
               </div>
             ) : (

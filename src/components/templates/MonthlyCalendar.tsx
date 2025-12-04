@@ -1,10 +1,13 @@
 'use client';
 
 import React from 'react';
-import { ClassPlan } from '@/lib/types';
+import { ClassPlan, ColorTheme } from '@/lib/types';
+import { colorThemes, ColorPalette } from '@/lib/colorThemes';
 
 interface Props {
   classPlan: ClassPlan;
+  colorTheme?: ColorTheme;
+  typography?: ClassPlan['typography'];
 }
 
 interface CalendarDay {
@@ -14,9 +17,38 @@ interface CalendarDay {
   isHoliday: boolean;
   isClassDay: boolean;
   holidayLabel?: string;
+  classType?: 'regular' | 'special'; // 정규수업 또는 특강수업
 }
 
-const MonthlyCalendar: React.FC<Props> = ({ classPlan }) => {
+const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue', typography }) => {
+  // 색상 테마 가져오기
+  const colors: ColorPalette = colorThemes[colorTheme] || colorThemes.blue;
+
+  // 특강수업 색상 계산 헬퍼 함수 (더 세련된 색상)
+  const getSpecialColor = (primary: string) => {
+    // 블루 계열 (#6A9FB8 등) → 세련된 파스텔 보라색 (블루와 잘 어울림)
+    if (primary.includes('6A9F') || primary.includes('3B82') || primary.includes('4A7F')) {
+      return { bg: '#E9D5FF', text: '#6B21A8', border: '#C084FC' }; // 부드러운 파스텔 보라
+    }
+    // 퍼플 계열 → 세련된 민트/틸 계열
+    if (primary.includes('7C3A') || primary.includes('5B21')) {
+      return { bg: '#D1FAE5', text: '#065F46', border: '#6EE7B7' }; // 부드러운 민트 그린
+    }
+    // 오렌지 계열 → 세련된 라벤더/퍼플 계열
+    if (primary.includes('F973') || primary.includes('EA58')) {
+      return { bg: '#E9D5FF', text: '#6B21A8', border: '#C084FC' }; // 부드러운 라벤더
+    }
+    // 틸 계열 → 세련된 피치/코랄 계열
+    if (primary.includes('14B8') || primary.includes('0D94')) {
+      return { bg: '#FED7AA', text: '#9A3412', border: '#FDBA74' }; // 부드러운 피치
+    }
+    // 그린 계열 → 세련된 라벤더/퍼플 계열
+    if (primary.includes('0E6A') || primary.includes('0A4E')) {
+      return { bg: '#E9D5FF', text: '#6B21A8', border: '#C084FC' }; // 부드러운 라벤더
+    }
+    // 기본값: 부드러운 파스텔 보라
+    return { bg: '#E9D5FF', text: '#6B21A8', border: '#C084FC' };
+  };
   // 수업 요일 파싱 (예: "월수금" -> [1, 3, 5])
   const parseClassDays = (classDay: string): number[] => {
     const dayMap: Record<string, number> = {
@@ -45,7 +77,7 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan }) => {
     // 연휴 정의 (2026년 기준)
     const holidays: Record<string, { start: number; end: number; label: string }> = {
       '1': { start: 1, end: 1, label: '신정' }, // 1월 1일
-      '2': { start: 7, end: 9, label: '설날 연휴' }, // 2026년 2월 7-9일 (음력 기준)
+      '2': { start: 15, end: 18, label: '설연휴' }, // 2026년 2월 15-18일
     };
 
     const monthKey = month.toString();
@@ -78,6 +110,17 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan }) => {
       }
       
       const isClassDay = classDays.includes(dayOfWeek);
+      
+      // 정규수업/특강수업 구분
+      // 1월 10일까지: 정규수업, 1월 12일부터 2월 말까지: 특강수업
+      let classType: 'regular' | 'special' | undefined;
+      if (isClassDay && !isHoliday) {
+        if (month === 1 && date <= 10) {
+          classType = 'regular';
+        } else if ((month === 1 && date >= 12) || month === 2) {
+          classType = 'special';
+        }
+      }
 
       calendar.push({
         date,
@@ -86,6 +129,7 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan }) => {
         isHoliday,
         isClassDay,
         holidayLabel,
+        classType,
       });
     }
 
@@ -105,16 +149,17 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan }) => {
 
     return (
       <div className="flex-1">
-        <div className="text-base font-bold mb-2 text-center">2026년 {monthName}</div>
+        <div className="mb-1 text-center" style={{ fontSize: '11pt', fontWeight: 600 }}>2026년 {monthName}</div>
         <div className="border border-zinc-300 rounded">
           {/* 요일 헤더 */}
           <div className="grid grid-cols-7 border-b border-zinc-300">
             {weekDays.map((day, idx) => (
               <div
                 key={idx}
-                className={`text-xs font-bold py-1 text-center border-r border-zinc-300 last:border-r-0 ${
+                className={`font-bold py-0.5 text-center border-r border-zinc-300 last:border-r-0 ${
                   idx === 0 ? 'text-red-600' : 'text-zinc-700'
                 }`}
+                style={{ fontSize: '11pt' }}
               >
                 {day}
               </div>
@@ -129,7 +174,7 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan }) => {
                   return (
                     <div
                       key={dayIdx}
-                      className="h-8 border-r border-zinc-300 last:border-r-0 bg-zinc-50"
+                      className="h-6 border-r border-zinc-300 last:border-r-0 bg-zinc-50"
                     />
                   );
                 }
@@ -137,25 +182,58 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan }) => {
                 const isHolidayRange = day.isHoliday;
                 const isSunday = day.isSunday && !isHolidayRange;
                 const isClassDay = day.isClassDay && !isHolidayRange;
+                const isRegularClass = day.classType === 'regular';
+                const isSpecialClass = day.classType === 'special';
+
+                // 정규수업: 파스텔 베이지 계열 배경 (테두리 없음)
+                const regularBgColor = '#F7E9D8'; // 밝고 세련된 베이지 배경
+                const regularTextColor = '#6B5B4F'; // 세련된 베이지/브라운 텍스트
+
+                // 특강수업: 같은 블루 계열이지만 더 어둡게
+                const specialBgColor = colors.lighter || `${colors.primary}60`; // 정규수업보다 더 진한 블루
+                const specialTextColor = colors.dark || colors.primary; // 테마의 진한 텍스트색
+                const specialBorderColor = colors.border || colors.primary; // 테마의 테두리색
 
                 return (
                   <div
                     key={dayIdx}
-                    className={`h-8 border-r border-zinc-300 last:border-r-0 flex items-center justify-center text-xs font-medium ${
+                    className={`h-6 border-r border-zinc-300 last:border-r-0 flex items-center justify-center font-medium ${
                       isHolidayRange
-                        ? 'bg-red-600 text-white'
+                        ? 'bg-red-200 text-red-800'
                         : isSunday
                         ? 'text-red-600 bg-white'
+                        : isRegularClass
+                        ? ''
+                        : isSpecialClass
+                        ? ''
                         : isClassDay
-                        ? 'bg-amber-50 text-zinc-700'
+                        ? 'bg-zinc-50 text-zinc-700'
                         : 'bg-white text-zinc-600'
                     }`}
+                    style={
+                      isRegularClass
+                        ? {
+                            fontSize: '11pt',
+                            backgroundColor: regularBgColor,
+                            color: regularTextColor,
+                          }
+                        : isSpecialClass
+                        ? {
+                            fontSize: '11pt',
+                            backgroundColor: specialBgColor,
+                            color: specialTextColor,
+                            borderColor: specialBorderColor,
+                          }
+                        : { fontSize: '11pt' }
+                    }
                   >
-                    <div className="text-center">
-                      <div>{day.date}</div>
-                      {day.holidayLabel && (
-                        <div className="text-[8px] leading-tight">{day.holidayLabel}</div>
-                      )}
+                    <div className="text-center leading-tight">
+                      <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                        <span>{day.date}</span>
+                        {day.holidayLabel && (
+                          <span style={{ fontSize: day.date === 1 ? '8pt' : '9pt' }}>{day.holidayLabel}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -168,24 +246,37 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan }) => {
   };
 
   return (
-    <div className="mb-6">
-      <h3 className="font-bold text-base mb-3 border-b-2 border-black pb-2 uppercase tracking-wide">
-        월간계획
-      </h3>
-      <div className="flex gap-4">
+    <div className="mb-3">
+      <div className="flex gap-2">
         <CalendarGrid month={1} calendar={january} monthName="1월" />
-        <CalendarGrid month={2} calendar={february} monthName="2월" />
-      </div>
-      
-      {/* 범례 */}
-      <div className="mt-3 flex gap-4 text-[10px]">
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 bg-amber-50 border border-zinc-300"></div>
-          <span>수업 요일</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-4 h-4 bg-red-600"></div>
-          <span>설날 연휴</span>
+        <div className="flex-1 flex flex-col">
+          <CalendarGrid month={2} calendar={february} monthName="2월" />
+          {/* 범례 */}
+          <div className="mt-2 flex gap-3" style={{ fontSize: '11pt' }}>
+            <div className="flex items-center gap-1">
+              <div 
+                className="w-4 h-4" 
+                style={{ 
+                  backgroundColor: '#F7E9D8',
+                }}
+              ></div>
+              <span>정규수업</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div 
+                className="w-4 h-4 border" 
+                style={{ 
+                  backgroundColor: colors.lighter || `${colors.primary}60`,
+                  borderColor: colors.border || colors.primary,
+                }}
+              ></div>
+              <span>특강수업</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 bg-red-200"></div>
+              <span>공휴일</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,11 +1,103 @@
-@import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square.css');
+/* 나눔스퀘어 - 웹폰트 (사용자 제공 링크) */
+@import url('https://cdn.rawgit.com/moonspam/NanumSquare/master/nanumsquare.css');
 
-/* Jeju Gothic 폰트 정의 */
+/* 나눔명조 - 네이버 웹폰트 CDN */
+@import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-myeongjo.css');
+
+/* 나눔바른고딕 - 네이버 웹폰트 CDN */
+@import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-barun-gothic.css');
+
+/* Pretendard - 웹폰트 (사용자 제공 링크) */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/pretendard@1.0/Pretendard-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
+/* Noto Sans KR - 웹폰트 (사용자 제공 링크) */
+@import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+/* Jeju Gothic 폰트 정의 (로컬 파일) */
 @font-face {
   font-family: 'Jeju Gothic';
   src: url('/fonts/JejuGothicOTF.otf') format('opentype');
-  font-weight: normal;
+  font-weight: 400;
   font-style: normal;
+  font-display: swap;
+}
+
+/* 코레일체 - 웹폰트 (사용자 제공 링크) */
+@font-face {
+  font-family: 'Korail';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2511-Korail@1.0/KorailL.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Korail';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2511-Korail@1.0/KorailM.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Korail';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2511-Korail@1.0/KorailB.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Korail';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2511-Korail@1.0/KorailB.woff2') format('woff2');
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -17,6 +109,11 @@
   :root {
     --font-jeju-gothic: 'Jeju Gothic', sans-serif;
     --font-nanum-square: 'Nanum Square', sans-serif;
+    --font-nanum-human: 'Nanum Myeongjo', serif;
+    --font-nanum-barun: 'Nanum Barun Gothic', sans-serif;
+    --font-pretendard: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-noto-sans-kr: 'Noto Sans KR', sans-serif;
+    --font-korail: 'Korail', sans-serif;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
