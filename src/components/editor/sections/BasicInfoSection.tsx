@@ -12,6 +12,12 @@ interface Props {
 
 const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const [generatingField, setGeneratingField] = useState<string | null>(null);
+  const twoLineDividerStyle: React.CSSProperties = {
+    backgroundImage: 'linear-gradient(to right, #e5e7eb, #e5e7eb)',
+    backgroundSize: '100% 1px',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  };
 
   const handleAiGenerate = async (field: keyof ClassPlan, type: AiGenerateOptions['type']) => {
     setGeneratingField(field as string);
@@ -30,8 +36,8 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
   }, [onChange]);
 
   return (
-    <div className="p-4 bg-zinc-100">
-      <div className="grid grid-cols-12 gap-3">
+    <div className="p-3 bg-zinc-100">
+      <div className="grid grid-cols-12 gap-2.5">
         {/* Row 1: 수강대상 20%, 홍보문구 및 특이사항 80% */}
         <div className="col-span-2">
           <div className="flex items-center gap-2 mb-1">
@@ -142,8 +148,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
 
         {/* Row 3: 반명/강좌명, 강사명, 수업요일, 수업시간 */}
         <div className="col-span-3">
-          <label className="block text-xs font-bold text-blue-600 uppercase mb-1">반명/강좌명</label>
-          <div className="mb-1.5">
+          <div className="mb-1">
             <div className="flex bg-zinc-100 rounded-md p-0.5 gap-0.5">
               <button
                 type="button"
@@ -171,7 +176,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           </div>
           <input
             type="text"
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+            className="w-full h-9 text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
             value={classPlan.title || ''}
             onChange={handleChange('title')}
             placeholder={classPlan.titleType === 'name' ? "예: 수학 몰입특강" : "예: A반"}
@@ -179,12 +184,23 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
         <div className="col-span-3">
           <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">강사명</label>
-          <input
-            type="text"
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+          <textarea
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[44px] text-zinc-800 placeholder:text-zinc-400"
             value={classPlan.teacherName || ''}
             onChange={handleChange('teacherName')}
-            placeholder="홍길동"
+            onKeyDown={(e) => {
+              // Shift+Enter: 줄바꿈 허용
+              if (e.key === 'Enter' && e.shiftKey) {
+                return; // 기본 동작(줄바꿈) 허용
+              }
+              // Enter만: 기본 동작 막기 (폼 제출 방지)
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+              }
+            }}
+            placeholder="홍길동 (필요 시 두 줄 입력, Shift+Enter 줄바꿈)"
+            rows={2}
+            style={twoLineDividerStyle}
           />
         </div>
         <div className="col-span-3">
@@ -205,6 +221,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             }}
             placeholder="월수금 (Shift+Enter로 줄바꿈)"
             rows={2}
+            style={twoLineDividerStyle}
           />
         </div>
         <div className="col-span-3">
@@ -225,6 +242,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             }}
             placeholder="13:00-17:00 (Shift+Enter로 줄바꿈)"
             rows={2}
+            style={twoLineDividerStyle}
           />
         </div>
         

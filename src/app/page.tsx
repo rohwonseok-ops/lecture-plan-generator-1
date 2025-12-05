@@ -175,9 +175,9 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel: Editor */}
-        <div className="w-[55%] min-w-[700px] bg-white border-r border-zinc-200 flex flex-col overflow-hidden">
+        <div className="w-[55%] min-w-[700px] bg-white border-r border-zinc-200 flex flex-col overflow-hidden min-h-0">
           {/* Class Selector Bar */}
           <div className="h-11 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between px-4 flex-shrink-0">
             <div className="flex items-center space-x-3">
@@ -218,7 +218,7 @@ export default function HomePage() {
           </div>
 
           {/* Editor Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-auto custom-scrollbar">
             {selectedPlan ? (
               <EditorPanel
                 classPlan={selectedPlan}
@@ -233,7 +233,7 @@ export default function HomePage() {
         </div>
 
         {/* Right Panel: Preview */}
-        <div className="flex-1 bg-zinc-200/50 flex flex-col overflow-hidden">
+        <div className="flex-1 bg-zinc-200/50 flex flex-col overflow-hidden min-h-0">
           {/* Preview Toolbar */}
           <div className="h-auto bg-white border-b border-zinc-200 flex flex-col px-4 py-2 flex-shrink-0 gap-2">
             {/* 첫 번째 줄: 스타일 선택 + 폰트 설정 */}
@@ -395,7 +395,7 @@ export default function HomePage() {
           </div>
 
           {/* Preview Canvas */}
-          <div className="flex-1 overflow-auto flex items-start justify-center p-6">
+          <div className="flex-1 min-h-0 overflow-auto flex items-start justify-center p-6 custom-scrollbar">
             {selectedPlan ? (
               <div 
                 style={{ 

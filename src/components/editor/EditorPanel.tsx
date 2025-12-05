@@ -13,7 +13,7 @@ interface Props {
 
 const EditorPanel: React.FC<Props> = ({ classPlan, onChange }) => {
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-y-auto custom-scrollbar">
       {/* 상단: 기본정보 */}
       <div className="flex-shrink-0 border-b border-zinc-200">
         <BasicInfoSection classPlan={classPlan} onChange={onChange} />
