@@ -34,11 +34,33 @@ const defaultFeeInfo = {
   ]
 };
 
+// 로드/저장 시 필수 필드 강제 세팅
+const normalizePlan = (plan: ClassPlan): ClassPlan => {
+  const weeklyPlan = plan.weeklyPlan?.length ? plan.weeklyPlan : defaultWeeklyPlan;
+  const feeInfo = plan.feeInfo
+    ? { ...plan.feeInfo, title: plan.feeInfo.title || '수강료 안내' }
+    : { ...defaultFeeInfo, title: '수강료 안내' };
+
+  return {
+    title: plan.title || '강좌명',
+    showTitle: plan.showTitle !== false,
+    targetStudent: plan.targetStudent || '',
+    teacherName: plan.teacherName || '',
+    classDay: plan.classDay || '',
+    classTime: plan.classTime || '',
+    templateId: plan.templateId || 'style1-blue',
+    sizePreset: plan.sizePreset || 'A4',
+    ...plan,
+    weeklyPlan,
+    feeInfo,
+  };
+};
+
 export const useClassPlanStore = create<ClassPlanState>()(
   persist(
     (set, get) => ({
       classPlans: [
-        {
+        normalizePlan({
           id: 'demo-1',
           title: '수학',
           subject: '수학',
@@ -68,25 +90,21 @@ export const useClassPlanStore = create<ClassPlanState>()(
             { weekLabel: '8주차', topic: '총정리 및 평가' },
           ],
           feeInfo: defaultFeeInfo,
-          templateId: 'classic',
+          templateId: 'style1-blue',
           sizePreset: 'A4'
-        }
+        })
       ],
       selectedId: 'demo-1',
 
-      setClassPlans: (plans) => set({ classPlans: plans }),
+      setClassPlans: (plans) => set({ classPlans: plans.map(normalizePlan) }),
       
       addClassPlan: (plan) => set((state) => ({ 
-        classPlans: [...state.classPlans, {
-          ...plan,
-          weeklyPlan: plan.weeklyPlan?.length ? plan.weeklyPlan : defaultWeeklyPlan,
-          feeInfo: plan.feeInfo || defaultFeeInfo
-        }],
+        classPlans: [...state.classPlans, normalizePlan(plan)],
         selectedId: plan.id 
       })),
       
       updateClassPlan: (id, patch) => set((state) => ({
-        classPlans: state.classPlans.map((p) => (p.id === id ? { ...p, ...patch } : p))
+        classPlans: state.classPlans.map((p) => (p.id === id ? normalizePlan({ ...p, ...patch }) : p))
       })),
       
       removeClassPlan: (id) => set((state) => ({
@@ -112,6 +130,11 @@ export const useClassPlanStore = create<ClassPlanState>()(
     }),
     {
       name: 'lecture-plan-storage',
+      onRehydrateStorage: () => (state, error) => {
+        if (error || !state) return;
+        const normalized = state.classPlans?.map(normalizePlan) || [];
+        set({ classPlans: normalized, selectedId: state.selectedId });
+      },
     }
   )
 );
