@@ -48,13 +48,20 @@ export interface TypographySettings {
 export type TemplateCategory = 'style1' | 'style2' | 'style3';
 
 // 색상 테마
-export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green';
+export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green' | 'dancheong' | 'navyGold' | 'blackOrange';
 
-// TemplateId = 카테고리-색상 조합 (블루만 사용)
+// TemplateId = 카테고리-색상 조합 + 레거시 호환 ID
 export type TemplateId = 
-  | 'style1-blue'
-  | 'style2-blue'
-  | 'style3-blue';
+  | `${TemplateCategory}-${ColorTheme}`
+  // 레거시 템플릿 ID들 (구 버전 호환)
+  | 'classic'
+  | 'blue'
+  | 'report'
+  | 'modern'
+  | 'purple'
+  | 'mentoring'
+  | 'academic'
+  | 'dark';
 
 // TemplateId에서 카테고리와 색상 추출 유틸리티 (안전한 파싱)
 export const parseTemplateId = (templateId?: string | TemplateId): { category: TemplateCategory; color: ColorTheme } => {
@@ -66,15 +73,23 @@ export const parseTemplateId = (templateId?: string | TemplateId): { category: T
     return { category: defaultCategory, color: defaultColor };
   }
   
-  // 기존 형식 호환성 (legacy templateId 처리 - 모두 블루로 변환)
+  // 기존 형식 호환성 (legacy templateId 처리)
   const legacyMap: Record<string, { category: TemplateCategory; color: ColorTheme }> = {
+    // 색상명 기반 구식 ID
     'blue': { category: 'style1', color: 'blue' },
-    'purple': { category: 'style1', color: 'blue' },
-    'orange': { category: 'style3', color: 'blue' },
+    'purple': { category: 'style1', color: 'purple' },
+    'orange': { category: 'style3', color: 'orange' },
+    'emerald': { category: 'style2', color: 'green' },
+    'teal': { category: 'style1', color: 'teal' },
+    'green': { category: 'style1', color: 'green' },
     'dark': { category: 'style1', color: 'blue' },
-    'emerald': { category: 'style2', color: 'blue' },
-    'teal': { category: 'style1', color: 'blue' },
-    'green': { category: 'style1', color: 'blue' },
+    // 템플릿명 기반 구식 ID
+    'classic': { category: 'style1', color: 'blue' },
+    'report': { category: 'style2', color: 'blue' },
+    'modern': { category: 'style3', color: 'blue' },
+    'mentoring': { category: 'style3', color: 'teal' },
+    'academic': { category: 'style2', color: 'purple' },
+    'dark-mode': { category: 'style1', color: 'blue' },
   };
   
   // 레거시 형식인 경우
@@ -90,11 +105,10 @@ export const parseTemplateId = (templateId?: string | TemplateId): { category: T
       
       // 유효성 검사
       const validCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
-      const validColors: ColorTheme[] = ['blue'];
+      const validColors: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong', 'navyGold', 'blackOrange'];
       
-      // 블루가 아니면 블루로 변환
-      if (validCategories.includes(category)) {
-        return { category, color: 'blue' };
+      if (validCategories.includes(category) && validColors.includes(color)) {
+        return { category, color };
       }
     }
   

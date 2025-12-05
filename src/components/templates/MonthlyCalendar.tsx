@@ -228,10 +228,17 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue', typo
                     }
                   >
                     <div className="text-center leading-tight">
-                      <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-0.5 whitespace-nowrap">
                         <span>{day.date}</span>
                         {day.holidayLabel && (
-                          <span style={{ fontSize: day.date === 1 ? '8pt' : '9pt' }}>{day.holidayLabel}</span>
+                          <span
+                            style={{
+                              fontSize: day.date === 1 ? '8pt' : '8pt',
+                              letterSpacing: '-0.1px',
+                            }}
+                          >
+                            {day.holidayLabel}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -248,34 +255,28 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue', typo
   return (
     <div className="mb-3">
       <div className="flex gap-2">
-        <CalendarGrid month={1} calendar={january} monthName="1월" />
-        <div className="flex-1 flex flex-col">
-          <CalendarGrid month={2} calendar={february} monthName="2월" />
+        <div className="flex-1 rounded-2xl border border-white/70 bg-white/92 shadow-[0_14px_36px_rgba(15,23,42,0.08)] p-3">
+          <CalendarGrid month={1} calendar={january} monthName="1월" />
+        </div>
+        <div className="flex-1 flex flex-col gap-2">
+          <div className="rounded-2xl border border-white/70 bg-white/92 shadow-[0_14px_36px_rgba(15,23,42,0.08)] p-3">
+            <CalendarGrid month={2} calendar={february} monthName="2월" />
+          </div>
           {/* 범례 */}
-          <div className="mt-2 flex gap-3" style={{ fontSize: '11pt' }}>
-            <div className="flex items-center gap-1">
-              <div 
-                className="w-4 h-4" 
-                style={{ 
-                  backgroundColor: '#F7E9D8',
-                }}
-              ></div>
-              <span>정규수업</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div 
-                className="w-4 h-4 border" 
-                style={{ 
-                  backgroundColor: colors.lighter || `${colors.primary}60`,
-                  borderColor: colors.border || colors.primary,
-                }}
-              ></div>
-              <span>특강수업</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 bg-red-200"></div>
-              <span>공휴일</span>
-            </div>
+          <div className="mt-1 flex gap-2 text-[11pt]">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#F7E9D8] text-[#6B5B4F] border border-[#E2D3C4] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">정규수업</span>
+            <span
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-full"
+              style={{
+                backgroundColor: colors.lighter || `${colors.primary}60`,
+                color: colors.dark || colors.primary,
+                border: `1px solid ${colors.border || colors.primary}`,
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+              }}
+            >
+              특강수업
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-100 text-red-700 border border-red-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">공휴일</span>
           </div>
         </div>
       </div>

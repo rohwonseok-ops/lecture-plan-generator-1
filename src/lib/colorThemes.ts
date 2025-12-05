@@ -7,9 +7,12 @@
  * - orange: 비비드 오렌지
  * - teal: 청록색 틸
  * - green: 에메랄드 그린
+ * - dancheong: 단청 감성의 네온 멀티컬러
+ * - navyGold: 네이비 + 골드 클래식 콘서트
+ * - blackOrange: 블랙/오렌지 하이컨트라스트 포스터
  */
 
-export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green';
+export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green' | 'dancheong' | 'navyGold' | 'blackOrange';
 
 export interface ColorPalette {
   primary: string;      // 메인 강조색 (헤더, 버튼 등)
@@ -60,6 +63,30 @@ export const colorThemes: Record<ColorTheme, ColorPalette> = {
     lighter: '#D1FAE5',
     border: '#A7D3C7',
     gradient: 'linear-gradient(135deg, #0E6A5B 0%, #0A4E43 100%)'
+  },
+  dancheong: {
+    primary: '#FF4FD2',
+    dark: '#0F1A5B',
+    light: '#F6F7FB',
+    lighter: '#EBEDF5',
+    border: '#B2B6E8',
+    gradient: 'linear-gradient(135deg, #FF4FD2 0%, #11C3FF 35%, #FF9A3D 70%, #6BE87D 100%)'
+  },
+  navyGold: {
+    primary: '#E7D08A',
+    dark: '#0C1429',
+    light: '#F9F4E4',
+    lighter: '#EEE5CF',
+    border: '#D9C38F',
+    gradient: 'linear-gradient(135deg, #0C1429 0%, #132040 55%, #E7D08A 130%)'
+  },
+  blackOrange: {
+    primary: '#FF4F1F',
+    dark: '#0D0D0D',
+    light: '#1A1A1A',
+    lighter: '#222222',
+    border: '#2E2E2E',
+    gradient: 'linear-gradient(135deg, #0D0D0D 0%, #1A1A1A 45%, #FF4F1F 115%)'
   }
 };
 
@@ -69,7 +96,10 @@ export const colorThemeNames: Record<ColorTheme, string> = {
   purple: '퍼플',
   orange: '오렌지',
   teal: '틸',
-  green: '그린'
+  green: '에메랄드',
+  dancheong: '단청 멀티',
+  navyGold: '네이비 골드',
+  blackOrange: '블랙 오렌지'
 };
 
 // 템플릿 카테고리 정의

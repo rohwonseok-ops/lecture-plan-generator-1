@@ -19,7 +19,7 @@ import TeacherDropdown from '@/components/editor/TeacherDropdown';
 const templateCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
 
 // 색상 테마 목록
-const colorThemeList: ColorTheme[] = ['blue'];
+const colorThemeList: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong', 'navyGold', 'blackOrange'];
 
 export default function HomePage() {
   const { classPlans, selectedId, addClassPlan, updateClassPlan, setSelectedId, saveToStorage } = useClassPlanStore();

@@ -50,25 +50,66 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
   
   const titleWeight = typography.titleWeight || 400;
   const bodyWeight = typography.bodyWeight || 400;
-  
+  const headerBackground = colorTheme === 'midnightSunset'
+    ? '#FBBB1D'
+    : `linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 45%), ${colors.gradient || colors.primary}`;
+  const headerShadow = '0 14px 34px rgba(15,23,42,0.18)';
+
+  const isNavyGold = colorTheme === 'navyGold';
+  const isMidnightSunset = colorTheme === 'midnightSunset';
+  const pageBackground = isNavyGold
+    ? 'linear-gradient(140deg, #0A1226 0%, #0F1C3B 55%, #1C2746 100%)'
+    : isMidnightSunset
+      ? 'linear-gradient(135deg, #FF8A1F 0%, #FFB526 55%, #FF8A1F 100%)'
+      : 'linear-gradient(135deg, #f8fafc 0%, #ffffff 55%, #f1f5f9 100%)';
 
   return (
-    <div className={`w-[210mm] min-h-[297mm] bg-white flex flex-col text-zinc-900 ${bodyFontClass} relative`} style={{ fontSize: `${typography.bodySize}pt`, fontWeight: bodyWeight }}>
-      {/* 좌상단 장식 삼각형 */}
-      <div 
-        className="absolute top-0 left-0 w-20 h-20"
-        style={{ 
-          background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.dark} 100%)`,
-          clipPath: 'polygon(0 0, 100% 0, 0 100%)',
-          opacity: 0.7
-        }}
-      ></div>
-      
-      {/* Header - 그라데이션 배경 */}
-      <div 
-        className="mx-6 mt-6 px-8 py-5 rounded-t-lg relative overflow-hidden"
-        style={{ background: colors.gradient }}
+    <div
+      className="w-[210mm] min-h-[297mm] p-5 relative overflow-hidden"
+      style={{ background: pageBackground }}
+    >
+      {isNavyGold && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute inset-0"
+            style={{
+              opacity: 0.22,
+              backgroundImage: `
+                radial-gradient(circle at 12% 18%, rgba(217,185,112,0.18), transparent 28%),
+                radial-gradient(circle at 88% 22%, rgba(204,172,96,0.16), transparent 30%),
+                radial-gradient(circle at 15% 78%, rgba(217,185,112,0.14), transparent 26%),
+                radial-gradient(circle at 82% 75%, rgba(204,172,96,0.12), transparent 24%)
+              `
+            }}
+          ></div>
+          <div
+            className="absolute inset-0 opacity-25"
+            style={{
+              backgroundImage: 'repeating-linear-gradient(90deg, rgba(217,185,112,0.08) 0 1px, transparent 1px 28px)',
+              mixBlendMode: 'screen'
+            }}
+          ></div>
+        </div>
+      )}
+      <div
+        className={`min-h-[287mm] rounded-3xl border border-white/70 ${isMidnightSunset ? '' : 'bg-white/92 backdrop-blur'} flex flex-col text-slate-900 shadow-[0_22px_55px_rgba(15,23,42,0.10)] relative ${bodyFontClass}`}
+        style={{ fontSize: `${typography.bodySize}pt`, fontWeight: bodyWeight, background: isMidnightSunset ? 'linear-gradient(180deg, #111111 0%, #0b0b0b 100%)' : undefined }}
       >
+        {/* 좌상단 장식 삼각형 */}
+        <div 
+          className="absolute top-0 left-0 w-20 h-20"
+          style={{ 
+            background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.dark} 100%)`,
+            clipPath: 'polygon(0 0, 100% 0, 0 100%)',
+            opacity: 0.7
+          }}
+        ></div>
+        
+        {/* Header - 그라데이션 배경 */}
+        <div 
+          className="mx-6 mt-6 px-8 py-5 rounded-t-lg relative overflow-hidden shadow-[0_12px_30px_rgba(15,23,42,0.12)]"
+          style={{ background: headerBackground, boxShadow: headerShadow }}
+        >
         {/* 장식 패턴 */}
         <div 
           className="absolute right-0 top-0 w-32 h-full"
@@ -216,7 +257,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 <Table style={{ fontSize: `${typography.bodySize}pt` }}>
                   <TableBody>
                     <TableRow style={{ borderColor: colors.border }}>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ backgroundColor: `${colors.light}80`, color: colors.primary, fontSize: '0.9em', fontWeight: titleWeight }}>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${colors.light}90 0%, ${colors.light}60 100%)`, color: colors.primary, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>
                         과정 1
                       </TableCell>
                       <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}` }}>
@@ -227,7 +268,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                       </TableCell>
                     </TableRow>
                     <TableRow style={{ borderColor: colors.border }}>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ backgroundColor: `${colors.light}80`, color: colors.primary, fontSize: '0.9em', fontWeight: titleWeight }}>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${colors.light}90 0%, ${colors.light}60 100%)`, color: colors.primary, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>
                         과정 2
                       </TableCell>
                       <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}` }}>
@@ -452,6 +493,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
           opacity: 0.7
         }}
       ></div>
+      </div>
     </div>
   );
 };

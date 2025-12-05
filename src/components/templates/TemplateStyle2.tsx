@@ -35,15 +35,19 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const colors: ColorPalette = colorThemes[colorTheme] || colorThemes.blue;
   const feeInfo = classPlan.feeInfo;
   
-  const groupedByMonth: Record<string, typeof feeInfo.rows> = {};
-  feeInfo?.rows.forEach(row => {
-    if (!groupedByMonth[row.month]) groupedByMonth[row.month] = [];
-    groupedByMonth[row.month].push(row);
-  });
+  const groupedByMonth: Record<string, Array<{ month: string; classType: string; day: string; time: string; unitFee: number; sessions: number; subtotal: number }>> = {};
+  if (feeInfo?.rows) {
+    feeInfo.rows.forEach(row => {
+      if (!groupedByMonth[row.month]) groupedByMonth[row.month] = [];
+      groupedByMonth[row.month].push(row);
+    });
+  }
 
   // 연한 배경색 계산 (투명도 적용)
   const lightBg = `${colors.border}30`;
   const lighterBg = `${colors.border}20`;
+  // 조금 더 진한 배경색 (light보다 약간 진하게) - border에 40% 투명도 적용
+  const mediumLight = `${colors.border}66`;
 
   // 타이포그래피 설정
   const typography = classPlan.typography || getDefaultTypography();
@@ -52,31 +56,81 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
   
   const titleWeight = typography.titleWeight || 400;
   const bodyWeight = typography.bodyWeight || 400;
-  
+  const headerShadow = '0 14px 34px rgba(15,23,42,0.12)';
+
+  // 신규 테마 감지
+  const isDancheong = colorTheme === 'dancheong';
+  const isMidnightSunset = colorTheme === 'midnightSunset';
+
+  const pageBackground = isDancheong
+    ? 'radial-gradient(circle at 20% 20%, rgba(255,79,210,0.16), transparent 32%), radial-gradient(circle at 80% 20%, rgba(17,195,255,0.16), transparent 32%), radial-gradient(circle at 30% 70%, rgba(107,232,125,0.14), transparent 26%), radial-gradient(circle at 70% 70%, rgba(255,154,61,0.18), transparent 28%), #09060a'
+    : isMidnightSunset
+      ? 'linear-gradient(135deg, #FF8A1F 0%, #FFB526 55%, #FF8A1F 100%)'
+      : 'linear-gradient(135deg, #f8fafc 0%, #ffffff 55%, #f1f5f9 100%)';
+
+  const sunsetCardBg = '#FBBB1D';
+  const sunsetBorder = '#EF8A17';
+  const sunsetText = '#111111';
 
   return (
-    <div className={`w-[210mm] min-h-[297mm] bg-white flex flex-col text-zinc-900 ${bodyFontClass}`} style={{ fontSize: `${typography.bodySize}pt`, fontWeight: bodyWeight }}>
-      {/* Header - 아이콘과 타이틀 */}
-      <div className="px-10 pt-6 pb-4 flex items-start justify-between">
+    <div
+      className="w-[210mm] min-h-[297mm] p-5 relative overflow-hidden"
+      style={{ background: pageBackground }}
+    >
+      {isDancheong && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute inset-0 opacity-80"
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 15% 18%, rgba(255,79,210,0.14), transparent 32%),
+                radial-gradient(circle at 85% 18%, rgba(17,195,255,0.14), transparent 32%),
+                radial-gradient(circle at 15% 68%, rgba(255,154,61,0.16), transparent 30%),
+                radial-gradient(circle at 85% 68%, rgba(107,232,125,0.16), transparent 30%)
+              `,
+              filter: 'blur(2px)'
+            }}
+          ></div>
+          <div
+            className="absolute inset-0 opacity-30"
+            style={{
+              backgroundImage: 'repeating-linear-gradient(0deg, transparent 0 92px, rgba(255,255,255,0.06) 92px 96px)',
+            }}
+          ></div>
+        </div>
+      )}
+      <div
+        className={`min-h-[287mm] rounded-3xl border border-white/70 ${isMidnightSunset ? '' : 'bg-white/92 backdrop-blur'} flex flex-col text-slate-900 shadow-[0_22px_55px_rgba(15,23,42,0.10)] ${bodyFontClass}`}
+        style={{ fontSize: `${typography.bodySize}pt`, fontWeight: bodyWeight, background: isMidnightSunset ? 'linear-gradient(180deg, #111111 0%, #0b0b0b 100%)' : undefined }}
+      >
+        {/* Header - 아이콘과 타이틀 */}
+        <div
+          className="px-10 pt-6 pb-4 flex items-start justify-between rounded-t-3xl shadow-[0_12px_30px_rgba(15,23,42,0.08)]"
+          style={{
+            backgroundColor: isMidnightSunset ? '#FBBB1D' : '#ffffff',
+            borderBottom: `1px solid ${isMidnightSunset ? '#EF8A17' : colors.border}`,
+            boxShadow: headerShadow,
+          }}
+        >
         <div className="flex items-start gap-3">
           {/* 아이콘 박스 */}
           <div 
             className="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-lg" 
-            style={{ backgroundColor: colors.primary }}
+            style={{ backgroundColor: isMidnightSunset ? '#111111' : colors.primary }}
           >
             <svg className="fill-none stroke-current" style={{ width: `${(typography.titleSize + 4) * 0.8}pt`, height: `${(typography.titleSize + 4) * 0.8}pt` }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
           <div>
-            <h1 className={`text-2xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${typography.titleSize + 4}pt`, fontWeight: titleWeight }}>
+            <h1 className={`text-2xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${typography.titleSize + 4}pt`, fontWeight: titleWeight, color: isMidnightSunset ? '#111111' : '#0f172a' }}>
               {classPlan.showTitle && classPlan.title && (
-                <span className="text-zinc-900 mr-2">[{classPlan.title}]</span>
+                <span className="mr-2" style={{ color: isMidnightSunset ? '#111111' : '#0f172a' }}>[{classPlan.title}]</span>
               )}
-              <span className="text-zinc-900">윈터 프로그램</span>{' '}
-              <span style={{ color: colors.primary }}>안내문</span>
+              <span style={{ color: isMidnightSunset ? '#111111' : '#0f172a' }}>윈터 프로그램</span>{' '}
+              <span style={{ color: isMidnightSunset ? '#111111' : colors.primary }}>안내문</span>
             </h1>
-            <p className="text-zinc-500 text-sm mt-0.5">2026 WINTER</p>
+            <p className="text-sm mt-0.5" style={{ color: isMidnightSunset ? '#1f2937' : '#6b7280' }}>2026 WINTER</p>
           </div>
         </div>
         <div className="text-right">
@@ -94,18 +148,18 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <div className="w-1/4">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <div className="w-1 h-4 rounded" style={{ backgroundColor: colors.primary }}></div>
-                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+                <div className="w-1 h-4 rounded" style={{ backgroundColor: isMidnightSunset ? '#111111' : colors.primary }}></div>
+                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: isMidnightSunset ? '#111111' : colors.primary }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
-                <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>수강대상</h4>
+                <h4 className={`text-xs ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight, color: isMidnightSunset ? '#111111' : '#18181b' }}>수강대상</h4>
               </div>
-              <Card className="overflow-hidden" style={{ borderColor: colors.border }}>
+              <Card className="overflow-hidden" style={{ borderColor: isMidnightSunset ? sunsetBorder : colors.border, background: isMidnightSunset ? sunsetCardBg : undefined }}>
                 <CardContent className="p-2.5 relative">
-                  <p className={`leading-4 text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.75em', fontWeight: bodyWeight }}>
+                  <p className={`leading-4 ${bodyFontClass}`} style={{ fontSize: '0.75em', fontWeight: bodyWeight, color: isMidnightSunset ? sunsetText : '#3f3f46' }}>
                     {classPlan.targetStudent}
                     {classPlan.targetStudentDetail && (
-                      <span className="text-zinc-500 ml-1" style={{ fontSize: '0.833em', fontWeight: bodyWeight }}>({classPlan.targetStudentDetail})</span>
+                      <span className="ml-1" style={{ fontSize: '0.833em', fontWeight: bodyWeight, color: isMidnightSunset ? '#4b5563' : '#6b7280' }}>({classPlan.targetStudentDetail})</span>
                     )}
                   </p>
                 </CardContent>
@@ -113,9 +167,9 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </div>
           </div>
           <div className="flex-1">
-            <Card style={{ borderColor: colors.border, background: `linear-gradient(to right, ${lighterBg}, ${colors.light})` }}>
+            <Card style={{ borderColor: isMidnightSunset ? sunsetBorder : colors.border, background: isMidnightSunset ? sunsetCardBg : `linear-gradient(to right, ${lighterBg}, ${colors.light})` }}>
               <CardContent className="p-3 relative">
-                <p className={`leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{classPlan.etc}</p>
+                <p className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: isMidnightSunset ? sunsetText : '#3f3f46' }}>{classPlan.etc}</p>
               </CardContent>
             </Card>
           </div>
@@ -135,7 +189,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
 
       {/* 학부모 안내글 - 헤더 바로 아래 */}
       {classPlan.parentIntro && (
-        <div className="px-8 mb-4" style={{ fontSize: `${typography.bodySize}pt` }}>
+        <div className="px-8 mb-4 mt-4" style={{ fontSize: `${typography.bodySize}pt` }}>
           <Card style={{ borderColor: colors.border, backgroundColor: lighterBg }}>
             <CardContent className="p-3 relative">
               <p className={`leading-6 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.95em', fontWeight: bodyWeight }}>{classPlan.parentIntro}</p>
@@ -150,15 +204,15 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           {/* 담임강사 */}
           <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">
-              <div className="w-1 h-4 rounded" style={{ backgroundColor: colors.primary }}></div>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+              <div className="w-1 h-4 rounded" style={{ backgroundColor: isMidnightSunset ? '#111111' : colors.primary }}></div>
+              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: isMidnightSunset ? '#111111' : colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>담임강사</h4>
+              <h4 className={`text-xs ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight, color: isMidnightSunset ? '#111111' : '#18181b' }}>담임강사</h4>
             </div>
-            <Card className="overflow-hidden flex-1" style={{ borderColor: colors.border }}>
+            <Card className="overflow-hidden flex-1" style={{ borderColor: isMidnightSunset ? sunsetBorder : colors.border, background: isMidnightSunset ? sunsetCardBg : undefined }}>
               <CardContent className="p-2 relative" style={{ minHeight: '3.75rem', display: 'flex', alignItems: 'center' }}>
-                <p className={`leading-4 text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{classPlan.teacherName}</p>
+                <p className={`leading-4 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: isMidnightSunset ? sunsetText : '#3f3f46' }}>{classPlan.teacherName}</p>
               </CardContent>
             </Card>
           </div>
@@ -166,15 +220,15 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           {/* 수업일정 */}
           <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">
-              <div className="w-1 h-4 rounded" style={{ backgroundColor: colors.primary }}></div>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+              <div className="w-1 h-4 rounded" style={{ backgroundColor: isMidnightSunset ? '#111111' : colors.primary }}></div>
+              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: isMidnightSunset ? '#111111' : colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>수업일정</h4>
+              <h4 className={`text-xs ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight, color: isMidnightSunset ? '#111111' : '#18181b' }}>수업일정</h4>
             </div>
-            <Card className="overflow-hidden flex-1" style={{ borderColor: colors.border }}>
+            <Card className="overflow-hidden flex-1" style={{ borderColor: isMidnightSunset ? sunsetBorder : colors.border, background: isMidnightSunset ? sunsetCardBg : undefined }}>
               <CardContent className="p-2 relative" style={{ minHeight: '3.75rem', display: 'flex', alignItems: 'center' }}>
-                <p className={`leading-4 text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{classPlan.classDay} {classPlan.classTime}</p>
+                <p className={`leading-4 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: isMidnightSunset ? sunsetText : '#3f3f46' }}>{classPlan.classDay} {classPlan.classTime}</p>
               </CardContent>
             </Card>
           </div>
@@ -182,25 +236,25 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           {/* 학습과정 및 교재 */}
           <div className="space-y-1.5 col-span-2 flex flex-col h-full">
             <div className="flex items-center gap-2">
-              <div className="w-1 h-4 rounded" style={{ backgroundColor: colors.primary }}></div>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+              <div className="w-1 h-4 rounded" style={{ backgroundColor: isMidnightSunset ? '#111111' : colors.primary }}></div>
+              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: isMidnightSunset ? '#111111' : colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
-              <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습과정 및 교재</h4>
+              <h4 className={`text-xs ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight, color: isMidnightSunset ? '#111111' : '#18181b' }}>학습과정 및 교재</h4>
             </div>
-            <Card className="overflow-hidden flex-1" style={{ borderColor: colors.border }}>
+            <Card className="overflow-hidden flex-1" style={{ borderColor: isMidnightSunset ? sunsetBorder : colors.border, background: isMidnightSunset ? sunsetCardBg : undefined }}>
               <CardContent className="p-0 h-full flex flex-col justify-center" style={{ fontSize: `${typography.bodySize}pt` }}>
-                <Table style={{ fontSize: `${typography.bodySize}pt` }}>
+                <Table style={{ fontSize: `${typography.bodySize}pt`, color: isMidnightSunset ? sunsetText : undefined }}>
                   <TableBody>
-                    <TableRow style={{ borderColor: colors.border }}>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ backgroundColor: lighterBg, color: colors.primary, fontSize: '0.9em', fontWeight: titleWeight }}>과정 1</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}` }}>{classPlan.course1 || '-'}</TableCell>
-                      <TableCell className={`py-1.5 px-2 text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{classPlan.material1 || '-'}</TableCell>
+                    <TableRow style={{ borderColor: isMidnightSunset ? sunsetBorder : colors.border }}>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: isMidnightSunset ? '#FDE68A' : `linear-gradient(180deg, ${lighterBg} 0%, ${colors.light} 100%)`, color: isMidnightSunset ? '#111111' : colors.primary, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>과정 1</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${isMidnightSunset ? sunsetBorder : colors.border}`, color: isMidnightSunset ? sunsetText : undefined }}>{classPlan.course1 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: isMidnightSunset ? sunsetText : undefined }}>{classPlan.material1 || '-'}</TableCell>
                     </TableRow>
-                    <TableRow style={{ borderColor: colors.border }}>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ backgroundColor: lighterBg, color: colors.primary, fontSize: '0.9em', fontWeight: titleWeight }}>과정 2</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}` }}>{classPlan.course2 || '-'}</TableCell>
-                      <TableCell className={`py-1.5 px-2 text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{classPlan.material2 || '-'}</TableCell>
+                    <TableRow style={{ borderColor: isMidnightSunset ? sunsetBorder : colors.border }}>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: isMidnightSunset ? '#FDE68A' : `linear-gradient(180deg, ${lighterBg} 0%, ${colors.light} 100%)`, color: isMidnightSunset ? '#111111' : colors.primary, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>과정 2</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${isMidnightSunset ? sunsetBorder : colors.border}`, color: isMidnightSunset ? sunsetText : undefined }}>{classPlan.course2 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: isMidnightSunset ? sunsetText : undefined }}>{classPlan.material2 || '-'}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -220,7 +274,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
               </svg>
               <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습목표</h4>
             </div>
-            <Card className="overflow-hidden h-full flex flex-col" style={{ borderColor: colors.border }}>
+            <Card className="overflow-hidden h-full flex flex-col" style={{ borderColor: colors.border, backgroundColor: lighterBg }}>
               <CardContent className="p-2.5 relative flex-1">
                 <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
                   {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
@@ -238,7 +292,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
               </svg>
               <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습관리</h4>
             </div>
-            <Card className="overflow-hidden h-full flex flex-col" style={{ borderColor: colors.border }}>
+            <Card className="overflow-hidden h-full flex flex-col" style={{ borderColor: colors.border, backgroundColor: lighterBg }}>
               <CardContent className="p-2.5 relative flex-1">
                 <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
                   {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
@@ -365,15 +419,15 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <CardContent className="p-0" style={{ fontSize: `${typography.bodySize}pt` }}>
                 <Table style={{ fontSize: `${typography.bodySize}pt` }}>
                   <TableHeader>
-                    <TableRow style={{ backgroundColor: colors.primary }}>
-                      <TableHead className={`h-9 text-white ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: titleWeight }}>월</TableHead>
-                      <TableHead className={`h-9 text-white ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: titleWeight }}>수업구분</TableHead>
-                      <TableHead className={`h-9 text-white ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: titleWeight }}>요일</TableHead>
-                      <TableHead className={`h-9 text-white ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: titleWeight }}>시간</TableHead>
-                      <TableHead className={`h-9 text-white text-right ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: titleWeight }}>수강료</TableHead>
-                      <TableHead className={`h-9 text-white text-center ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: titleWeight }}>회차</TableHead>
-                      <TableHead className={`h-9 text-white text-right ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: titleWeight }}>합계</TableHead>
-                      <TableHead className={`h-9 text-white text-right ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: titleWeight }}>총 합계</TableHead>
+                    <TableRow style={{ backgroundColor: mediumLight }}>
+                      <TableHead className={`h-9 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>월</TableHead>
+                      <TableHead className={`h-9 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>수업구분</TableHead>
+                      <TableHead className={`h-9 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>요일</TableHead>
+                      <TableHead className={`h-9 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>시간</TableHead>
+                      <TableHead className={`h-9 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>수강료</TableHead>
+                      <TableHead className={`h-9 text-center ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>회차</TableHead>
+                      <TableHead className={`h-9 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>합계</TableHead>
+                      <TableHead className={`h-9 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>총 합계</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -381,9 +435,9 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                       const monthTotal = feeInfo.monthlyTotals.find(m => m.month === month)?.total || 
                         rows.reduce((sum, row) => sum + row.subtotal, 0);
                       return rows.map((row, idx) => (
-                        <TableRow key={`${month}-${idx}`} style={{ borderColor: colors.border, ...(idx === 0 ? { borderTopWidth: '2px', borderTopColor: colors.primary } : {}) }}>
+                        <TableRow key={`${month}-${idx}`} style={{ borderColor: colors.border, ...(idx === 0 ? { borderTopWidth: '2px', borderTopColor: colors.border } : {}) }}>
                           {idx === 0 && (
-                            <TableCell className={`py-2 ${bodyFontClass}`} rowSpan={rows.length} style={{ backgroundColor: lighterBg, color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight, borderRight: '2px solid', borderRightColor: colors.primary }}>{month}</TableCell>
+                            <TableCell className={`py-2 ${bodyFontClass}`} rowSpan={rows.length} style={{ backgroundColor: '#f5f5f5', color: '#666666', fontSize: '0.9em', fontWeight: titleWeight, borderRight: '2px solid', borderRightColor: '#e5e5e5' }}>{month}</TableCell>
                           )}
                           <TableCell className={`py-2 text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
                             {row.classType}
@@ -404,7 +458,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                             {row.subtotal.toLocaleString()}
                           </TableCell>
                           {idx === 0 && (
-                            <TableCell className={`py-2 text-right ${bodyFontClass}`} rowSpan={rows.length} style={{ backgroundColor: lighterBg, color: colors.dark || colors.primary, fontSize: '0.9em', fontWeight: 700 }}>
+                            <TableCell className={`py-2 text-right ${bodyFontClass}`} rowSpan={rows.length} style={{ backgroundColor: '#f5f5f5', color: '#333333', fontSize: '0.9em', fontWeight: 700 }}>
                               {monthTotal.toLocaleString()}
                             </TableCell>
                           )}
@@ -417,21 +471,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </Card>
           </div>
         )}
-
       </div>
-
-      {/* Footer */}
-      <div 
-        className="flex justify-between items-center text-white px-10" 
-        style={{ 
-          backgroundColor: colors.primary, 
-          fontSize: `${typography.bodySize * 0.9}pt`,
-          paddingTop: '0.5rem',
-          paddingBottom: '0.5rem'
-        }}
-      >
-        <span>원리와 해석 수학학원</span>
-        <span>Principle and Analysis Math Academy</span>
       </div>
     </div>
   );
