@@ -31,6 +31,7 @@ export default function HomePage() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.70);
   const [templateWidth, setTemplateWidth] = useState(BASE_WIDTH_PX); // 동적 너비
+  const templateWidthRef = useRef(BASE_WIDTH_PX);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
@@ -55,7 +56,7 @@ export default function HomePage() {
       
       // 현재 콘텐츠 높이 측정
       const contentHeight = el.scrollHeight;
-      const currentWidth = templateWidth;
+      const currentWidth = templateWidthRef.current;
       
       // A4 비율에 맞는 너비 계산: width = height / A4_RATIO
       const targetWidth = contentHeight / A4_RATIO;
@@ -65,7 +66,10 @@ export default function HomePage() {
       
       // 변화가 유의미할 때만 업데이트 (10px 이상 차이)
       if (Math.abs(newWidth - currentWidth) > 10) {
-        setTemplateWidth(newWidth);
+        setTemplateWidth(() => {
+          templateWidthRef.current = newWidth;
+          return newWidth;
+        });
       }
       
       setTimeout(() => { isAdjusting = false; }, 100);
@@ -86,7 +90,7 @@ export default function HomePage() {
       resizeObserver.disconnect();
       clearTimeout(adjustTimeout);
     };
-  }, [selectedId, classPlans, templateWidth]);
+  }, [selectedId, classPlans]);
   
   const filteredPlans = selectedTeacher 
     ? classPlans.filter(p => p.teacherName === selectedTeacher)
@@ -141,7 +145,10 @@ export default function HomePage() {
       const contentHeight = canvasRef.current.scrollHeight;
       const targetWidth = contentHeight / A4_RATIO;
       const newWidth = Math.max(BASE_WIDTH_PX, Math.min(targetWidth, BASE_WIDTH_PX * 1.5));
-      setTemplateWidth(newWidth);
+      setTemplateWidth(() => {
+        templateWidthRef.current = newWidth;
+        return newWidth;
+      });
     }
     
     saveToStorage();
