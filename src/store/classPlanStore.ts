@@ -21,7 +21,7 @@ const defaultWeeklyPlan = Array.from({ length: 8 }, (_, i) => ({
 }));
 
 const defaultFeeInfo = {
-  title: '[수1/수2] 몰입특강 수강료',
+  title: '수강료 안내',
   rows: [
     { month: '1월', classType: '진도수업', day: '월수금', time: '각4시간', unitFee: 52500, sessions: 10, subtotal: 525000 },
     { month: '1월', classType: '확인학습', day: '', time: '매회', unitFee: 8000, sessions: 8, subtotal: 64000 },
@@ -37,8 +37,12 @@ const defaultFeeInfo = {
 // 로드/저장 시 필수 필드 강제 세팅
 const normalizePlan = (plan: ClassPlan): ClassPlan => {
   const weeklyPlan = plan.weeklyPlan?.length ? plan.weeklyPlan : defaultWeeklyPlan;
+  const normalizedFeeTitle =
+    !plan.feeInfo?.title || plan.feeInfo.title === '[수1/수2] 몰입특강 수강료'
+      ? '수강료 안내'
+      : plan.feeInfo.title;
   const feeInfo = plan.feeInfo
-    ? { ...plan.feeInfo, title: plan.feeInfo.title || '수강료 안내' }
+    ? { ...plan.feeInfo, title: normalizedFeeTitle }
     : { ...defaultFeeInfo, title: '수강료 안내' };
 
   return {

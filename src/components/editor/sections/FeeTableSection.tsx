@@ -119,8 +119,8 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const [showMessage, setShowMessage] = React.useState<string>('');
 
   return (
-    <div className="h-full flex flex-col p-3 bg-white overflow-hidden">
-      <div className="flex items-center justify-between mb-2 flex-shrink-0">
+    <div className="h-full flex flex-col p-2 bg-white overflow-hidden">
+      <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
           <h3 className="text-xs font-bold text-blue-600">💰 수강료 안내</h3>
         <div className="flex items-center gap-2">
         <button
@@ -153,7 +153,7 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
       </div>
       {showMessage && (
-        <div className="mb-2 text-xs text-red-600 font-medium">{showMessage}</div>
+        <div className="mb-1.5 text-xs text-red-600 font-medium">{showMessage}</div>
       )}
 
       <div className="flex-1 overflow-auto min-h-0">
