@@ -9,7 +9,7 @@ import { getDefaultTypography } from '@/lib/utils';
 import TemplateStyle1 from '@/components/templates/TemplateStyle1';
 import TemplateStyle2 from '@/components/templates/TemplateStyle2';
 import TemplateStyle3 from '@/components/templates/TemplateStyle3';
-import { downloadAsPng } from '@/lib/download';
+import { downloadAsPng, resizeToA4 } from '@/lib/download';
 import ClassListDropdown from '@/components/editor/ClassListDropdown';
 import EditorPanel from '@/components/editor/EditorPanel';
 import CsvUploadModal from '@/components/import/CsvUploadModal';
@@ -21,14 +21,72 @@ const templateCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
 // 색상 테마 목록
 const colorThemeList: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong', 'navyGold', 'blackOrange'];
 
+// A4 비율 상수
+const A4_RATIO = 297 / 210; // ≈ 1.414 (세로/가로)
+const BASE_WIDTH_PX = 794; // 210mm at 96dpi
+const BASE_HEIGHT_PX = 1123; // 297mm at 96dpi
+
 export default function HomePage() {
   const { classPlans, selectedId, addClassPlan, updateClassPlan, setSelectedId, saveToStorage } = useClassPlanStore();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.70);
+  const [templateWidth, setTemplateWidth] = useState(BASE_WIDTH_PX); // 동적 너비
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
+
+  // A4 비율 자동 조정 (콘텐츠 변경 시 ResizeObserver 사용)
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    let isAdjusting = false;
+    let adjustTimeout: NodeJS.Timeout;
+    
+    const adjustA4Ratio = () => {
+      if (isAdjusting) return;
+      isAdjusting = true;
+      
+      const el = canvasRef.current;
+      if (!el) {
+        isAdjusting = false;
+        return;
+      }
+      
+      // 현재 콘텐츠 높이 측정
+      const contentHeight = el.scrollHeight;
+      const currentWidth = templateWidth;
+      
+      // A4 비율에 맞는 너비 계산: width = height / A4_RATIO
+      const targetWidth = contentHeight / A4_RATIO;
+      
+      // 최소 너비는 기본 A4 너비, 최대는 2배까지
+      const newWidth = Math.max(BASE_WIDTH_PX, Math.min(targetWidth, BASE_WIDTH_PX * 2));
+      
+      // 변화가 유의미할 때만 업데이트 (10px 이상 차이)
+      if (Math.abs(newWidth - currentWidth) > 10) {
+        setTemplateWidth(newWidth);
+      }
+      
+      setTimeout(() => { isAdjusting = false; }, 100);
+    };
+    
+    // ResizeObserver로 콘텐츠 크기 변화 감지
+    const resizeObserver = new ResizeObserver(() => {
+      clearTimeout(adjustTimeout);
+      adjustTimeout = setTimeout(adjustA4Ratio, 200);
+    });
+    
+    resizeObserver.observe(canvasRef.current);
+    
+    // 초기 조정
+    adjustTimeout = setTimeout(adjustA4Ratio, 300);
+    
+    return () => {
+      resizeObserver.disconnect();
+      clearTimeout(adjustTimeout);
+    };
+  }, [selectedId, classPlans, templateWidth]);
   
   const filteredPlans = selectedTeacher 
     ? classPlans.filter(p => p.teacherName === selectedTeacher)
@@ -77,6 +135,15 @@ export default function HomePage() {
 
   const handleSave = () => {
     setIsSaving(true);
+    
+    // A4 비율 재조정
+    if (canvasRef.current) {
+      const contentHeight = canvasRef.current.scrollHeight;
+      const targetWidth = contentHeight / A4_RATIO;
+      const newWidth = Math.max(BASE_WIDTH_PX, Math.min(targetWidth, BASE_WIDTH_PX * 1.5));
+      setTemplateWidth(newWidth);
+    }
+    
     saveToStorage();
     const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
     setLastSaveTime(now);
@@ -177,7 +244,7 @@ export default function HomePage() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Editor */}
-        <div className="w-[55%] min-w-[700px] bg-white border-r border-zinc-200 flex flex-col overflow-hidden">
+        <div className="w-1/2 min-w-0 bg-white border-r border-zinc-200 flex flex-col overflow-hidden">
           {/* Class Selector Bar */}
           <div className="h-11 bg-zinc-50 border-b border-zinc-200 flex items-center justify-between px-4 flex-shrink-0">
             <div className="flex items-center space-x-3">
@@ -233,7 +300,7 @@ export default function HomePage() {
         </div>
 
         {/* Right Panel: Preview */}
-        <div className="flex-1 bg-zinc-200/50 flex flex-col overflow-hidden">
+        <div className="w-1/2 min-w-0 bg-zinc-200/50 flex flex-col overflow-hidden">
           {/* Preview Toolbar */}
           <div className="h-auto bg-white border-b border-zinc-200 flex flex-col px-4 py-2 flex-shrink-0 gap-2">
             {/* 첫 번째 줄: 스타일 선택 + 폰트 설정 */}
@@ -394,7 +461,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Preview Canvas */}
+          {/* Preview Canvas - A4 비율 고정 */}
           <div className="flex-1 overflow-auto flex items-start justify-center p-6">
             {selectedPlan ? (
               <div 
@@ -404,7 +471,14 @@ export default function HomePage() {
                 }}
                 className="shadow-2xl"
               >
-                <div ref={canvasRef}>
+                {/* A4 비율 유지 컨테이너 - 콘텐츠에 따라 동적 크기 조절 */}
+                <div 
+                  ref={canvasRef}
+                  style={{
+                    width: `${templateWidth}px`,
+                    minHeight: `${templateWidth * A4_RATIO}px`,
+                  }}
+                >
                   {renderTemplate()}
                 </div>
               </div>

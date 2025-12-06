@@ -50,22 +50,17 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
   
   const titleWeight = typography.titleWeight || 400;
   const bodyWeight = typography.bodyWeight || 400;
-  const headerBackground = colorTheme === 'midnightSunset'
-    ? '#FBBB1D'
-    : `linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 45%), ${colors.gradient || colors.primary}`;
+  const headerBackground = `linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 45%), ${colors.gradient || colors.primary}`;
   const headerShadow = '0 14px 34px rgba(15,23,42,0.18)';
 
   const isNavyGold = colorTheme === 'navyGold';
-  const isMidnightSunset = colorTheme === 'midnightSunset';
   const pageBackground = isNavyGold
     ? 'linear-gradient(140deg, #0A1226 0%, #0F1C3B 55%, #1C2746 100%)'
-    : isMidnightSunset
-      ? 'linear-gradient(135deg, #FF8A1F 0%, #FFB526 55%, #FF8A1F 100%)'
-      : 'linear-gradient(135deg, #f8fafc 0%, #ffffff 55%, #f1f5f9 100%)';
+    : 'linear-gradient(135deg, #f8fafc 0%, #ffffff 55%, #f1f5f9 100%)';
 
   return (
     <div
-      className="w-[210mm] min-h-[297mm] p-5 relative overflow-hidden"
+      className="w-full min-h-full p-5 relative"
       style={{ background: pageBackground }}
     >
       {isNavyGold && (
@@ -92,8 +87,8 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
         </div>
       )}
       <div
-        className={`min-h-[287mm] rounded-3xl border border-white/70 ${isMidnightSunset ? '' : 'bg-white/92 backdrop-blur'} flex flex-col text-slate-900 shadow-[0_22px_55px_rgba(15,23,42,0.10)] relative ${bodyFontClass}`}
-        style={{ fontSize: `${typography.bodySize}pt`, fontWeight: bodyWeight, background: isMidnightSunset ? 'linear-gradient(180deg, #111111 0%, #0b0b0b 100%)' : undefined }}
+        className={`flex-1 rounded-3xl border border-white/70 bg-white/92 backdrop-blur flex flex-col text-slate-900 shadow-[0_22px_55px_rgba(15,23,42,0.10)] relative ${bodyFontClass}`}
+        style={{ fontSize: `${typography.bodySize}pt`, fontWeight: bodyWeight }}
       >
         {/* 좌상단 장식 삼각형 */}
         <div 
