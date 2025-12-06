@@ -44,17 +44,25 @@ const normalizePlan = (plan: ClassPlan): ClassPlan => {
   const feeInfo = plan.feeInfo
     ? { ...plan.feeInfo, title: normalizedFeeTitle }
     : { ...defaultFeeInfo, title: '수강료 안내' };
+  const title = plan.title || '강좌명';
+  const showTitle = plan.showTitle !== false;
+  const targetStudent = plan.targetStudent || '';
+  const teacherName = plan.teacherName || '';
+  const classDay = plan.classDay || '';
+  const classTime = plan.classTime || '';
+  const templateId = plan.templateId || 'style1-blue';
+  const sizePreset = plan.sizePreset || 'A4';
 
   return {
-    title: plan.title || '강좌명',
-    showTitle: plan.showTitle !== false,
-    targetStudent: plan.targetStudent || '',
-    teacherName: plan.teacherName || '',
-    classDay: plan.classDay || '',
-    classTime: plan.classTime || '',
-    templateId: plan.templateId || 'style1-blue',
-    sizePreset: plan.sizePreset || 'A4',
     ...plan,
+    title,
+    showTitle,
+    targetStudent,
+    teacherName,
+    classDay,
+    classTime,
+    templateId,
+    sizePreset,
     weeklyPlan,
     feeInfo,
   };
@@ -137,7 +145,10 @@ export const useClassPlanStore = create<ClassPlanState>()(
       onRehydrateStorage: () => (state, error) => {
         if (error || !state) return;
         const normalized = state.classPlans?.map(normalizePlan) || [];
-        set({ classPlans: normalized, selectedId: state.selectedId });
+        return {
+          ...state,
+          classPlans: normalized,
+        };
       },
     }
   )
