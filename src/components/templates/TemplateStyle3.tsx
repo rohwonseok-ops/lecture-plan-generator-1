@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ClassPlan, ColorTheme } from '@/lib/types';
+import { ClassPlan, ColorTheme, FeeRow } from '@/lib/types';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
 import { getFontClassName, getDefaultTypography } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
@@ -37,11 +37,13 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const colors: ColorPalette = colorThemes[colorTheme] || colorThemes.blue;
   const feeInfo = classPlan.feeInfo;
   
-  const groupedByMonth: Record<string, typeof feeInfo.rows> = {};
-  feeInfo?.rows.forEach(row => {
-    if (!groupedByMonth[row.month]) groupedByMonth[row.month] = [];
-    groupedByMonth[row.month].push(row);
-  });
+  const groupedByMonth: Record<string, FeeRow[]> = {};
+  if (feeInfo?.rows) {
+    feeInfo.rows.forEach(row => {
+      if (!groupedByMonth[row.month]) groupedByMonth[row.month] = [];
+      groupedByMonth[row.month].push(row);
+    });
+  }
 
   // 타이포그래피 설정
   const typography = classPlan.typography || getDefaultTypography();

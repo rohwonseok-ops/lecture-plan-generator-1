@@ -82,10 +82,11 @@ export default function LoginPage() {
                 autoComplete="one-time-code"
                 className="w-full rounded-lg border border-zinc-300 px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="초기값: 000000"
-                style={{
-                  WebkitTextSecurity: showPassword ? 'none' : 'disc',
-                  fontFamily: showPassword ? undefined : 'system-ui, -apple-system, "Segoe UI", sans-serif',
-                }}
+                style={
+                  showPassword 
+                    ? undefined 
+                    : { fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif' } as React.CSSProperties
+                }
                 required
               />
               <button

@@ -1,20 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRequestSupabase } from '@/lib/supabaseRequestClient';
-
-const unauthorized = () => NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-const notFound = () => NextResponse.json({ error: 'not found' }, { status: 404 });
-
-const getClientAndUser = async (req: NextRequest) => {
-  const authHeader = req.headers.get('authorization') || '';
-  const token = authHeader.toLowerCase().startsWith('bearer ')
-    ? authHeader.slice(7).trim()
-    : undefined;
-  if (!token) return null;
-  const client = createRequestSupabase(token);
-  const { data: userData, error: userError } = await client.auth.getUser();
-  if (userError || !userData?.user) return null;
-  return { client, userId: userData.user.id };
-};
+import { getClientAndUser, unauthorized, notFound, serverError } from '@/lib/apiHelpers';
 
 export const GET = async (_req: NextRequest, { params }: { params: { id: string } }) => {
   const pair = await getClientAndUser(_req);
@@ -29,7 +14,7 @@ export const GET = async (_req: NextRequest, { params }: { params: { id: string 
     .single();
 
   if (error && error.code === 'PGRST116') return notFound();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError(error.message);
   return NextResponse.json({ data });
 };
 
@@ -46,7 +31,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
     .update(patch)
     .eq('id', params.id)
     .eq('owner_id', userId);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError(error.message);
 
   if (weeklyItems) {
     await client.from('weekly_plan_items').delete().eq('class_plan_id', params.id);
@@ -80,7 +65,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
     .eq('owner_id', userId)
     .single();
 
-  if (fullError) return NextResponse.json({ error: fullError.message }, { status: 500 });
+  if (fullError) return serverError(fullError.message);
   return NextResponse.json({ data: full });
 };
 
@@ -94,7 +79,7 @@ export const DELETE = async (req: NextRequest, { params }: { params: { id: strin
     .delete()
     .eq('id', params.id)
     .eq('owner_id', userId);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError(error.message);
   return NextResponse.json({ ok: true });
 };
 

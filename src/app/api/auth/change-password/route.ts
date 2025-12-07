@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRequestSupabase } from '@/lib/supabaseRequestClient';
 import { supabaseAdmin } from '@/lib/supabaseServer';
-
-const unauthorized = () => NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-const badRequest = (msg: string) => NextResponse.json({ error: msg }, { status: 400 });
+import { unauthorized, badRequest, serverError } from '@/lib/apiHelpers';
 
 const sanitizePin6 = (pin: string) => pin.replace(/\D/g, '').slice(0, 6);
 
@@ -34,7 +32,7 @@ export const POST = async (req: NextRequest) => {
   const admin = supabaseAdmin();
 
   const { error: updateErr } = await admin.auth.admin.updateUserById(userId, { password });
-  if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 });
+  if (updateErr) return serverError(updateErr.message);
 
   await admin.from('profiles').update({ must_change_password: false }).eq('id', userId);
 

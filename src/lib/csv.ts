@@ -99,6 +99,8 @@ export const applyHeaderMapping = (rows: Record<string, string>[], mapping: Reco
       targetStudent: getVal('targetStudent'),
       targetStudentDetail: getVal('targetStudentDetail'),
       teacherName: getVal('teacherName'),
+      classDay: getVal('day'),
+      classTime: getVal('time'),
       schedule: (getVal('day') + ' ' + getVal('time')).trim(),
       
       course1: getVal('course1'),
@@ -113,7 +115,7 @@ export const applyHeaderMapping = (rows: Record<string, string>[], mapping: Reco
       etc: getVal('etc'),
       
       weeklyPlan: weeklyPlan.length > 0 ? weeklyPlan : [],
-      templateId: 'classic',
+      templateId: 'style1-blue',
       sizePreset: 'A4'
     };
   });

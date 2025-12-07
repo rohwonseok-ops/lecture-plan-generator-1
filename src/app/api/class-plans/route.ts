@@ -1,19 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRequestSupabase } from '@/lib/supabaseRequestClient';
-
-const unauthorized = () => NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-
-const getClientAndUser = async (req: NextRequest) => {
-  const authHeader = req.headers.get('authorization') || '';
-  const token = authHeader.toLowerCase().startsWith('bearer ')
-    ? authHeader.slice(7).trim()
-    : undefined;
-  if (!token) return null;
-  const client = createRequestSupabase(token);
-  const { data: userData, error: userError } = await client.auth.getUser();
-  if (userError || !userData?.user) return null;
-  return { client, userId: userData.user.id };
-};
+import { getClientAndUser, unauthorized, badRequest, serverError } from '@/lib/apiHelpers';
 
 export const GET = async (req: NextRequest) => {
   const pair = await getClientAndUser(req);
@@ -26,7 +12,7 @@ export const GET = async (req: NextRequest) => {
     .eq('owner_id', userId)
     .order('created_at', { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return serverError(error.message);
   return NextResponse.json({ data });
 };
 
@@ -39,7 +25,7 @@ export const POST = async (req: NextRequest) => {
   const { plan, weeklyItems = [], feeRows = [] } = body;
 
   if (!plan?.title) {
-    return NextResponse.json({ error: 'title is required' }, { status: 400 });
+    return badRequest('title is required');
   }
 
   const { data, error } = await client
@@ -47,7 +33,7 @@ export const POST = async (req: NextRequest) => {
     .insert({ ...(plan || {}), owner_id: userId })
     .select()
     .single();
-  if (error || !data) return NextResponse.json({ error: error?.message ?? 'insert failed' }, { status: 500 });
+  if (error || !data) return serverError(error?.message ?? 'insert failed');
 
   if (weeklyItems.length) {
     await client.from('weekly_plan_items').insert(
@@ -73,7 +59,7 @@ export const POST = async (req: NextRequest) => {
     .eq('id', data.id)
     .single();
 
-  if (fullError) return NextResponse.json({ error: fullError.message }, { status: 500 });
+  if (fullError) return serverError(fullError.message);
   return NextResponse.json({ data: full });
 };
 
