@@ -37,7 +37,17 @@ export const getSession = () => supabase.auth.getSession();
 export const getUser = () => supabase.auth.getUser();
 
 export const getProfile = async () => {
-  const { data: profile, error } = await supabase.from('profiles').select('*').single();
+  const { data: userRes, error: userError } = await supabase.auth.getUser();
+  if (userError || !userRes.user) {
+    return { profile: null, error: userError ?? new Error('로그인이 필요합니다.') };
+  }
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userRes.user.id)
+    .single();
+
   return { profile, error };
 };
 

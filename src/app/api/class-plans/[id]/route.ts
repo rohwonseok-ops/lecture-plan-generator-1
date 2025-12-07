@@ -4,23 +4,28 @@ import { createRequestSupabase } from '@/lib/supabaseRequestClient';
 const unauthorized = () => NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 const notFound = () => NextResponse.json({ error: 'not found' }, { status: 404 });
 
-const getClient = async (req: NextRequest) => {
+const getClientAndUser = async (req: NextRequest) => {
   const authHeader = req.headers.get('authorization') || '';
   const token = authHeader.toLowerCase().startsWith('bearer ')
     ? authHeader.slice(7).trim()
     : undefined;
   if (!token) return null;
-  return createRequestSupabase(token);
+  const client = createRequestSupabase(token);
+  const { data: userData, error: userError } = await client.auth.getUser();
+  if (userError || !userData?.user) return null;
+  return { client, userId: userData.user.id };
 };
 
 export const GET = async (_req: NextRequest, { params }: { params: { id: string } }) => {
-  const client = await getClient(_req);
-  if (!client) return unauthorized();
+  const pair = await getClientAndUser(_req);
+  if (!pair) return unauthorized();
+  const { client, userId } = pair;
 
   const { data, error } = await client
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .eq('id', params.id)
+    .eq('owner_id', userId)
     .single();
 
   if (error && error.code === 'PGRST116') return notFound();
@@ -29,13 +34,18 @@ export const GET = async (_req: NextRequest, { params }: { params: { id: string 
 };
 
 export const PUT = async (req: NextRequest, { params }: { params: { id: string } }) => {
-  const client = await getClient(req);
-  if (!client) return unauthorized();
+  const pair = await getClientAndUser(req);
+  if (!pair) return unauthorized();
+  const { client, userId } = pair;
 
   const body = await req.json().catch(() => ({}));
   const { patch = {}, weeklyItems, feeRows } = body;
 
-  const { error } = await client.from('class_plans').update(patch).eq('id', params.id);
+  const { error } = await client
+    .from('class_plans')
+    .update(patch)
+    .eq('id', params.id)
+    .eq('owner_id', userId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   if (weeklyItems) {
@@ -67,6 +77,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .eq('id', params.id)
+    .eq('owner_id', userId)
     .single();
 
   if (fullError) return NextResponse.json({ error: fullError.message }, { status: 500 });
@@ -74,10 +85,15 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
 };
 
 export const DELETE = async (req: NextRequest, { params }: { params: { id: string } }) => {
-  const client = await getClient(req);
-  if (!client) return unauthorized();
+  const pair = await getClientAndUser(req);
+  if (!pair) return unauthorized();
+  const { client, userId } = pair;
 
-  const { error } = await client.from('class_plans').delete().eq('id', params.id);
+  const { error } = await client
+    .from('class_plans')
+    .delete()
+    .eq('id', params.id)
+    .eq('owner_id', userId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -78,7 +79,7 @@ export default function ChangePasswordPage() {
                 style={{
                   WebkitTextSecurity: showPassword ? 'none' : 'disc',
                   fontFamily: showPassword ? undefined : 'system-ui, -apple-system, "Segoe UI", sans-serif',
-                }}
+                } as CSSProperties & { WebkitTextSecurity?: string }}
                 required
               />
               <button
@@ -108,7 +109,7 @@ export default function ChangePasswordPage() {
                 style={{
                   WebkitTextSecurity: showConfirm ? 'none' : 'disc',
                   fontFamily: showConfirm ? undefined : 'system-ui, -apple-system, "Segoe UI", sans-serif',
-                }}
+                } as CSSProperties & { WebkitTextSecurity?: string }}
                 required
               />
               <button
