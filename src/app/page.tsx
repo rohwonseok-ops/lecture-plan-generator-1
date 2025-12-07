@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useClassPlanStore } from '@/store/classPlanStore';
-import { Plus, Download, ZoomIn, ZoomOut, Save, RefreshCw, Upload, BookOpen, Layout } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import { recordActivity } from '@/lib/activityLogger';
+import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout } from 'lucide-react';
 import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings } from '@/lib/types';
 import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
 import { getDefaultTypography } from '@/lib/utils';
 import TemplateStyle1 from '@/components/templates/TemplateStyle1';
 import TemplateStyle2 from '@/components/templates/TemplateStyle2';
 import TemplateStyle3 from '@/components/templates/TemplateStyle3';
-import { downloadAsPng, resizeToA4 } from '@/lib/download';
+import { downloadAsPng } from '@/lib/download';
 import ClassListDropdown from '@/components/editor/ClassListDropdown';
 import EditorPanel from '@/components/editor/EditorPanel';
 import CsvUploadModal from '@/components/import/CsvUploadModal';
@@ -27,6 +31,9 @@ const BASE_WIDTH_PX = 794; // 210mm at 96dpi
 const BASE_HEIGHT_PX = 1123; // 297mm at 96dpi
 
 export default function HomePage() {
+  const router = useRouter();
+  const { session, logout } = useAuthStore();
+  const [authHydrated, setAuthHydrated] = useState(false);
   const { classPlans, selectedId, addClassPlan, updateClassPlan, setSelectedId, saveToStorage } = useClassPlanStore();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.70);
@@ -36,6 +43,56 @@ export default function HomePage() {
   const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
+
+  useEffect(() => {
+    const authPersist = (useAuthStore as any).persist;
+    const unsub = authPersist?.onFinishHydration?.(() => setAuthHydrated(true));
+    setAuthHydrated(authPersist?.hasHydrated?.() ?? false);
+    return () => unsub?.();
+  }, []);
+
+  useEffect(() => {
+    if (!authHydrated) return;
+    if (!session) {
+      router.replace('/login');
+      return;
+    }
+    if (session.mustChangePassword) {
+      router.replace('/login/change-password');
+    }
+  }, [authHydrated, session, router]);
+
+  const calculateA4Width = useCallback((height: number, maxWidthMultiplier = 2) => {
+    const targetWidth = height / A4_RATIO;
+    return Math.max(BASE_WIDTH_PX, Math.min(targetWidth, BASE_WIDTH_PX * maxWidthMultiplier));
+  }, []);
+
+  const adjustToA4 = useCallback(
+    (options?: { force?: boolean; maxWidthMultiplier?: number }) => {
+      const el = canvasRef.current;
+      if (!el) return;
+
+      // minHeight 영향 없이 실제 콘텐츠 높이 측정
+      const prevMinHeight = el.style.minHeight;
+      const prevHeight = el.style.height;
+      el.style.minHeight = 'auto';
+      el.style.height = 'auto';
+      const measuredHeight = Math.max(el.scrollHeight, BASE_HEIGHT_PX);
+      el.style.minHeight = prevMinHeight;
+      el.style.height = prevHeight;
+
+      const newWidth = calculateA4Width(measuredHeight, options?.maxWidthMultiplier);
+      const shouldUpdate = options?.force || Math.abs(newWidth - templateWidthRef.current) > 10;
+
+      if (shouldUpdate) {
+        setTemplateWidth(() => {
+          templateWidthRef.current = newWidth;
+          return newWidth;
+        });
+      }
+    },
+    [calculateA4Width, setTemplateWidth]
+  );
 
   // A4 비율 자동 조정 (콘텐츠 변경 시 ResizeObserver 사용)
   useEffect(() => {
@@ -47,31 +104,8 @@ export default function HomePage() {
     const adjustA4Ratio = () => {
       if (isAdjusting) return;
       isAdjusting = true;
-      
-      const el = canvasRef.current;
-      if (!el) {
-        isAdjusting = false;
-        return;
-      }
-      
-      // 현재 콘텐츠 높이 측정
-      const contentHeight = el.scrollHeight;
-      const currentWidth = templateWidthRef.current;
-      
-      // A4 비율에 맞는 너비 계산: width = height / A4_RATIO
-      const targetWidth = contentHeight / A4_RATIO;
-      
-      // 최소 너비는 기본 A4 너비, 최대는 2배까지
-      const newWidth = Math.max(BASE_WIDTH_PX, Math.min(targetWidth, BASE_WIDTH_PX * 2));
-      
-      // 변화가 유의미할 때만 업데이트 (10px 이상 차이)
-      if (Math.abs(newWidth - currentWidth) > 10) {
-        setTemplateWidth(() => {
-          templateWidthRef.current = newWidth;
-          return newWidth;
-        });
-      }
-      
+
+      adjustToA4();
       setTimeout(() => { isAdjusting = false; }, 100);
     };
     
@@ -84,13 +118,21 @@ export default function HomePage() {
     resizeObserver.observe(canvasRef.current);
     
     // 초기 조정
-    adjustTimeout = setTimeout(adjustA4Ratio, 300);
+    adjustTimeout = setTimeout(() => adjustToA4({ force: true }), 300);
     
     return () => {
       resizeObserver.disconnect();
       clearTimeout(adjustTimeout);
     };
-  }, [selectedId, classPlans]);
+  }, [selectedId, classPlans, adjustToA4]);
+
+  if (!authHydrated || !session || session.mustChangePassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-zinc-500">
+        로그인 후 이용해주세요.
+      </div>
+    );
+  }
   
   const filteredPlans = selectedTeacher 
     ? classPlans.filter(p => p.teacherName === selectedTeacher)
@@ -120,6 +162,7 @@ export default function HomePage() {
       }))
     };
     addClassPlan(newPlan);
+    recordActivity('class.create', `새 강의 생성: ${newPlan.title || '무제 강의'}`);
   };
 
   const getTemplateNameKorean = (templateId?: TemplateId) => {
@@ -134,27 +177,23 @@ export default function HomePage() {
       const templateName = getTemplateNameKorean(selectedPlan.templateId);
       const fileName = `${year}년_겨울특강_${selectedPlan.title || '강좌명'}_${selectedPlan.teacherName || '강사명'}_${templateName}`;
       downloadAsPng(canvasRef, fileName.replace(/\s+/g, '_'));
+      recordActivity('class.download', `${selectedPlan.title || '강좌'} PNG 다운로드`);
     }
   };
 
   const handleSave = () => {
     setIsSaving(true);
     
-    // A4 비율 재조정
-    if (canvasRef.current) {
-      const contentHeight = canvasRef.current.scrollHeight;
-      const targetWidth = contentHeight / A4_RATIO;
-      const newWidth = Math.max(BASE_WIDTH_PX, Math.min(targetWidth, BASE_WIDTH_PX * 1.5));
-      setTemplateWidth(() => {
-        templateWidthRef.current = newWidth;
-        return newWidth;
-      });
-    }
+    // A4 비율 재조정 (임시저장 시 강제 적용)
+    adjustToA4({ force: true, maxWidthMultiplier: 1.5 });
     
     saveToStorage();
     const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
     setLastSaveTime(now);
     setTimeout(() => setIsSaving(false), 500);
+    if (selectedPlan) {
+      recordActivity('class.save', `${selectedPlan.title || '강좌'} 임시저장`);
+    }
   };
 
   // 카테고리 변경
@@ -245,7 +284,36 @@ export default function HomePage() {
             <span>일괄 등록 (CSV)</span>
           </button>
         </div>
-
+        <div className="flex items-center space-x-2">
+          {session.role === 'admin' && (
+            <>
+              <Link
+                href="/admin/accounts"
+                className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium"
+              >
+                계정 관리
+              </Link>
+              <Link
+                href="/admin/logs"
+                className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium"
+              >
+                활동 로그
+              </Link>
+            </>
+          )}
+          <span className="text-[11px] text-zinc-200 px-2 py-1 bg-white/5 rounded-md">
+            {session.name} · {session.role === 'admin' ? '관리자' : '일반'}
+          </span>
+          <button
+            onClick={() => {
+              logout();
+              router.replace('/login');
+            }}
+            className="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded-md transition font-semibold"
+          >
+            로그아웃
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}

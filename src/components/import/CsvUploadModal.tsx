@@ -4,7 +4,8 @@ import React, { useRef, useState } from 'react';
 import { X, Download, UploadCloud } from 'lucide-react';
 import { parseCsv } from '@/lib/csv';
 import { useClassPlanStore } from '@/store/classPlanStore';
-import { ClassPlan } from '@/lib/types';
+import { ClassPlan, WeeklyItem } from '@/lib/types';
+import { recordActivity } from '@/lib/activityLogger';
 
 interface Props {
   isOpen: boolean;
@@ -63,6 +64,7 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
     link.href = URL.createObjectURL(blob);
     link.download = '강의계획서_샘플.csv';
     link.click();
+    recordActivity('csv.sample', '샘플 CSV 다운로드');
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,6 +124,7 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
       });
 
       onClose();
+      recordActivity('csv.upload', `CSV 일괄등록 ${rows.length}건`);
     } catch (error) {
       console.error('CSV 업로드 실패:', error);
       alert('CSV 파일 업로드에 실패했습니다. 파일 형식을 확인해주세요.');
