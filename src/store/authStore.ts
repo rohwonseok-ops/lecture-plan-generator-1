@@ -2,6 +2,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabase } from '@/lib/supabaseClient';
+import { signInWithPin, signOut, getProfile } from '@/lib/supabaseAuthClient';
 
 export type UserRole = 'admin' | 'user';
 
@@ -38,8 +40,9 @@ interface AuthState {
   users: UserAccount[];
   session?: UserSession;
   logs: ActivityLog[];
-  login: (name: string, password: string) => { ok: boolean; message?: string; requiresPasswordChange?: boolean };
-  logout: () => void;
+  login: (name: string, password: string) => Promise<{ ok: boolean; message?: string; requiresPasswordChange?: boolean }>;
+  logout: () => Promise<void>;
+  setSession: (session?: UserSession) => void;
   upsertUser: (input: {
     id?: string;
     name: string;
@@ -49,7 +52,7 @@ interface AuthState {
     active?: boolean;
   }) => { ok: boolean; message?: string; user?: UserAccount };
   setUserActive: (userId: string, active: boolean) => void;
-  changePassword: (userId: string, newPassword: string) => { ok: boolean; message?: string };
+  changePassword: (userId: string, newPassword: string) => Promise<{ ok: boolean; message?: string }>;
   appendLog: (
     action: string,
     detail?: string,
@@ -58,6 +61,7 @@ interface AuthState {
 }
 
 const sanitizePhoneLast4 = (value: string) => value.replace(/\D/g, '').slice(-4);
+const sanitizePin6 = (value: string) => value.replace(/\D/g, '').slice(0, 6);
 const normalizeName = (value: string) => value.trim();
 
 const seedTimestamp = new Date().toISOString();
@@ -129,38 +133,49 @@ export const useAuthStore = create<AuthState>()(
       session: undefined,
       logs: [],
 
-      login: (rawName, rawPassword) => {
+      login: async (rawName, rawPassword) => {
         const name = normalizeName(rawName);
-        const password = sanitizePhoneLast4(rawPassword);
+        const password = sanitizePin6(rawPassword);
 
-        if (!name || password.length !== 4) {
-          return { ok: false, message: '이름과 비밀번호(숫자 4자리)를 입력해주세요.' };
+        if (!name || password.length !== 6) {
+          return { ok: false, message: '비밀번호는 숫자 6자리여야 합니다.' };
         }
 
-        const user = get().users.find((u) => normalizeName(u.name) === name);
-
-        if (!user) {
-          return { ok: false, message: '등록된 사용자 정보와 일치하지 않습니다.' };
-        }
-        if (!user.active) {
-          return { ok: false, message: '비활성화된 계정입니다. 관리자에게 문의하세요.' };
-        }
-        if (user.password !== password) {
-          return { ok: false, message: '비밀번호가 올바르지 않습니다.' };
+        const { error: signInError } = await signInWithPin(name, password);
+        if (signInError) {
+          return { ok: false, message: signInError.message ?? '로그인에 실패했습니다.' };
         }
 
-        const mustChange = user.mustChangePassword || user.password === user.phoneLast4;
-        const session = buildSession(user, mustChange);
+        const { profile, error } = await getProfile();
+        if (error || !profile) {
+          return { ok: false, message: '프로필 조회에 실패했습니다.' };
+        }
+
+        const session = buildSession(
+          {
+            id: profile.id,
+            name: profile.name,
+            phoneLast4: profile.phone_last4,
+            password,
+            mustChangePassword: profile.must_change_password,
+            role: profile.role,
+            active: profile.active,
+            createdAt: profile.created_at,
+            updatedAt: profile.updated_at,
+          },
+          profile.must_change_password
+        );
         set({ session });
-        get().appendLog('auth.login', `${user.name} 로그인`, {
-          name: user.name,
-          role: user.role,
+        get().appendLog('auth.login', `${profile.name} 로그인`, {
+          name: profile.name,
+          role: profile.role,
         });
-        return { ok: true, requiresPasswordChange: mustChange };
+        return { ok: true, requiresPasswordChange: profile.must_change_password };
       },
 
-      logout: () => {
+      logout: async () => {
         const current = get().session;
+        await signOut();
         set({ session: undefined });
         if (current) {
           get().appendLog('auth.logout', `${current.name} 로그아웃`, {
@@ -169,6 +184,8 @@ export const useAuthStore = create<AuthState>()(
           });
         }
       },
+
+      setSession: (session) => set({ session }),
 
       upsertUser: (input) => {
         const name = normalizeName(input.name);
@@ -235,33 +252,42 @@ export const useAuthStore = create<AuthState>()(
         get().appendLog('user.status', `${updated.name} ${active ? '활성화' : '비활성화'}`);
       },
 
-      changePassword: (userId, newPassword) => {
-        const normalized = sanitizePhoneLast4(newPassword);
-        if (normalized.length !== 4) {
-          return { ok: false, message: '비밀번호는 숫자 4자리여야 합니다.' };
+      changePassword: async (_userId, newPassword) => {
+        const normalized = sanitizePin6(newPassword);
+        if (normalized.length !== 6) {
+          return { ok: false, message: '비밀번호는 숫자 6자리여야 합니다.' };
         }
-        const { users, session } = get();
-        const target = users.find((u) => u.id === userId);
-        if (!target) return { ok: false, message: '사용자를 찾을 수 없습니다.' };
-        if (normalized === target.phoneLast4) {
-          return { ok: false, message: '휴대폰 뒷자리와 다른 번호로 설정하세요.' };
+        const { session } = get();
+        if (!session) return { ok: false, message: '로그인이 필요합니다.' };
+
+        let { data: sessionData } = await supabase.auth.getSession();
+        let token = sessionData.session?.access_token;
+        if (!token) {
+          // 세션 만료 시 갱신 시도
+          const refreshed = await supabase.auth.refreshSession();
+          sessionData = refreshed.data;
+          token = sessionData.session?.access_token;
         }
-        if (normalized === target.password) {
-          return { ok: false, message: '기존 비밀번호와 다른 번호를 사용하세요.' };
-        }
-        const updated: UserAccount = {
-          ...target,
-          password: normalized,
-          mustChangePassword: false,
-          updatedAt: new Date().toISOString(),
-        };
-        set({
-          users: users.map((u) => (u.id === userId ? updated : u)),
-          session: session
-            ? { ...session, mustChangePassword: false }
-            : session,
+        if (!token) return { ok: false, message: '로그인이 필요합니다.' };
+
+        const res = await fetch('/api/auth/change-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ pin: normalized }),
         });
-        get().appendLog('auth.password_change', `${updated.name} 비밀번호 변경`);
+
+        if (!res.ok) {
+          const json = await res.json().catch(() => ({}));
+          return { ok: false, message: json.error || '비밀번호 변경에 실패했습니다.' };
+        }
+
+        set({
+          session: { ...session, mustChangePassword: false },
+        });
+        get().appendLog('auth.password_change', `${session.name} 비밀번호 변경`);
         return { ok: true };
       },
 
@@ -277,16 +303,19 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'lecture-auth-store',
       skipHydration: false,
+      // 접속 시 항상 로그인 화면부터 시작하도록 세션을 비움
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.error('authStore 복원 실패:', error);
         }
-        // Storage에 사용자 정보가 없으면 기본 계정 주입
-        if (state && (!state.users || state.users.length === 0)) {
-          state.users = SEED_USERS;
-        }
-        if (state && state.users) {
-          state.users = state.users.map(normalizeUser);
+        if (state) {
+          state.session = undefined;
+          if (state.users && state.users.length === 0) {
+            state.users = SEED_USERS;
+          }
+          if (state.users) {
+            state.users = state.users.map(normalizeUser);
+          }
         }
       },
     }

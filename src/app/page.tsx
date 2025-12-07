@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useClassPlanStore } from '@/store/classPlanStore';
 import { useAuthStore } from '@/store/authStore';
 import { recordActivity } from '@/lib/activityLogger';
-import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout } from 'lucide-react';
+import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2 } from 'lucide-react';
 import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings } from '@/lib/types';
 import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
 import { getDefaultTypography } from '@/lib/utils';
@@ -34,7 +34,7 @@ export default function HomePage() {
   const router = useRouter();
   const { session, logout } = useAuthStore();
   const [authHydrated, setAuthHydrated] = useState(false);
-  const { classPlans, selectedId, addClassPlan, updateClassPlan, setSelectedId, saveToStorage } = useClassPlanStore();
+  const { classPlans, selectedId, addClassPlan, updateClassPlan, setSelectedId, savePlan, loadFromRemote, removeClassPlan } = useClassPlanStore();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.70);
   const [templateWidth, setTemplateWidth] = useState(BASE_WIDTH_PX); // 동적 너비
@@ -60,7 +60,8 @@ export default function HomePage() {
     if (session.mustChangePassword) {
       router.replace('/login/change-password');
     }
-  }, [authHydrated, session, router]);
+    loadFromRemote();
+  }, [authHydrated, session, router, loadFromRemote]);
 
   const calculateA4Width = useCallback((height: number, maxWidthMultiplier = 2) => {
     const targetWidth = height / A4_RATIO;
@@ -143,7 +144,7 @@ export default function HomePage() {
   const currentTemplateId = selectedPlan?.templateId || 'style1-blue';
   const { category: currentCategory, color: currentColor } = parseTemplateId(currentTemplateId);
 
-  const handleAddNew = () => {
+  const handleAddNew = async () => {
     const newPlan: ClassPlan = {
       id: crypto.randomUUID(),
       title: '',
@@ -161,7 +162,7 @@ export default function HomePage() {
         topic: ''
       }))
     };
-    addClassPlan(newPlan);
+    await addClassPlan(newPlan);
     recordActivity('class.create', `새 강의 생성: ${newPlan.title || '무제 강의'}`);
   };
 
@@ -181,19 +182,30 @@ export default function HomePage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
     
     // A4 비율 재조정 (임시저장 시 강제 적용)
     adjustToA4({ force: true, maxWidthMultiplier: 1.5 });
     
-    saveToStorage();
-    const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-    setLastSaveTime(now);
-    setTimeout(() => setIsSaving(false), 500);
     if (selectedPlan) {
-      recordActivity('class.save', `${selectedPlan.title || '강좌'} 임시저장`);
+      await savePlan(selectedPlan.id);
+      const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+      setLastSaveTime(now);
+      setTimeout(() => setIsSaving(false), 500);
+      recordActivity('class.save', `${selectedPlan.title || '강좌'} 저장`);
+    } else {
+      setIsSaving(false);
     }
+  };
+
+  const handleDeleteCurrent = async () => {
+    if (!selectedId) return;
+    if (!window.confirm('현재 선택된 강의를 삭제할까요?')) return;
+    await removeClassPlan(selectedId);
+    const next = classPlans.find((p) => p.id !== selectedId);
+    setSelectedId(next?.id);
+    recordActivity('class.delete', `강의 삭제: ${selectedPlan?.title || '무제 강의'}`);
   };
 
   // 카테고리 변경
@@ -342,6 +354,14 @@ export default function HomePage() {
               >
                 <Plus className="w-3 h-3" />
                 <span>새 강의</span>
+              </button>
+              <button
+                onClick={handleDeleteCurrent}
+                disabled={!selectedId}
+                className="flex items-center space-x-1 text-xs bg-red-500 text-white px-2.5 py-1 rounded-md hover:bg-red-600 transition font-medium disabled:opacity-40"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>현 강의 삭제</span>
               </button>
             </div>
             <div className="flex items-center space-x-2">

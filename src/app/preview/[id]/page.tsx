@@ -19,7 +19,8 @@ export default function PreviewPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const classPlan = useClassPlanStore(state => state.classPlans.find(p => p.id === id));
+  const { classPlans, loadFromRemote } = useClassPlanStore();
+  const classPlan = classPlans.find(p => p.id === id);
   
   const [templateId, setTemplateId] = useState<TemplateId>('classic');
   const [sizePreset, setSizePreset] = useState<SizePreset>('A4');
@@ -32,6 +33,12 @@ export default function PreviewPage() {
       setTemplateId(classPlan.templateId);
     }
   }, [classPlan]);
+
+  useEffect(() => {
+    if (!classPlan) {
+      loadFromRemote();
+    }
+  }, [classPlan, loadFromRemote]);
 
   if (!classPlan) {
     return (

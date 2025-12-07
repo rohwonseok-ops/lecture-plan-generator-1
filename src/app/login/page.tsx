@@ -31,14 +31,14 @@ export default function LoginPage() {
     }
   }, [hydrated, session, router]);
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const sanitized = password.replace(/\D/g, '').slice(-4);
-    if (sanitized.length !== 4) {
-      setError('숫자 4자리를 입력해주세요.');
+    const sanitized = password.replace(/\D/g, '').slice(0, 6);
+    if (sanitized.length !== 6) {
+      setError('숫자 6자리를 입력해주세요.');
       return;
     }
-    const result = login(name, sanitized);
+    const result = await login(name, sanitized);
     if (result.ok) {
       if (result.requiresPasswordChange) {
         router.replace('/login/change-password');
@@ -55,7 +55,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white/90 rounded-2xl shadow-2xl p-8 backdrop-blur">
         <h1 className="text-2xl font-bold text-zinc-900 mb-2">강의계획서 매니저</h1>
         <p className="text-sm text-zinc-600 mb-6">
-          사전에 등록된 이름(ID)과 비밀번호(숫자 4자리)로 로그인하세요. 초기 비밀번호는 휴대폰 번호 뒷자리와 동일합니다.
+          사전에 등록된 이름(ID)과 비밀번호(숫자 6자리)로 로그인하세요. 신규 계정의 초기 비밀번호는 000000입니다.
         </p>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div>
@@ -70,18 +70,18 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1">비밀번호 (숫자 4자리)</label>
+            <label className="block text-sm font-medium text-zinc-800 mb-1">비밀번호 (숫자 6자리)</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                maxLength={4}
+                maxLength={6}
                 inputMode="numeric"
-                pattern="[0-9]{4}"
+                pattern="[0-9]{6}"
                 autoComplete="one-time-code"
                 className="w-full rounded-lg border border-zinc-300 px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="초기값: 휴대폰 뒷자리"
+                placeholder="초기값: 000000"
                 style={{
                   WebkitTextSecurity: showPassword ? 'none' : 'disc',
                   fontFamily: showPassword ? undefined : 'system-ui, -apple-system, "Segoe UI", sans-serif',

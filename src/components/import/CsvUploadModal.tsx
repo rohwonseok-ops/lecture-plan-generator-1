@@ -83,7 +83,7 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
       });
 
       // CSV 데이터를 ClassPlan으로 변환
-      rows.forEach(row => {
+      for (const row of rows) {
         const weeklyPlanRaw = row[mapping['weeklyplanraw']] || row[mapping['weekly_plan_raw']] || '';
         const weeklyPlan: WeeklyItem[] = weeklyPlanRaw
           ? weeklyPlanRaw.split('\n').map((line: string, idx: number) => {
@@ -120,8 +120,8 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
           sizePreset: 'A4'
         };
 
-        addClassPlan(newPlan);
-      });
+        await addClassPlan(newPlan);
+      }
 
       onClose();
       recordActivity('csv.upload', `CSV 일괄등록 ${rows.length}건`);

@@ -1,18 +1,20 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { ClassPlan } from '@/lib/types';
+import { ClassPlan, FeeRow, WeeklyItem } from '@/lib/types';
+import { supabase } from '@/lib/supabaseClient';
 
 interface ClassPlanState {
   classPlans: ClassPlan[];
   selectedId?: string;
-  
-  setClassPlans: (plans: ClassPlan[]) => void;
-  addClassPlan: (plan: ClassPlan) => void;
-  updateClassPlan: (id: string, patch: Partial<ClassPlan>) => void;
-  removeClassPlan: (id: string) => void;
+  loading: boolean;
+  error?: string | null;
+
+  loadFromRemote: () => Promise<void>;
+  addClassPlan: (plan: ClassPlan) => Promise<void>;
+  updateClassPlan: (id: string, patch: Partial<ClassPlan>) => void; // local patch
+  savePlan: (id: string) => Promise<void>;
+  removeClassPlan: (id: string) => Promise<void>;
   setSelectedId: (id?: string) => void;
   getClassPlan: (id: string) => ClassPlan | undefined;
-  saveToStorage: () => void;
 }
 
 const defaultWeeklyPlan = Array.from({ length: 8 }, (_, i) => ({
@@ -68,88 +70,244 @@ const normalizePlan = (plan: ClassPlan): ClassPlan => {
   };
 };
 
-export const useClassPlanStore = create<ClassPlanState>()(
-  persist(
-    (set, get) => ({
-      classPlans: [
-        normalizePlan({
-          id: 'demo-1',
-          title: '수학',
-          subject: '수학',
-          targetStudent: '초등 5-6',
-          targetStudentDetail: '김미리 외 3명',
-          teacherName: '김미리',
-          classDay: '월수금',
-          classTime: '13:00-17:00',
-          schedule: '월수금 13:00-17:00',
-          course1: '3-1 개념',
-          material1: '개념플러스유형(라이트)',
-          course2: '3-1 응용',
-          material2: '쎈',
-          learningGoal: '3-1 개념 완성 및 응용력 배양',
-          management: '매주 데일리 테스트 진행\n오답 노트 확인',
-          parentIntro: '학부모님, 아이들이 수학에 흥미를 잃지 않고 기초를 탄탄히 다질 수 있도록 지도하겠습니다.',
-          keywords: '#초등수학 #개념완성 #응용력',
-          etc: '특이사항 없음',
-          weeklyPlan: [
-            { weekLabel: '1주차', topic: '자연수의 혼합 계산' },
-            { weekLabel: '2주차', topic: '약수와 배수' },
-            { weekLabel: '3주차', topic: '규칙과 대응' },
-            { weekLabel: '4주차', topic: '약분과 통분' },
-            { weekLabel: '5주차', topic: '분수의 덧셈과 뺄셈' },
-            { weekLabel: '6주차', topic: '다각형의 둘레와 넓이' },
-            { weekLabel: '7주차', topic: '수의 범위와 어림하기' },
-            { weekLabel: '8주차', topic: '총정리 및 평가' },
-          ],
-          feeInfo: defaultFeeInfo,
-          templateId: 'style1-blue',
-          sizePreset: 'A4'
-        })
-      ],
-      selectedId: 'demo-1',
+const toDbWeekly = (items: WeeklyItem[]) =>
+  items.map((w, idx) => ({
+    week_label: w.weekLabel,
+    topic: w.topic,
+    detail: w.detail,
+    note: w.note,
+    position: idx,
+  }));
 
-      setClassPlans: (plans) => set({ classPlans: plans.map(normalizePlan) }),
-      
-      addClassPlan: (plan) => set((state) => ({ 
-        classPlans: [...state.classPlans, normalizePlan(plan)],
-        selectedId: plan.id 
-      })),
-      
-      updateClassPlan: (id, patch) => set((state) => ({
-        classPlans: state.classPlans.map((p) => (p.id === id ? normalizePlan({ ...p, ...patch }) : p))
-      })),
-      
-      removeClassPlan: (id) => set((state) => ({
-        classPlans: state.classPlans.filter((p) => p.id !== id),
-        selectedId: state.selectedId === id ? undefined : state.selectedId
-      })),
-      
-      setSelectedId: (id) => set({ selectedId: id }),
+const toDbFeeRows = (rows?: FeeRow[]) =>
+  rows?.map((r) => ({
+    month: r.month,
+    class_type: r.classType,
+    day: r.day,
+    time: r.time,
+    unit_fee: r.unitFee,
+    sessions: r.sessions,
+    subtotal: r.subtotal,
+  })) || [];
 
-      getClassPlan: (id) => get().classPlans.find(p => p.id === id),
-      
-      saveToStorage: () => {
-        const state = get();
-        if (state.selectedId) {
-          const now = new Date().toISOString();
-          set((s) => ({
-            classPlans: s.classPlans.map((p) => 
-              p.id === s.selectedId ? { ...p, lastSaved: now } : p
-            )
-          }));
-        }
+const dbToClassPlan = (row: any): ClassPlan => {
+  const weeklyPlan: WeeklyItem[] =
+    row.weekly_plan_items?.map((w: any) => ({
+      weekLabel: w.week_label,
+      topic: w.topic ?? '',
+      detail: w.detail ?? undefined,
+      note: w.note ?? undefined,
+    })) ?? defaultWeeklyPlan;
+
+  const feeRows: FeeRow[] =
+    row.fee_rows?.map((f: any) => ({
+      month: f.month,
+      classType: f.class_type,
+      day: f.day ?? '',
+      time: f.time ?? '',
+      unitFee: Number(f.unit_fee ?? 0),
+      sessions: Number(f.sessions ?? 0),
+      subtotal: Number(f.subtotal ?? 0),
+    })) ?? [];
+
+  const feeInfo = feeRows.length
+    ? {
+        title: row.fee_info_title || '수강료 안내',
+        rows: feeRows,
+        monthlyTotals: [],
       }
-    }),
-    {
-      name: 'lecture-plan-storage',
-      onRehydrateStorage: () => (state, error) => {
-        if (error || !state) return;
-        const normalized = state.classPlans?.map(normalizePlan) || [];
-        return {
-          ...state,
-          classPlans: normalized,
-        };
-      },
+    : undefined;
+
+  return normalizePlan({
+    id: row.id,
+    title: row.title,
+    titleType: row.title_type ?? undefined,
+    subject: row.subject ?? '',
+    targetStudent: row.target_student ?? '',
+    targetStudentDetail: row.target_student_detail ?? '',
+    teacherName: row.teacher_name ?? '',
+    classDay: row.class_day ?? '',
+    classTime: row.class_time ?? '',
+    schedule: row.schedule ?? '',
+    course1: row.course1 ?? '',
+    material1: row.material1 ?? '',
+    course2: row.course2 ?? '',
+    material2: row.material2 ?? '',
+    learningGoal: row.learning_goal ?? '',
+    management: row.management ?? '',
+    parentIntro: row.parent_intro ?? '',
+    keywords: row.keywords ?? '',
+    etc: row.etc ?? '',
+    showEtc: row.show_etc ?? false,
+    etcPosition: row.etc_position ?? undefined,
+    templateId: row.template_id ?? 'style1-blue',
+    sizePreset: row.size_preset ?? 'A4',
+    typography: row.typography ?? undefined,
+    weeklyPlan,
+    feeInfo,
+    lastSaved: row.last_saved ?? undefined,
+  });
+};
+
+const toDbPlan = (plan: ClassPlan) => ({
+  title: plan.title,
+  title_type: plan.titleType,
+  subject: plan.subject,
+  target_student: plan.targetStudent,
+  target_student_detail: plan.targetStudentDetail,
+  teacher_name: plan.teacherName,
+  class_day: plan.classDay,
+  class_time: plan.classTime,
+  schedule: plan.schedule,
+  course1: plan.course1,
+  material1: plan.material1,
+  course2: plan.course2,
+  material2: plan.material2,
+  learning_goal: plan.learningGoal,
+  management: plan.management,
+  parent_intro: plan.parentIntro,
+  keywords: plan.keywords,
+  etc: plan.etc,
+  show_etc: plan.showEtc,
+  etc_position: plan.etcPosition,
+  template_id: plan.templateId,
+  size_preset: plan.sizePreset,
+  typography: plan.typography,
+  fee_info_title: plan.feeInfo?.title ?? '수강료 안내',
+  last_saved: new Date().toISOString(),
+});
+
+export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
+  classPlans: [],
+  selectedId: undefined,
+  loading: false,
+  error: null,
+
+  loadFromRemote: async () => {
+    set({ loading: true, error: null });
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token;
+    if (!token) {
+      set({ loading: false, error: '로그인이 필요합니다.' });
+      return;
     }
-  )
-);
+    const res = await fetch('/api/class-plans', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      set({ loading: false, error: json.error || '강의 목록을 불러오지 못했습니다.' });
+      return;
+    }
+    const json = await res.json();
+    const plans: ClassPlan[] = (json.data || []).map(dbToClassPlan);
+    set({
+      classPlans: plans,
+      selectedId: plans[0]?.id,
+      loading: false,
+      error: null,
+    });
+  },
+
+  addClassPlan: async (plan) => {
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token;
+    const localPlan = normalizePlan(plan);
+    if (!token) {
+      set((state) => ({
+        classPlans: [...state.classPlans, localPlan],
+        selectedId: localPlan.id,
+      }));
+      return;
+    }
+    const res = await fetch('/api/class-plans', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        plan: toDbPlan(localPlan),
+        weeklyItems: toDbWeekly(localPlan.weeklyPlan),
+        feeRows: toDbFeeRows(localPlan.feeInfo?.rows),
+      }),
+    });
+    if (!res.ok) {
+      set((state) => ({
+        classPlans: [...state.classPlans, localPlan],
+        selectedId: localPlan.id,
+        error: '저장 실패: 로컬에만 저장되었습니다.',
+      }));
+      return;
+    }
+    const json = await res.json();
+    const saved = dbToClassPlan(json.data);
+    set((state) => ({
+      classPlans: [...state.classPlans, saved],
+      selectedId: saved.id,
+    }));
+  },
+
+  updateClassPlan: (id, patch) =>
+    set((state) => ({
+      classPlans: state.classPlans.map((p) => (p.id === id ? normalizePlan({ ...p, ...patch }) : p)),
+    })),
+
+  savePlan: async (id) => {
+    const plan = get().classPlans.find((p) => p.id === id);
+    if (!plan) return;
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token;
+    if (!token) {
+      set({ error: '로그인이 필요합니다.' });
+      return;
+    }
+    const res = await fetch(`/api/class-plans/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        patch: toDbPlan(plan),
+        weeklyItems: toDbWeekly(plan.weeklyPlan),
+        feeRows: toDbFeeRows(plan.feeInfo?.rows),
+      }),
+    });
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      set({ error: json.error || '저장 실패' });
+      return;
+    }
+    const json = await res.json();
+    const saved = dbToClassPlan(json.data);
+    set((state) => ({
+      classPlans: state.classPlans.map((p) => (p.id === id ? saved : p)),
+      error: null,
+    }));
+  },
+
+  removeClassPlan: async (id) => {
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token;
+    if (!token) {
+      set((state) => ({
+        classPlans: state.classPlans.filter((p) => p.id !== id),
+        selectedId: state.selectedId === id ? undefined : state.selectedId,
+      }));
+      return;
+    }
+    await fetch(`/api/class-plans/${id}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    set((state) => ({
+      classPlans: state.classPlans.filter((p) => p.id !== id),
+      selectedId: state.selectedId === id ? undefined : state.selectedId,
+    }));
+  },
+
+  setSelectedId: (id) => set({ selectedId: id }),
+
+  getClassPlan: (id) => get().classPlans.find((p) => p.id === id),
+}));

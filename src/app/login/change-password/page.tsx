@@ -33,20 +33,20 @@ export default function ChangePasswordPage() {
     }
   }, [hydrated, session, router]);
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!session) return;
-    const sanitized = password.replace(/\D/g, '').slice(-4);
-    const sanitizedConfirm = confirm.replace(/\D/g, '').slice(-4);
-    if (sanitized.length !== 4 || sanitizedConfirm.length !== 4) {
-      setError('숫자 4자리를 입력해주세요.');
+    const sanitized = password.replace(/\D/g, '').slice(0, 6);
+    const sanitizedConfirm = confirm.replace(/\D/g, '').slice(0, 6);
+    if (sanitized.length !== 6 || sanitizedConfirm.length !== 6) {
+      setError('숫자 6자리를 입력해주세요.');
       return;
     }
     if (sanitized !== sanitizedConfirm) {
       setError('비밀번호가 일치하지 않습니다.');
       return;
     }
-    const result = changePassword(session.userId, sanitized);
+    const result = await changePassword(session.userId, sanitized);
     if (!result.ok) {
       setError(result.message ?? '비밀번호 변경에 실패했습니다.');
       return;
@@ -59,22 +59,22 @@ export default function ChangePasswordPage() {
       <div className="w-full max-w-md bg-white/90 rounded-2xl shadow-2xl p-8 backdrop-blur">
         <h1 className="text-2xl font-bold text-zinc-900 mb-2">비밀번호 변경</h1>
         <p className="text-sm text-zinc-600 mb-6">
-          초기 비밀번호는 휴대폰 번호 뒷자리입니다. 보안을 위해 새로운 숫자 4자리로 변경해주세요.
+          초기 비밀번호는 000000입니다. 보안을 위해 새로운 숫자 6자리로 변경해주세요.
         </p>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1">새 비밀번호 (숫자 4자리)</label>
+            <label className="block text-sm font-medium text-zinc-800 mb-1">새 비밀번호 (숫자 6자리)</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                maxLength={4}
+                maxLength={6}
                 inputMode="numeric"
-                pattern="[0-9]{4}"
+                pattern="[0-9]{6}"
                 autoComplete="one-time-code"
                 className="w-full rounded-lg border border-zinc-300 px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="숫자 4자리"
+                placeholder="숫자 6자리"
                 style={{
                   WebkitTextSecurity: showPassword ? 'none' : 'disc',
                   fontFamily: showPassword ? undefined : 'system-ui, -apple-system, "Segoe UI", sans-serif',
@@ -90,21 +90,21 @@ export default function ChangePasswordPage() {
                 {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
               </button>
             </div>
-            <p className="text-xs text-zinc-500 mt-1">휴대폰 뒷자리와 동일한 번호는 사용할 수 없습니다.</p>
+            <p className="text-xs text-zinc-500 mt-1">초기 비밀번호(000000)와 다른 숫자 6자리로 변경하세요.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1">비밀번호 확인</label>
+            <label className="block text-sm font-medium text-zinc-800 mb-1">비밀번호 확인 (숫자 6자리)</label>
             <div className="relative">
               <input
                 type={showConfirm ? 'text' : 'password'}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                maxLength={4}
+                maxLength={6}
                 inputMode="numeric"
-                pattern="[0-9]{4}"
+                pattern="[0-9]{6}"
                 autoComplete="one-time-code"
                 className="w-full rounded-lg border border-zinc-300 px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="다시 입력"
+                placeholder="다시 입력 (숫자 6자리)"
                 style={{
                   WebkitTextSecurity: showConfirm ? 'none' : 'disc',
                   fontFamily: showConfirm ? undefined : 'system-ui, -apple-system, "Segoe UI", sans-serif',
