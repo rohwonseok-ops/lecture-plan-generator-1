@@ -3,15 +3,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useClassPlanStore } from '@/store/classPlanStore';
-import { TemplateId, SizePreset } from '@/lib/types';
-import TemplateClassic from '@/components/templates/TemplateClassic';
-import TemplateBlue from '@/components/templates/TemplateBlue';
-import TemplateReport from '@/components/templates/TemplateReport';
-import TemplateModern from '@/components/templates/TemplateModern';
-import TemplatePurple from '@/components/templates/TemplatePurple';
-import TemplateMentoring from '@/components/templates/TemplateMentoring';
-import TemplateAcademic from '@/components/templates/TemplateAcademic';
-import TemplateDark from '@/components/templates/TemplateDark';
+import { TemplateId, parseTemplateId } from '@/lib/types';
+import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
+import TemplateStyle1 from '@/components/templates/TemplateStyle1';
+import TemplateStyle2 from '@/components/templates/TemplateStyle2';
+import TemplateStyle3 from '@/components/templates/TemplateStyle3';
 import { downloadAsPng } from '@/lib/download';
 import { ArrowLeft, Download } from 'lucide-react';
 
@@ -22,8 +18,7 @@ export default function PreviewPage() {
   const { classPlans, loadFromRemote } = useClassPlanStore();
   const classPlan = classPlans.find(p => p.id === id);
   
-  const [templateId, setTemplateId] = useState<TemplateId>('classic');
-  const [sizePreset, setSizePreset] = useState<SizePreset>('A4');
+  const [templateId, setTemplateId] = useState<TemplateId>('style1-blue');
   const [scale, setScale] = useState(0.6);
 
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -56,8 +51,23 @@ export default function PreviewPage() {
     );
   }
 
+  const templateOptions: TemplateId[] = [
+    'style1-blue',
+    'style1-purple',
+    'style1-teal',
+    'style2-blue',
+    'style2-purple',
+    'style3-blue',
+    'style3-orange',
+    'style3-navyGold',
+    // 레거시 호환 옵션
+    'classic',
+    'report',
+    'modern',
+  ];
+
   const getTemplateNameKorean = (tid: TemplateId) => {
-    const names: Record<TemplateId, string> = {
+    const legacyNames: Partial<Record<TemplateId, string>> = {
       classic: '기본형',
       blue: '네이비',
       report: '리포트',
@@ -65,9 +75,14 @@ export default function PreviewPage() {
       purple: '프로젝트',
       mentoring: '활동형',
       academic: '학술형',
-      dark: '다크'
+      dark: '다크',
     };
-    return names[tid];
+    if (legacyNames[tid]) return legacyNames[tid] as string;
+
+    const { category, color } = parseTemplateId(tid);
+    const categoryName = templateCategoryNames[category] || category;
+    const colorName = colorThemeNames[color] || color;
+    return `${categoryName} · ${colorName}`;
   };
 
   const handleDownload = () => {
@@ -77,16 +92,13 @@ export default function PreviewPage() {
     downloadAsPng(canvasRef, fileName.replace(/\s+/g, '_'));
   };
 
-  const TemplateComponent = {
-    classic: TemplateClassic,
-    blue: TemplateBlue,
-    report: TemplateReport,
-    modern: TemplateModern,
-    purple: TemplatePurple,
-    mentoring: TemplateMentoring,
-    academic: TemplateAcademic,
-    dark: TemplateDark
-  }[templateId];
+  const { category, color } = parseTemplateId(templateId);
+  const TemplateComponent =
+    {
+      style1: TemplateStyle1,
+      style2: TemplateStyle2,
+      style3: TemplateStyle3,
+    }[category] || TemplateStyle1;
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -105,7 +117,7 @@ export default function PreviewPage() {
           <div className="flex items-center space-x-2">
             <span className="text-xs font-medium text-gray-500 uppercase">Template</span>
             <div className="flex bg-gray-100 rounded-lg p-1 flex-wrap gap-1">
-              {(['classic', 'blue', 'report', 'modern', 'purple', 'mentoring', 'academic', 'dark'] as TemplateId[]).map(t => (
+              {templateOptions.map(t => (
                 <button
                   key={t}
                   onClick={() => setTemplateId(t)}
@@ -113,16 +125,7 @@ export default function PreviewPage() {
                     templateId === t ? 'bg-white shadow text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  {{
-                    classic: '기본형',
-                    blue: '네이비',
-                    report: '리포트',
-                    modern: '모던',
-                    purple: '프로젝트',
-                    mentoring: '활동형',
-                    academic: '학술형',
-                    dark: '다크'
-                  }[t]}
+                  {getTemplateNameKorean(t)}
                 </button>
               ))}
             </div>
@@ -156,7 +159,7 @@ export default function PreviewPage() {
             ref={canvasRef} 
             className="shadow-2xl"
           >
-            <TemplateComponent classPlan={classPlan} sizePreset={sizePreset} />
+            <TemplateComponent classPlan={classPlan} colorTheme={color} />
           </div>
         </div>
       </div>
