@@ -59,8 +59,9 @@ export default function LoginPage() {
         </p>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1">이름 (ID)</label>
+            <label htmlFor="login-name" className="block text-sm font-medium text-zinc-800 mb-1">이름 (ID)</label>
             <input
+              id="login-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -70,9 +71,10 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1">비밀번호 (숫자 6자리)</label>
+            <label htmlFor="login-password" className="block text-sm font-medium text-zinc-800 mb-1">비밀번호 (숫자 6자리)</label>
             <div className="relative">
               <input
+                id="login-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

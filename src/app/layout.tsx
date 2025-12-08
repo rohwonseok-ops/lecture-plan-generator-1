@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  // maximumScale 제거 - 접근성: 확대/축소가 비활성화되면 안 됨
 };
 
 export default function RootLayout({
@@ -38,7 +38,9 @@ export default function RootLayout({
   return (
     <html lang="ko" className={jejuGothic.variable}>
       <body className="bg-zinc-100 text-zinc-900 antialiased">
-        {children}
+        <main id="main-content">
+          {children}
+        </main>
       </body>
     </html>
   );

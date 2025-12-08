@@ -31,9 +31,12 @@ const TeacherDropdown: React.FC<Props> = ({ plans, selectedTeacher, onSelect }) 
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-1 text-xs px-2.5 py-1 rounded-md transition font-medium bg-zinc-900 text-white hover:bg-black"
+        aria-label="담당강사 필터"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
         <span>담당강사</span>
-        <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {isOpen && (

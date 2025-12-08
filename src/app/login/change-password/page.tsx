@@ -64,16 +64,16 @@ export default function ChangePasswordPage() {
         </p>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1">새 비밀번호 (숫자 6자리)</label>
+            <label htmlFor="new-password" className="block text-sm font-medium text-zinc-800 mb-1">새 비밀번호 (숫자 6자리)</label>
             <div className="relative">
               <input
+                id="new-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 maxLength={6}
                 inputMode="numeric"
-                pattern="[0-9]{6}"
-                autoComplete="one-time-code"
+                autoComplete="new-password"
                 className="w-full rounded-lg border border-zinc-300 px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="숫자 6자리"
                 style={{
@@ -94,16 +94,16 @@ export default function ChangePasswordPage() {
             <p className="text-xs text-zinc-500 mt-1">초기 비밀번호(000000)와 다른 숫자 6자리로 변경하세요.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1">비밀번호 확인 (숫자 6자리)</label>
+            <label htmlFor="confirm-password" className="block text-sm font-medium text-zinc-800 mb-1">비밀번호 확인 (숫자 6자리)</label>
             <div className="relative">
               <input
+                id="confirm-password"
                 type={showConfirm ? 'text' : 'password'}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 maxLength={6}
                 inputMode="numeric"
-                pattern="[0-9]{6}"
-                autoComplete="one-time-code"
+                autoComplete="new-password"
                 className="w-full rounded-lg border border-zinc-300 px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="다시 입력 (숫자 6자리)"
                 style={{

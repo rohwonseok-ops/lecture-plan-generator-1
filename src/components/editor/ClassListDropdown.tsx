@@ -31,11 +31,14 @@ const ClassListDropdown: React.FC<Props> = ({ plans, selectedId, onSelect }) => 
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-2 px-3 py-1.5 bg-white border border-zinc-200 rounded-lg hover:border-zinc-300 transition min-w-[200px]"
+        aria-label="강의 선택"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
         <span className="text-xs font-medium text-zinc-800 truncate flex-1 text-left">
           {selectedPlan?.title || '강의 선택'}
         </span>
-        <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {isOpen && (
