@@ -413,8 +413,8 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <div className="space-y-1.5">
                 {leftWeeks.map((week, i) => {
                   const weekIndex = i;
-                  const defaultLabel = `${weekIndex + 1}주`;
-                  const displayLabel = week.weekLabel || defaultLabel;
+                  const displayLabel = (week.weekLabel || '').trim();
+                  const hasLabel = displayLabel.length > 0;
                   const rowBg = weekIndex % 2 === 0 ? colors.light : 'transparent';
                   return (
                     <div 
@@ -422,14 +422,16 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                       className="flex items-start gap-2 p-1.5 rounded transition-colors"
                       style={{ backgroundColor: rowBg }}
                     >
-                      <span 
-                        className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 text-[10pt] font-bold rounded shrink-0"
-                        style={weekBadgeStyle}
-                      >
-                        {displayLabel}
-                      </span>
+                      {hasLabel && (
+                        <span 
+                          className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 text-[10pt] font-bold rounded shrink-0"
+                          style={weekBadgeStyle}
+                        >
+                          {displayLabel}
+                        </span>
+                      )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.825em', fontWeight: bodyWeight, color: strongText }}>{week.topic || '-'}</div>
+                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.825em', fontWeight: bodyWeight, color: strongText }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
                             <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.825em', fontWeight: bodyWeight, color: secondaryText }}>{week.detail}</div>
@@ -444,8 +446,8 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <div className="space-y-1.5">
                 {rightWeeks.map((week, i) => {
                   const weekIndex = midPoint + i;
-                  const defaultLabel = `${weekIndex + 1}주`;
-                  const displayLabel = week.weekLabel || defaultLabel;
+                  const displayLabel = (week.weekLabel || '').trim();
+                  const hasLabel = displayLabel.length > 0;
                   const rowBg = weekIndex % 2 === 0 ? colors.light : 'transparent';
                   return (
                     <div 
@@ -453,14 +455,16 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                       className="flex items-start gap-2 p-1.5 rounded transition-colors"
                       style={{ backgroundColor: rowBg }}
                     >
-                      <span 
-                        className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 text-[10pt] font-bold rounded shrink-0"
-                        style={weekBadgeStyle}
-                      >
-                        {displayLabel}
-                      </span>
+                      {hasLabel && (
+                        <span 
+                          className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 text-[10pt] font-bold rounded shrink-0"
+                          style={weekBadgeStyle}
+                        >
+                          {displayLabel}
+                        </span>
+                      )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.825em', fontWeight: bodyWeight, color: strongText }}>{week.topic || '-'}</div>
+                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.825em', fontWeight: bodyWeight, color: strongText }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
                             <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.825em', fontWeight: bodyWeight, color: secondaryText }}>{week.detail}</div>

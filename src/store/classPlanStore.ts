@@ -8,6 +8,7 @@ interface ClassPlanState {
   selectedId?: string;
   loading: boolean;
   error?: string | null;
+  localOnlyIds: string[];
 
   loadFromRemote: () => Promise<void>;
   addClassPlan: (plan: ClassPlan) => Promise<void>;
@@ -18,8 +19,8 @@ interface ClassPlanState {
   getClassPlan: (id: string) => ClassPlan | undefined;
 }
 
-const defaultWeeklyPlan = Array.from({ length: 8 }, (_, i) => ({
-  weekLabel: `${i + 1}주차`,
+const defaultWeeklyPlan = Array.from({ length: 8 }, () => ({
+  weekLabel: '',
   topic: ''
 }));
 
@@ -201,6 +202,7 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
   selectedId: undefined,
   loading: false,
   error: null,
+  localOnlyIds: [],
 
   loadFromRemote: async () => {
     set({ loading: true, error: null });
@@ -225,45 +227,16 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
       selectedId: plans[0]?.id,
       loading: false,
       error: null,
+      localOnlyIds: [],
     });
   },
 
   addClassPlan: async (plan) => {
-    const { data: session } = await supabase.auth.getSession();
-    const token = session.session?.access_token;
     const localPlan = normalizePlan(plan);
-    if (!token) {
-      set((state) => ({
-        classPlans: [...state.classPlans, localPlan],
-        selectedId: localPlan.id,
-      }));
-      return;
-    }
-    const res = await fetch('/api/class-plans', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        plan: toDbPlan(localPlan),
-        weeklyItems: toDbWeekly(localPlan.weeklyPlan),
-        feeRows: toDbFeeRows(localPlan.feeInfo?.rows),
-      }),
-    });
-    if (!res.ok) {
-      set((state) => ({
-        classPlans: [...state.classPlans, localPlan],
-        selectedId: localPlan.id,
-        error: '저장 실패: 로컬에만 저장되었습니다.',
-      }));
-      return;
-    }
-    const json = await res.json();
-    const saved = dbToClassPlan(json.data);
     set((state) => ({
-      classPlans: [...state.classPlans, saved],
-      selectedId: saved.id,
+      classPlans: [...state.classPlans, localPlan],
+      selectedId: localPlan.id,
+      localOnlyIds: [...new Set([...state.localOnlyIds, localPlan.id])],
     }));
   },
 
@@ -281,13 +254,19 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
       set({ error: '로그인이 필요합니다.' });
       return;
     }
-    const res = await fetch(`/api/class-plans/${id}`, {
-      method: 'PUT',
+    const isLocalOnly = get().localOnlyIds.includes(id);
+
+    const endpoint = isLocalOnly ? '/api/class-plans' : `/api/class-plans/${id}`;
+    const method = isLocalOnly ? 'POST' : 'PUT';
+
+    const res = await fetch(endpoint, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+        plan: toDbPlan(plan),
         patch: toDbPlan(plan),
         weeklyItems: toDbWeekly(plan.weeklyPlan),
         feeRows: toDbFeeRows(plan.feeInfo?.rows),
@@ -303,16 +282,27 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
     set((state) => ({
       classPlans: state.classPlans.map((p) => (p.id === id ? saved : p)),
       error: null,
+      localOnlyIds: state.localOnlyIds.filter((localId) => localId !== id),
     }));
   },
 
   removeClassPlan: async (id) => {
     const { data: session } = await supabase.auth.getSession();
     const token = session.session?.access_token;
+    const isLocalOnly = get().localOnlyIds.includes(id);
     if (!token) {
       set((state) => ({
         classPlans: state.classPlans.filter((p) => p.id !== id),
         selectedId: state.selectedId === id ? undefined : state.selectedId,
+        localOnlyIds: state.localOnlyIds.filter((localId) => localId !== id),
+      }));
+      return;
+    }
+    if (isLocalOnly) {
+      set((state) => ({
+        classPlans: state.classPlans.filter((p) => p.id !== id),
+        selectedId: state.selectedId === id ? undefined : state.selectedId,
+        localOnlyIds: state.localOnlyIds.filter((localId) => localId !== id),
       }));
       return;
     }
@@ -323,6 +313,7 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
     set((state) => ({
       classPlans: state.classPlans.filter((p) => p.id !== id),
       selectedId: state.selectedId === id ? undefined : state.selectedId,
+      localOnlyIds: state.localOnlyIds.filter((localId) => localId !== id),
     }));
   },
 

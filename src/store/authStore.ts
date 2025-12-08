@@ -36,7 +36,23 @@ export interface ActivityLog {
   timestamp: string;
 }
 
+export interface ApiEndpointConfig {
+  baseUrl?: string;
+  model?: string;
+  key?: string;
+}
+
 export interface ApiKeys {
+  // 공통 설정 (두 기능 모두에 기본값으로 사용)
+  shared?: ApiEndpointConfig;
+  // 강의계획서 문구 추천용
+  copy?: ApiEndpointConfig;
+  // 디자인 분석용
+  design?: ApiEndpointConfig;
+  // 공통 설정 사용 여부 플래그
+  useSharedForCopy?: boolean;
+  useSharedForDesign?: boolean;
+  // 레거시 필드 (기존 저장 값 호환용)
   openaiKey?: string;
   openaiBaseUrl?: string;
   openaiModel?: string;
@@ -98,6 +114,39 @@ const SEED_USERS: UserAccount[] = [
   },
 ];
 
+const DEFAULT_API_KEYS: ApiKeys = {
+  shared: {},
+  copy: {},
+  design: {},
+  useSharedForCopy: true,
+  useSharedForDesign: true,
+};
+
+const normalizeApiKeys = (source?: ApiKeys): ApiKeys => {
+  const merged: ApiKeys = {
+    ...DEFAULT_API_KEYS,
+    ...source,
+    shared: { ...(DEFAULT_API_KEYS.shared || {}), ...(source?.shared || {}) },
+    copy: { ...(DEFAULT_API_KEYS.copy || {}), ...(source?.copy || {}) },
+    design: { ...(DEFAULT_API_KEYS.design || {}), ...(source?.design || {}) },
+    useSharedForCopy: source?.useSharedForCopy ?? DEFAULT_API_KEYS.useSharedForCopy,
+    useSharedForDesign: source?.useSharedForDesign ?? DEFAULT_API_KEYS.useSharedForDesign,
+  };
+
+  // 레거시 필드가 남아있을 때 공통 설정으로 자동 이관
+  if (source?.openaiBaseUrl && !merged.shared?.baseUrl) {
+    merged.shared = { ...(merged.shared || {}), baseUrl: source.openaiBaseUrl };
+  }
+  if (source?.openaiModel && !merged.shared?.model) {
+    merged.shared = { ...(merged.shared || {}), model: source.openaiModel };
+  }
+  if (source?.openaiKey && !merged.shared?.key) {
+    merged.shared = { ...(merged.shared || {}), key: source.openaiKey };
+  }
+
+  return merged;
+};
+
 const buildSession = (user: UserAccount, mustChangePassword: boolean): UserSession => ({
   userId: user.id,
   name: user.name,
@@ -140,7 +189,7 @@ export const useAuthStore = create<AuthState>()(
       users: SEED_USERS.map(normalizeUser),
       session: undefined,
       logs: [],
-      apiKeys: {},
+      apiKeys: normalizeApiKeys(),
 
       login: async (rawName, rawPassword) => {
         const name = normalizeName(rawName);
@@ -310,7 +359,15 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setApiKeys: (keys) => {
-        set((state) => ({ apiKeys: { ...state.apiKeys, ...keys } }));
+        set((state) => ({
+          apiKeys: normalizeApiKeys({
+            ...state.apiKeys,
+            ...keys,
+            shared: { ...(state.apiKeys.shared || {}), ...(keys.shared || {}) },
+            copy: { ...(state.apiKeys.copy || {}), ...(keys.copy || {}) },
+            design: { ...(state.apiKeys.design || {}), ...(keys.design || {}) },
+          }),
+        }));
       },
     }),
     {
@@ -327,6 +384,7 @@ export const useAuthStore = create<AuthState>()(
           if (state.users) {
             state.users = state.users.map(normalizeUser);
           }
+          state.apiKeys = normalizeApiKeys(state.apiKeys);
         }
       },
       partialize: (state) => ({

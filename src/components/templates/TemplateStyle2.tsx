@@ -312,8 +312,8 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 <div className="space-y-1">
                   {leftWeeks.map((week, i) => {
                     const weekIndex = i;
-                    const defaultLabel = `${weekIndex + 1}주`;
-                    const displayLabel = week.weekLabel || defaultLabel;
+                    const displayLabel = (week.weekLabel || '').trim();
+                    const hasLabel = displayLabel.length > 0;
                     const rowBg = weekIndex % 2 === 0 ? getAccentLighter(6) : 'transparent';
                     return (
                       <div 
@@ -321,15 +321,17 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         className="flex items-start gap-2 p-1.5 rounded" 
                         style={{ backgroundColor: rowBg }}
                       >
-                        <span 
-                          className="inline-flex items-center justify-center min-w-[32px] h-5 px-1.5 text-[11pt] font-medium rounded shrink-0"
-                          style={{ backgroundColor: getAccentLight(6), color: getAccent(6), border: `1px solid ${colors.border}` }}
-                        >
-                          {displayLabel}
-                        </span>
+                        {hasLabel && (
+                          <span 
+                            className="inline-flex items-center justify-center min-w-[32px] h-5 px-1.5 text-[11pt] font-medium rounded shrink-0"
+                            style={{ backgroundColor: getAccentLight(6), color: getAccent(6), border: `1px solid ${colors.border}` }}
+                          >
+                            {displayLabel}
+                          </span>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="relative">
-                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.topic || '-'}</div>
+                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                           </div>
                           {week.detail && (
                             <div className="relative">
@@ -345,8 +347,8 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 <div className="space-y-1">
                   {rightWeeks.map((week, i) => {
                     const weekIndex = midPoint + i;
-                    const defaultLabel = `${weekIndex + 1}주`;
-                    const displayLabel = week.weekLabel || defaultLabel;
+                    const displayLabel = (week.weekLabel || '').trim();
+                    const hasLabel = displayLabel.length > 0;
                     const rowBg = weekIndex % 2 === 0 ? getAccentLighter(6) : 'transparent';
                     return (
                       <div 
@@ -354,15 +356,17 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         className="flex items-start gap-2 p-1.5 rounded" 
                         style={{ backgroundColor: rowBg }}
                       >
-                        <span 
-                          className="inline-flex items-center justify-center min-w-[32px] h-5 px-1.5 text-[11pt] font-medium rounded shrink-0"
-                          style={{ backgroundColor: getAccentLight(6), color: getAccent(6), border: `1px solid ${colors.border}` }}
-                        >
-                          {displayLabel}
-                        </span>
+                        {hasLabel && (
+                          <span 
+                            className="inline-flex items-center justify-center min-w-[32px] h-5 px-1.5 text-[11pt] font-medium rounded shrink-0"
+                            style={{ backgroundColor: getAccentLight(6), color: getAccent(6), border: `1px solid ${colors.border}` }}
+                          >
+                            {displayLabel}
+                          </span>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="relative">
-                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.topic || '-'}</div>
+                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                           </div>
                           {week.detail && (
                             <div className="relative">

@@ -327,19 +327,21 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             <div className="space-y-1">
               {leftWeeks.map((week, i) => {
                 const weekIndex = i;
-                const defaultLabel = `${weekIndex + 1}주`;
-                const displayLabel = week.weekLabel || defaultLabel;
+                const displayLabel = (week.weekLabel || '').trim();
+                const hasLabel = displayLabel.length > 0;
                 return (
                   <Card key={weekIndex} className="border-zinc-200 transition-colors" style={{ ['--hover-border' as string]: colors.border }}>
                     <CardContent className="p-1.5 flex items-center gap-1.5">
-                      <Badge 
-                        className="text-white text-[9pt] px-1.5 shrink-0"
-                        style={{ backgroundColor: colors.primary }}
-                      >
-                        {displayLabel}
-                      </Badge>
+                      {hasLabel && (
+                        <Badge 
+                          className="text-white text-[9pt] px-1.5 shrink-0"
+                          style={{ backgroundColor: colors.primary }}
+                        >
+                          {displayLabel}
+                        </Badge>
+                      )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.8em', fontWeight: bodyWeight }}>{week.topic || '-'}</div>
+                        <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.8em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
                             <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.75em', fontWeight: bodyWeight }}>{week.detail}</div>
@@ -355,19 +357,21 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             <div className="space-y-1">
               {rightWeeks.map((week, i) => {
                 const weekIndex = midPoint + i;
-                const defaultLabel = `${weekIndex + 1}주`;
-                const displayLabel = week.weekLabel || defaultLabel;
+                const displayLabel = (week.weekLabel || '').trim();
+                const hasLabel = displayLabel.length > 0;
                 return (
                   <Card key={weekIndex} className="border-zinc-200 transition-colors" style={{ ['--hover-border' as string]: colors.border }}>
                     <CardContent className="p-1.5 flex items-center gap-1.5">
-                      <Badge 
-                        className="text-white text-[9pt] px-1.5 shrink-0"
-                        style={{ backgroundColor: colors.primary }}
-                      >
-                        {displayLabel}
-                      </Badge>
+                      {hasLabel && (
+                        <Badge 
+                          className="text-white text-[9pt] px-1.5 shrink-0"
+                          style={{ backgroundColor: colors.primary }}
+                        >
+                          {displayLabel}
+                        </Badge>
+                      )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.8em', fontWeight: bodyWeight }}>{week.topic || '-'}</div>
+                        <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.8em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
                             <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.75em', fontWeight: bodyWeight }}>{week.detail}</div>

@@ -9,8 +9,8 @@ interface Props {
 }
 
 const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
-  const weeklyPlan = classPlan.weeklyPlan || Array.from({ length: 8 }, (_, i) => ({
-    weekLabel: `${i + 1}주차`,
+  const weeklyPlan = classPlan.weeklyPlan || Array.from({ length: 8 }, () => ({
+    weekLabel: '',
     topic: ''
   }));
 
@@ -59,8 +59,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const rightWeeks = weeklyPlan.slice(midPoint);
 
   const renderWeekRow = (week: WeeklyItem, globalIndex: number) => {
-    const defaultLabel = `${globalIndex + 1}주`;
-    const displayLabel = week.weekLabel || defaultLabel;
+    const displayLabel = week.weekLabel || '';
     
     return (
       <div key={globalIndex} className="flex items-start gap-2 px-2 py-1">
@@ -70,7 +69,6 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
             className="w-full h-full text-zinc-700 font-medium text-[10px] bg-transparent border-none text-center focus:outline-none focus:ring-1 focus:ring-blue-500 rounded placeholder:text-zinc-500"
             value={displayLabel}
             onChange={(e) => handleWeekChange(globalIndex, 'weekLabel', e.target.value)}
-            placeholder={defaultLabel}
             aria-label={`${globalIndex + 1}주차 라벨`}
           />
         </div>
@@ -80,7 +78,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
             className="w-full text-xs font-medium px-2 py-1 bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={week.topic}
             onChange={(e) => handleWeekChange(globalIndex, 'topic', e.target.value)}
-            placeholder={`${globalIndex + 1}주차 수업 주제`}
+            placeholder=""
             aria-label={`${globalIndex + 1}주차 수업 주제`}
           />
           <button

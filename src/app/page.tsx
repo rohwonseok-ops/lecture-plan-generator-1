@@ -39,6 +39,8 @@ export default function HomePage() {
   const [scale, setScale] = useState(0.70);
   const [templateWidth, setTemplateWidth] = useState(BASE_WIDTH_PX); // 동적 너비
   const templateWidthRef = useRef(BASE_WIDTH_PX);
+  const lastMeasuredHeightRef = useRef(0); // 마지막 측정 높이 (무한 루프 방지)
+  const adjustCountRef = useRef(0); // 연속 조정 횟수 제한
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
@@ -73,6 +75,11 @@ export default function HomePage() {
       const el = canvasRef.current;
       if (!el) return;
 
+      // 연속 조정 횟수 제한 (무한 루프 방지)
+      if (!options?.force && adjustCountRef.current >= 3) {
+        return;
+      }
+
       // minHeight 영향 없이 실제 콘텐츠 높이 측정
       const prevMinHeight = el.style.minHeight;
       const prevHeight = el.style.height;
@@ -82,14 +89,29 @@ export default function HomePage() {
       el.style.minHeight = prevMinHeight;
       el.style.height = prevHeight;
 
+      // 높이 변화가 미미하면 조정 건너뛰기 (무한 루프 방지)
+      const heightDiff = Math.abs(measuredHeight - lastMeasuredHeightRef.current);
+      if (!options?.force && heightDiff < 20) {
+        return;
+      }
+
       const newWidth = calculateA4Width(measuredHeight, options?.maxWidthMultiplier);
-      const shouldUpdate = options?.force || Math.abs(newWidth - templateWidthRef.current) > 10;
+      const widthDiff = Math.abs(newWidth - templateWidthRef.current);
+      const shouldUpdate = options?.force || widthDiff > 20;
 
       if (shouldUpdate) {
+        lastMeasuredHeightRef.current = measuredHeight;
+        adjustCountRef.current += 1;
+        
         setTemplateWidth(() => {
           templateWidthRef.current = newWidth;
           return newWidth;
         });
+
+        // 일정 시간 후 조정 카운터 리셋
+        setTimeout(() => {
+          adjustCountRef.current = 0;
+        }, 500);
       }
     },
     [calculateA4Width, setTemplateWidth]
@@ -101,24 +123,41 @@ export default function HomePage() {
     
     let isAdjusting = false;
     let adjustTimeout: NodeJS.Timeout;
+    let lastObservedHeight = 0;
     
     const adjustA4Ratio = () => {
       if (isAdjusting) return;
+      
+      const el = canvasRef.current;
+      if (!el) return;
+      
+      // 현재 높이와 마지막 관측된 높이 비교 (무한 루프 방지)
+      const currentHeight = el.getBoundingClientRect().height;
+      if (Math.abs(currentHeight - lastObservedHeight) < 10) {
+        return;
+      }
+      lastObservedHeight = currentHeight;
+      
       isAdjusting = true;
-
       adjustToA4();
-      setTimeout(() => { isAdjusting = false; }, 100);
+      setTimeout(() => { isAdjusting = false; }, 300);
     };
     
     // ResizeObserver로 콘텐츠 크기 변화 감지
-    const resizeObserver = new ResizeObserver(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      // 너비 변화만 있는 경우는 무시 (높이 변화에만 반응)
+      const entry = entries[0];
+      if (!entry) return;
+      
       clearTimeout(adjustTimeout);
-      adjustTimeout = setTimeout(adjustA4Ratio, 200);
+      adjustTimeout = setTimeout(adjustA4Ratio, 300);
     });
     
     resizeObserver.observe(canvasRef.current);
     
-    // 초기 조정
+    // 초기 조정 - selectedId 변경 시 카운터 리셋
+    adjustCountRef.current = 0;
+    lastMeasuredHeightRef.current = 0;
     adjustTimeout = setTimeout(() => adjustToA4({ force: true }), 300);
     
     return () => {
@@ -157,8 +196,8 @@ export default function HomePage() {
       classTime: '',
       templateId: 'style1-blue',
       sizePreset: 'A4',
-      weeklyPlan: Array.from({ length: 8 }, (_, i) => ({
-        weekLabel: `${i + 1}주차`,
+      weeklyPlan: Array.from({ length: 8 }, () => ({
+        weekLabel: '',
         topic: ''
       }))
     };

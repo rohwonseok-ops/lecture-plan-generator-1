@@ -16,6 +16,13 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addClassPlan } = useClassPlanStore();
   const [isUploading, setIsUploading] = useState(false);
+  const [result, setResult] = useState<{
+    total: number;
+    success: number;
+    fail: number;
+    errors: string[];
+  } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const downloadSampleCsv = () => {
     const headers = [
@@ -72,8 +79,14 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
     if (!file) return;
 
     setIsUploading(true);
+    setResult(null);
+    setErrorMessage(null);
     try {
       const { rows, headers } = await parseCsv(file);
+      if (!rows.length) {
+        setErrorMessage('CSV에서 데이터를 찾지 못했습니다. 헤더 및 내용이 있는지 확인해주세요.');
+        return;
+      }
       
       // 간단한 매핑 (실제로는 HeaderMappingTable을 사용해야 함)
       const mapping: Record<string, string> = {};
@@ -82,52 +95,72 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
         mapping[normalized] = h;
       });
 
-      // CSV 데이터를 ClassPlan으로 변환
-      for (const row of rows) {
-        const weeklyPlanRaw = row[mapping['weeklyplanraw']] || row[mapping['weekly_plan_raw']] || '';
-        const weeklyPlan: WeeklyItem[] = weeklyPlanRaw
-          ? weeklyPlanRaw.split('\n').map((line: string, idx: number) => {
-              const trimmed = line.trim();
-              if (!trimmed) return null;
-              const parts = trimmed.split(/[-:]/);
-              return {
-                weekLabel: parts[0]?.trim() || `${idx + 1}주`,
-                topic: parts.slice(1).join(' ').trim() || trimmed
-              };
-            }).filter((item): item is WeeklyItem => item !== null)
-          : Array.from({ length: 8 }, (_, i) => ({
-              weekLabel: `${i + 1}주`,
-              topic: ''
-            }));
-
-        const newPlan: ClassPlan = {
-          id: crypto.randomUUID(),
-          title: row[mapping['title']] || '제목 없음',
-          teacherName: row[mapping['teachername']] || '',
-          targetStudent: row[mapping['targetstudent']] || '',
-          targetStudentDetail: row[mapping['targetstudentdetail']] || '',
-          classDay: row[mapping['classday']] || '',
-          classTime: row[mapping['classtime']] || '',
-          course1: row[mapping['course1']] || '',
-          material1: row[mapping['material1']] || '',
-          course2: row[mapping['course2']] || '',
-          material2: row[mapping['material2']] || '',
-          learningGoal: row[mapping['learninggoal']] || '',
-          management: row[mapping['management']] || '',
-          etc: row[mapping['etc']] || '',
-          weeklyPlan: weeklyPlan,
-          templateId: 'classic',
-          sizePreset: 'A4'
-        };
-
-        await addClassPlan(newPlan);
+      const requiredHeaders = ['title', 'teachername', 'targetstudent', 'classday', 'classtime'];
+      const missing = requiredHeaders.filter((key) => !mapping[key]);
+      if (missing.length) {
+        setErrorMessage(`필수 헤더가 없습니다: ${missing.join(', ')} (샘플 파일을 다시 받아 확인해주세요)`);
+        return;
       }
 
-      onClose();
-      recordActivity('csv.upload', `CSV 일괄등록 ${rows.length}건`);
+      let success = 0;
+      const errors: string[] = [];
+
+      // CSV 데이터를 ClassPlan으로 변환
+      for (const [idx, row] of rows.entries()) {
+        try {
+          const weeklyPlanRaw = row[mapping['weeklyplanraw']] || row[mapping['weekly_plan_raw']] || '';
+          const weeklyPlan: WeeklyItem[] = weeklyPlanRaw
+            ? weeklyPlanRaw.split('\n').map((line: string, wIdx: number) => {
+                const trimmed = line.trim();
+                if (!trimmed) return null;
+                const parts = trimmed.split(/[-:]/);
+                return {
+                  weekLabel: parts[0]?.trim() || `${wIdx + 1}주`,
+                  topic: parts.slice(1).join(' ').trim() || trimmed
+                };
+              }).filter((item): item is WeeklyItem => item !== null)
+            : Array.from({ length: 8 }, () => ({
+                weekLabel: '',
+                topic: ''
+              }));
+
+          const newPlan: ClassPlan = {
+            id: crypto.randomUUID(),
+            title: row[mapping['title']] || '제목 없음',
+            teacherName: row[mapping['teachername']] || '',
+            targetStudent: row[mapping['targetstudent']] || '',
+            targetStudentDetail: row[mapping['targetstudentdetail']] || '',
+            classDay: row[mapping['classday']] || '',
+            classTime: row[mapping['classtime']] || '',
+            course1: row[mapping['course1']] || '',
+            material1: row[mapping['material1']] || '',
+            course2: row[mapping['course2']] || '',
+            material2: row[mapping['material2']] || '',
+            learningGoal: row[mapping['learninggoal']] || '',
+            management: row[mapping['management']] || '',
+            etc: row[mapping['etc']] || '',
+            weeklyPlan: weeklyPlan,
+            templateId: 'classic',
+            sizePreset: 'A4'
+          };
+
+          await addClassPlan(newPlan);
+          success += 1;
+        } catch (err) {
+          console.error('행 업로드 실패', err);
+          errors.push(`${idx + 1}행: 업로드 실패`);
+        }
+      }
+
+      const fail = rows.length - success;
+      setResult({ total: rows.length, success, fail, errors });
+
+      if (success > 0) {
+        recordActivity('csv.upload', `CSV 일괄등록 ${success}건 성공, 실패 ${fail}건`);
+      }
     } catch (error) {
       console.error('CSV 업로드 실패:', error);
-      alert('CSV 파일 업로드에 실패했습니다. 파일 형식을 확인해주세요.');
+      setErrorMessage('CSV 파일 업로드에 실패했습니다. 파일 형식을 확인해주세요.');
     } finally {
       setIsUploading(false);
     }
@@ -185,6 +218,41 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
               {isUploading ? '업로드 중...' : '이곳을 클릭하거나 파일을 드래그하여 업로드하세요'}
             </p>
           </div>
+
+          {errorMessage && (
+            <div className="p-3 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm">
+              {errorMessage}
+            </div>
+          )}
+
+          {result && (
+            <div className="p-3 rounded-lg border border-zinc-200 bg-zinc-50 text-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-zinc-800">업로드 결과</div>
+                <button
+                  onClick={() => setResult(null)}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  결과 지우기
+                </button>
+              </div>
+              <div className="flex gap-4 text-zinc-700">
+                <span>총 {result.total}건</span>
+                <span className="text-green-600">성공 {result.success}건</span>
+                <span className="text-red-600">실패 {result.fail}건</span>
+              </div>
+              {result.errors.length > 0 && (
+                <div className="space-y-1">
+                  <div className="font-medium text-red-700">실패 상세</div>
+                  <ul className="list-disc list-inside text-red-700">
+                    {result.errors.map((err, idx) => (
+                      <li key={idx}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

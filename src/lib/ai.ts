@@ -1,9 +1,21 @@
 import { ClassPlan } from './types';
+import { useAuthStore, ApiEndpointConfig } from '@/store/authStore';
 
 export interface AiGenerateOptions {
   type: 'parentIntro' | 'learningGoal' | 'promoCopy' | 'keywords' | 'management';
   tone?: 'formal' | 'friendly' | 'passionate';
 }
+
+export type AiServiceType = 'copy' | 'design';
+
+export const resolveApiConfig = (service: AiServiceType): ApiEndpointConfig => {
+  const { apiKeys } = useAuthStore.getState();
+  const shared = apiKeys.shared || {};
+  if (service === 'design') {
+    return apiKeys.useSharedForDesign === false ? { ...shared, ...(apiKeys.design || {}) } : shared;
+  }
+  return apiKeys.useSharedForCopy === false ? { ...shared, ...(apiKeys.copy || {}) } : shared;
+};
 
 export const generateTextForClassPlan = async (
   plan: ClassPlan,

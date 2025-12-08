@@ -25,10 +25,18 @@ export default function AccountManagementPage() {
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [keyInput, setKeyInput] = useState('');
+  const [commonKeyInput, setCommonKeyInput] = useState('');
+  const [copyKeyInput, setCopyKeyInput] = useState('');
+  const [designKeyInput, setDesignKeyInput] = useState('');
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showApiSettings, setShowApiSettings] = useState(false);
+
+  const sharedApi = apiKeys.shared || {};
+  const copyApi = apiKeys.copy || {};
+  const designApi = apiKeys.design || {};
+  const useSharedForCopy = apiKeys.useSharedForCopy ?? true;
+  const useSharedForDesign = apiKeys.useSharedForDesign ?? true;
 
   useEffect(() => {
     const authPersist = useAuthStore.persist;
@@ -66,6 +74,28 @@ export default function AccountManagementPage() {
     const json = await res.json();
     setProfiles(json.data || []);
     setLoading(false);
+  };
+
+  const toggleCopyUseShared = (checked: boolean) => {
+    if (checked) {
+      setApiKeys({ useSharedForCopy: true });
+      return;
+    }
+    setApiKeys({
+      useSharedForCopy: false,
+      copy: { ...sharedApi, ...copyApi },
+    });
+  };
+
+  const toggleDesignUseShared = (checked: boolean) => {
+    if (checked) {
+      setApiKeys({ useSharedForDesign: true });
+      return;
+    }
+    setApiKeys({
+      useSharedForDesign: false,
+      design: { ...sharedApi, ...designApi },
+    });
   };
 
   const resetForm = () => {
@@ -274,52 +304,209 @@ export default function AccountManagementPage() {
 
         {/* API 관리 (토글 가능) */}
         {showApiSettings && (
-          <div className="bg-white rounded-xl shadow border border-zinc-200 p-4 mb-4">
-            <h2 className="text-base font-semibold text-zinc-900 mb-1">LLM API 설정</h2>
-            <p className="text-xs text-zinc-500 mb-3">입력 문구/디자인 제안에 사용할 OpenAI/LLM 키를 저장합니다. (로컬 저장)</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-white rounded-xl shadow border border-zinc-200 p-4 mb-4 space-y-4">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-800 mb-1">OpenAI Base URL</label>
-                <input
-                  type="text"
-                  value={apiKeys.openaiBaseUrl || ''}
-                  onChange={(e) => setApiKeys({ openaiBaseUrl: e.target.value })}
-                  placeholder="예) https://api.openai.com/v1"
-                  className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <h2 className="text-base font-semibold text-zinc-900 mb-1">LLM / API 설정</h2>
+                <p className="text-xs text-zinc-500">
+                  강의계획서 문구 추천과 디자인 분석에 사용할 API를 공통 또는 분리해서 설정합니다. (브라우저 로컬 저장)
+                </p>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-800 mb-1">OpenAI Model</label>
-                <input
-                  type="text"
-                  value={apiKeys.openaiModel || ''}
-                  onChange={(e) => setApiKeys({ openaiModel: e.target.value })}
-                  placeholder="예) gpt-4o-mini"
-                  className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-zinc-800 mb-1">OpenAI API Key</label>
-                <input
-                  type="password"
-                  value={keyInput}
-                  onFocus={() => setKeyInput('')}
-                  onBlur={() => setKeyInput('')}
-                  onChange={(e) => {
-                    setKeyInput(e.target.value);
-                    setApiKeys({ openaiKey: e.target.value });
-                  }}
-                  placeholder={apiKeys.openaiKey ? '****** 저장됨 (수정 시 새 값 입력)' : 'sk-...'}
-                  className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {apiKeys.openaiKey ? (
-                  <div className="text-[10px] text-green-600 mt-1">키가 저장되어 있습니다.</div>
-                ) : (
-                  <div className="text-[10px] text-zinc-500 mt-1">아직 저장된 키가 없습니다.</div>
-                )}
+              <div className="text-[10px] text-zinc-500 bg-zinc-100 border border-zinc-200 rounded-md px-2 py-1">
+                공통 설정이 비어 있으면 기능별 설정만 사용합니다.
               </div>
             </div>
-            <p className="text-[10px] text-zinc-500 mt-2">※ 키는 브라우저 로컬스토리지에 저장되며, 템플릿/입력 제안 시 자동 사용됩니다.</p>
+
+            {/* 공통 설정 */}
+            <div className="rounded-lg border border-zinc-200/80 bg-zinc-50/50 p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-900">공통 기본 설정</h3>
+                  <p className="text-[11px] text-zinc-500">두 기능 모두에 기본으로 적용됩니다.</p>
+                </div>
+                <span className="text-[10px] text-zinc-400">선택 입력</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-800 mb-1">Base URL</label>
+                  <input
+                    type="text"
+                    value={sharedApi.baseUrl || ''}
+                    onChange={(e) => setApiKeys({ shared: { ...sharedApi, baseUrl: e.target.value } })}
+                    placeholder="예) https://api.openai.com/v1"
+                    className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-800 mb-1">Model</label>
+                  <input
+                    type="text"
+                    value={sharedApi.model || ''}
+                    onChange={(e) => setApiKeys({ shared: { ...sharedApi, model: e.target.value } })}
+                    placeholder="예) gpt-4o-mini"
+                    className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-medium text-zinc-800 mb-1">API Key</label>
+                  <input
+                    type="password"
+                    value={commonKeyInput}
+                    onFocus={() => setCommonKeyInput('')}
+                    onBlur={() => setCommonKeyInput('')}
+                    onChange={(e) => {
+                      setCommonKeyInput(e.target.value);
+                      setApiKeys({ shared: { ...sharedApi, key: e.target.value } });
+                    }}
+                    placeholder={sharedApi.key ? '****** 저장됨 (수정 시 새 값 입력)' : 'sk-...'}
+                    className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {sharedApi.key ? (
+                    <div className="text-[10px] text-green-600 mt-1">키가 저장되어 있습니다.</div>
+                  ) : (
+                    <div className="text-[10px] text-zinc-500 mt-1">아직 저장된 키가 없습니다.</div>
+                  )}
+                </div>
+              </div>
+              <p className="text-[10px] text-zinc-500">※ 입력값은 브라우저 로컬스토리지에만 저장됩니다.</p>
+            </div>
+
+            {/* 기능별 설정 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="border border-zinc-200 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-900">강의계획서 문구 추천</h3>
+                    <p className="text-[11px] text-zinc-500">템플릿 문구/카피 자동 생성에 사용</p>
+                  </div>
+                  <label className="flex items-center gap-1 text-[11px] text-zinc-600">
+                    <input
+                      type="checkbox"
+                      checked={useSharedForCopy}
+                      onChange={(e) => toggleCopyUseShared(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded border border-zinc-300"
+                    />
+                    공통 설정 사용
+                  </label>
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-800 mb-1">Base URL</label>
+                    <input
+                      type="text"
+                      value={useSharedForCopy ? sharedApi.baseUrl || '' : copyApi.baseUrl || ''}
+                      onChange={(e) => setApiKeys({ copy: { ...copyApi, baseUrl: e.target.value } })}
+                      placeholder={useSharedForCopy ? '공통 설정을 사용합니다' : '예) https://api.openai.com/v1'}
+                      disabled={useSharedForCopy}
+                      className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-zinc-100 disabled:text-zinc-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-800 mb-1">Model</label>
+                    <input
+                      type="text"
+                      value={useSharedForCopy ? sharedApi.model || '' : copyApi.model || ''}
+                      onChange={(e) => setApiKeys({ copy: { ...copyApi, model: e.target.value } })}
+                      placeholder={useSharedForCopy ? '공통 설정을 사용합니다' : '예) gpt-4o-mini'}
+                      disabled={useSharedForCopy}
+                      className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-zinc-100 disabled:text-zinc-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-800 mb-1">API Key</label>
+                    <input
+                      type="password"
+                      value={copyKeyInput}
+                      onFocus={() => setCopyKeyInput('')}
+                      onBlur={() => setCopyKeyInput('')}
+                      onChange={(e) => {
+                        setCopyKeyInput(e.target.value);
+                        setApiKeys({ copy: { ...copyApi, key: e.target.value } });
+                      }}
+                      placeholder={useSharedForCopy
+                        ? sharedApi.key ? '공통 키 사용 중' : '공통 키를 먼저 입력하세요'
+                        : copyApi.key ? '****** 저장됨 (수정 시 새 값 입력)' : 'sk-...'}
+                      disabled={useSharedForCopy}
+                      className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-zinc-100 disabled:text-zinc-400"
+                    />
+                    {useSharedForCopy ? (
+                      <div className="text-[10px] text-zinc-500 mt-1">공통 설정을 그대로 사용합니다.</div>
+                    ) : copyApi.key ? (
+                      <div className="text-[10px] text-green-600 mt-1">키가 저장되어 있습니다.</div>
+                    ) : (
+                      <div className="text-[10px] text-zinc-500 mt-1">아직 저장된 키가 없습니다.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-zinc-200 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-900">디자인 분석</h3>
+                    <p className="text-[11px] text-zinc-500">디자인 진단/추천 API를 별도로 지정할 수 있습니다.</p>
+                  </div>
+                  <label className="flex items-center gap-1 text-[11px] text-zinc-600">
+                    <input
+                      type="checkbox"
+                      checked={useSharedForDesign}
+                      onChange={(e) => toggleDesignUseShared(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded border border-zinc-300"
+                    />
+                    공통 설정 사용
+                  </label>
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-800 mb-1">Base URL</label>
+                    <input
+                      type="text"
+                      value={useSharedForDesign ? sharedApi.baseUrl || '' : designApi.baseUrl || ''}
+                      onChange={(e) => setApiKeys({ design: { ...designApi, baseUrl: e.target.value } })}
+                      placeholder={useSharedForDesign ? '공통 설정을 사용합니다' : '예) https://api.openai.com/v1'}
+                      disabled={useSharedForDesign}
+                      className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-zinc-100 disabled:text-zinc-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-800 mb-1">Model</label>
+                    <input
+                      type="text"
+                      value={useSharedForDesign ? sharedApi.model || '' : designApi.model || ''}
+                      onChange={(e) => setApiKeys({ design: { ...designApi, model: e.target.value } })}
+                      placeholder={useSharedForDesign ? '공통 설정을 사용합니다' : '예) gpt-4o-mini'}
+                      disabled={useSharedForDesign}
+                      className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-zinc-100 disabled:text-zinc-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-800 mb-1">API Key</label>
+                    <input
+                      type="password"
+                      value={designKeyInput}
+                      onFocus={() => setDesignKeyInput('')}
+                      onBlur={() => setDesignKeyInput('')}
+                      onChange={(e) => {
+                        setDesignKeyInput(e.target.value);
+                        setApiKeys({ design: { ...designApi, key: e.target.value } });
+                      }}
+                      placeholder={useSharedForDesign
+                        ? sharedApi.key ? '공통 키 사용 중' : '공통 키를 먼저 입력하세요'
+                        : designApi.key ? '****** 저장됨 (수정 시 새 값 입력)' : 'sk-...'}
+                      disabled={useSharedForDesign}
+                      className="w-full text-xs rounded-lg border border-zinc-300 px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-zinc-100 disabled:text-zinc-400"
+                    />
+                    {useSharedForDesign ? (
+                      <div className="text-[10px] text-zinc-500 mt-1">공통 설정을 그대로 사용합니다.</div>
+                    ) : designApi.key ? (
+                      <div className="text-[10px] text-green-600 mt-1">키가 저장되어 있습니다.</div>
+                    ) : (
+                      <div className="text-[10px] text-zinc-500 mt-1">아직 저장된 키가 없습니다.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
