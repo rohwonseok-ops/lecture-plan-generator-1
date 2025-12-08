@@ -13,6 +13,7 @@ interface Props {
 
 const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
   const [generatingField, setGeneratingField] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!classPlan) {
     return (
@@ -29,8 +30,10 @@ const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
     try {
       const generatedText = await generateTextForClassPlan(classPlan, { type });
       onChange({ [field]: generatedText });
+      setErrorMsg(null);
     } catch (error) {
       console.error("AI Generation failed", error);
+      setErrorMsg(error instanceof Error ? error.message : 'AI 생성 중 오류가 발생했습니다.');
     } finally {
       setGeneratingField(null);
     }
@@ -118,6 +121,11 @@ const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+        {errorMsg && (
+          <div className="text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+            {errorMsg}
+          </div>
+        )}
 
         {/* 1. 기본 정보 */}
         <section className="bg-zinc-50/50 p-4 rounded-xl border border-zinc-200/60">

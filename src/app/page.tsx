@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useClassPlanStore } from '@/store/classPlanStore';
 import { useAuthStore } from '@/store/authStore';
 import { recordActivity } from '@/lib/activityLogger';
-import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2, Settings, History, LayoutTemplate } from 'lucide-react';
+import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2, Settings, History, LayoutTemplate, Sparkles } from 'lucide-react';
 import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings } from '@/lib/types';
 import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
 import { getDefaultTypography } from '@/lib/utils';
@@ -358,6 +358,12 @@ export default function HomePage() {
               </Link>
             </>
           )}
+          <Link
+            href="/design"
+            className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium flex items-center gap-1"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> 디자인 분석
+          </Link>
           <span className="text-[11px] text-zinc-200 px-2 py-1 bg-white/5 rounded-md">
             {session.name} · {session.role === 'admin' ? '관리자' : '일반'}
           </span>

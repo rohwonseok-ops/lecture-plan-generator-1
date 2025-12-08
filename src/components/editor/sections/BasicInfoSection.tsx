@@ -12,6 +12,7 @@ interface Props {
 
 const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const [generatingField, setGeneratingField] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const twoLineDividerStyle: React.CSSProperties = {
     backgroundImage: 'linear-gradient(to right, #e5e7eb, #e5e7eb)',
     backgroundSize: '100% 1px',
@@ -24,8 +25,10 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
     try {
       const generatedText = await generateTextForClassPlan(classPlan, { type });
       onChange({ [field]: generatedText });
+      setErrorMsg(null);
     } catch (error) {
       console.error("AI Generation failed", error);
+      setErrorMsg(error instanceof Error ? error.message : 'AI 생성 중 오류가 발생했습니다.');
     } finally {
       setGeneratingField(null);
     }
@@ -37,6 +40,11 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
 
   return (
     <div className="p-3 bg-zinc-100">
+      {errorMsg && (
+        <div className="mb-2 text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5">
+          {errorMsg}
+        </div>
+      )}
       <div className="grid grid-cols-12 gap-2.5">
         {/* Row 1: 수강대상 20%, 홍보문구 및 특이사항 80% */}
         <div className="col-span-2">
