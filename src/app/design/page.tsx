@@ -69,8 +69,9 @@ export default function DesignAnalysisPage() {
       }
       const json = await res.json();
       setResult(json.result || '');
-    } catch (err: any) {
-      setError(err?.message || '디자인 분석 중 오류가 발생했습니다.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '디자인 분석 중 오류가 발생했습니다.';
+      setError(message);
     } finally {
       setLoading(false);
     }

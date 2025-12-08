@@ -86,9 +86,10 @@ export async function POST(req: Request) {
     const data = await openaiRes.json();
     const result = data?.choices?.[0]?.message?.content?.trim() || '';
     return NextResponse.json({ result });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[api/ai/design]', err);
-    return NextResponse.json({ error: err?.message || '서버 오류가 발생했습니다.' }, { status: 500 });
+    const message = err instanceof Error ? err.message : '서버 오류가 발생했습니다.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
