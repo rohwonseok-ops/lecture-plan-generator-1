@@ -15,9 +15,20 @@ export const generateTextForClassPlan = async (plan: ClassPlan, options: AiGener
   });
 
   if (!res.ok) {
-    const json = await res.json().catch(() => ({}));
-    const detail = json.detail ? ` (${String(json.detail).slice(0, 300)})` : '';
-    throw new Error((json.error || 'AI 문구 생성에 실패했습니다.') + detail);
+    // JSON을 우선 시도하고 실패하면 텍스트로 보조
+    let errorMessage = 'AI 문구 생성에 실패했습니다.';
+    let detailMessage = '';
+    try {
+      const json = await res.json();
+      errorMessage = json.error || errorMessage;
+      if (json.detail) detailMessage = String(json.detail);
+    } catch {
+      const text = await res.text().catch(() => '');
+      if (text) detailMessage = text;
+    }
+    const statusPart = ` (HTTP ${res.status})`;
+    const detailPart = detailMessage ? `: ${detailMessage.slice(0, 500)}` : '';
+    throw new Error(`${errorMessage}${statusPart}${detailPart}`);
   }
 
   const json = await res.json();
