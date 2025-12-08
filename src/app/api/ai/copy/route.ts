@@ -97,9 +97,21 @@ export async function POST(req: Request) {
 
     if (!openaiRes.ok) {
       const errorText = await openaiRes.text();
+      let detail: string | undefined = errorText;
+      try {
+        const parsed = JSON.parse(errorText);
+        // OpenAI 스타일 오류 객체 추출
+        detail = parsed?.error?.message || parsed?.message || errorText;
+      } catch {
+        // noop
+      }
+
       return NextResponse.json(
-        { error: `LLM 호출 실패 (${openaiRes.status})`, detail: errorText },
-        { status: 500 }
+        {
+          error: `LLM 호출 실패 (${openaiRes.status})`,
+          detail: detail ? detail.slice(0, 1000) : undefined,
+        },
+        { status: openaiRes.status }
       );
     }
 

@@ -16,7 +16,8 @@ export const generateTextForClassPlan = async (plan: ClassPlan, options: AiGener
 
   if (!res.ok) {
     const json = await res.json().catch(() => ({}));
-    throw new Error(json.error || 'AI 문구 생성에 실패했습니다.');
+    const detail = json.detail ? ` (${String(json.detail).slice(0, 300)})` : '';
+    throw new Error((json.error || 'AI 문구 생성에 실패했습니다.') + detail);
   }
 
   const json = await res.json();
