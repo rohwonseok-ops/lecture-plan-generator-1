@@ -58,6 +58,11 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
 
   const pageBackground = 'linear-gradient(135deg, #f8fafc 0%, #ffffff 55%, #f1f5f9 100%)';
 
+  const weeklyPlan = classPlan.weeklyPlan || [];
+  const midPoint = Math.ceil(weeklyPlan.length / 2);
+  const leftWeeks = weeklyPlan.slice(0, midPoint);
+  const rightWeeks = weeklyPlan.slice(midPoint);
+
   return (
     <div
       className="w-full min-h-full p-5 relative"
@@ -309,7 +314,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
           </div>
         )}
 
-        {/* 주차별 학습계획 - 2열 (왼쪽: 1-4주차, 오른쪽: 5-8주차) */}
+        {/* 주차별 학습계획 - 동적 2열 */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
             <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
@@ -318,13 +323,14 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             <h3 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>주차별 학습계획</h3>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {/* 왼쪽 블록: 1-4주차 */}
+            {/* 왼쪽 블록 */}
             <div className="space-y-1">
-              {(classPlan.weeklyPlan || []).slice(0, 4).map((week, i) => {
-                const defaultLabel = `${i + 1}주`;
+              {leftWeeks.map((week, i) => {
+                const weekIndex = i;
+                const defaultLabel = `${weekIndex + 1}주`;
                 const displayLabel = week.weekLabel || defaultLabel;
                 return (
-                  <Card key={i} className="border-zinc-200 transition-colors" style={{ ['--hover-border' as string]: colors.border }}>
+                  <Card key={weekIndex} className="border-zinc-200 transition-colors" style={{ ['--hover-border' as string]: colors.border }}>
                     <CardContent className="p-1.5 flex items-center gap-1.5">
                       <Badge 
                         className="text-white text-[9pt] px-1.5 shrink-0"
@@ -345,10 +351,10 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 );
               })}
             </div>
-            {/* 오른쪽 블록: 5-8주차 */}
+            {/* 오른쪽 블록 */}
             <div className="space-y-1">
-              {(classPlan.weeklyPlan || []).slice(4, 8).map((week, i) => {
-                const weekIndex = i + 4;
+              {rightWeeks.map((week, i) => {
+                const weekIndex = midPoint + i;
                 const defaultLabel = `${weekIndex + 1}주`;
                 const displayLabel = week.weekLabel || defaultLabel;
                 return (

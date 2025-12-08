@@ -210,7 +210,7 @@ export interface ClassPlan {
   showEtc?: boolean;      // 홍보문구 표시 여부 (체크박스)
   etcPosition?: 'top' | 'bottom'; // 홍보문구 위치 (맨위: 학부모 안내사항 위, 맨아래: 수강료 아래)
   
-  // Weekly Plan (8주차)
+  // Weekly Plan
   weeklyPlan: WeeklyItem[];
   
   // Fee Info

@@ -124,6 +124,11 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
         color: '#FFFFFF',
       };
 
+  const weeklyPlan = classPlan.weeklyPlan || [];
+  const midPoint = Math.ceil(weeklyPlan.length / 2);
+  const leftWeeks = weeklyPlan.slice(0, midPoint);
+  const rightWeeks = weeklyPlan.slice(midPoint);
+
   const primaryText = '#3f3f46';
   const secondaryText = '#52525b';
   const strongText = '#27272a';
@@ -386,7 +391,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           </div>
         )}
 
-        {/* 주차별 학습계획 - 2열 (왼쪽: 1-4주차, 오른쪽: 5-8주차) */}
+        {/* 주차별 학습계획 - 동적 2열 */}
         <Card
           className="overflow-hidden shadow-[0_12px_30px_rgba(15,23,42,0.12)]"
           style={{
@@ -404,16 +409,18 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           </CardHeader>
           <CardContent className="p-2">
             <div className="grid grid-cols-2 gap-2">
-              {/* 왼쪽 블록: 1-4주차 */}
+              {/* 왼쪽 블록 */}
               <div className="space-y-1.5">
-                {(classPlan.weeklyPlan || []).slice(0, 4).map((week, i) => {
-                  const defaultLabel = `${i + 1}주`;
+                {leftWeeks.map((week, i) => {
+                  const weekIndex = i;
+                  const defaultLabel = `${weekIndex + 1}주`;
                   const displayLabel = week.weekLabel || defaultLabel;
+                  const rowBg = weekIndex % 2 === 0 ? colors.light : 'transparent';
                   return (
                     <div 
-                      key={i} 
+                      key={weekIndex} 
                       className="flex items-start gap-2 p-1.5 rounded transition-colors"
-                      style={{ backgroundColor: i % 2 === 0 ? colors.light : 'transparent' }}
+                      style={{ backgroundColor: rowBg }}
                     >
                       <span 
                         className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 text-[10pt] font-bold rounded shrink-0"
@@ -433,17 +440,18 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                   );
                 })}
               </div>
-              {/* 오른쪽 블록: 5-8주차 */}
+              {/* 오른쪽 블록 */}
               <div className="space-y-1.5">
-                {(classPlan.weeklyPlan || []).slice(4, 8).map((week, i) => {
-                  const weekIndex = i + 4;
+                {rightWeeks.map((week, i) => {
+                  const weekIndex = midPoint + i;
                   const defaultLabel = `${weekIndex + 1}주`;
                   const displayLabel = week.weekLabel || defaultLabel;
+                  const rowBg = weekIndex % 2 === 0 ? colors.light : 'transparent';
                   return (
                     <div 
                       key={weekIndex} 
                       className="flex items-start gap-2 p-1.5 rounded transition-colors"
-                      style={{ backgroundColor: i % 2 === 0 ? colors.light : 'transparent' }}
+                      style={{ backgroundColor: rowBg }}
                     >
                       <span 
                         className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 text-[10pt] font-bold rounded shrink-0"
