@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useClassPlanStore } from '@/store/classPlanStore';
 import { useAuthStore } from '@/store/authStore';
 import { recordActivity } from '@/lib/activityLogger';
-import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2 } from 'lucide-react';
+import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2, Settings, History, LayoutTemplate } from 'lucide-react';
 import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings } from '@/lib/types';
 import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
 import { getDefaultTypography } from '@/lib/utils';
@@ -23,7 +23,7 @@ import TeacherDropdown from '@/components/editor/TeacherDropdown';
 const templateCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
 
 // 색상 테마 목록
-const colorThemeList: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong', 'navyGold', 'blackOrange'];
+const colorThemeList: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong'];
 
 // A4 비율 상수
 const A4_RATIO = 297 / 210; // ≈ 1.414 (세로/가로)
@@ -45,7 +45,7 @@ export default function HomePage() {
   const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
 
   useEffect(() => {
-    const authPersist = (useAuthStore as any).persist;
+    const authPersist = useAuthStore.persist;
     const unsub = authPersist?.onFinishHydration?.(() => setAuthHydrated(true));
     setAuthHydrated(authPersist?.hasHydrated?.() ?? false);
     return () => unsub?.();
@@ -301,15 +301,21 @@ export default function HomePage() {
             <>
               <Link
                 href="/admin/accounts"
-                className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium"
+                className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium flex items-center gap-1"
               >
-                계정 관리
+                <Settings className="w-3.5 h-3.5" /> 운영 설정
               </Link>
               <Link
                 href="/admin/logs"
-                className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium"
+                className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium flex items-center gap-1"
               >
-                활동 로그
+                <History className="w-3.5 h-3.5" /> 활동 로그
+              </Link>
+              <Link
+                href="/admin/templates"
+                className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium flex items-center gap-1"
+              >
+                <LayoutTemplate className="w-3.5 h-3.5" /> 템플릿 관리
               </Link>
             </>
           )}

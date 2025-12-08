@@ -134,6 +134,8 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
+    /* 브라우저 자동 다크 모드로 인한 폼 컨트롤 색상 반전을 방지 */
+    color-scheme: light;
   }
 
   .dark {

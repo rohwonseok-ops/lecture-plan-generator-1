@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import type { Tables } from './supabase.types';
+import type { AuthError } from '@supabase/supabase-js';
 
 const toCandidateEmails = (name: string) => {
   const raw = name.trim();
@@ -21,7 +21,7 @@ export const signInWithPin = async (name: string, pin: string) => {
     return { data: null, error: new Error('비밀번호는 숫자 6자리여야 합니다.') };
   }
   const candidates = toCandidateEmails(name);
-  let lastError: any = null;
+  let lastError: AuthError | null = null;
   for (const email of candidates) {
     const res = await supabase.auth.signInWithPassword({ email, password });
     if (!res.error) return res;

@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const authPersist = (useAuthStore as any).persist;
+    const authPersist = useAuthStore.persist;
     const unsub = authPersist?.onFinishHydration?.(() => setHydrated(true));
     setHydrated(authPersist?.hasHydrated?.() ?? false);
     return () => unsub?.();
@@ -76,9 +76,15 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const form = e.currentTarget.closest('form');
+                    if (form) form.requestSubmit();
+                  }
+                }}
                 maxLength={6}
                 inputMode="numeric"
-                pattern="[0-9]{6}"
                 autoComplete="one-time-code"
                 className="w-full rounded-lg border border-zinc-300 px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="초기값: 000000"

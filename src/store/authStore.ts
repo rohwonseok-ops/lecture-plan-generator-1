@@ -36,10 +36,17 @@ export interface ActivityLog {
   timestamp: string;
 }
 
+export interface ApiKeys {
+  openaiKey?: string;
+  openaiBaseUrl?: string;
+  openaiModel?: string;
+}
+
 interface AuthState {
   users: UserAccount[];
   session?: UserSession;
   logs: ActivityLog[];
+  apiKeys: ApiKeys;
   login: (name: string, password: string) => Promise<{ ok: boolean; message?: string; requiresPasswordChange?: boolean }>;
   logout: () => Promise<void>;
   setSession: (session?: UserSession) => void;
@@ -58,6 +65,7 @@ interface AuthState {
     detail?: string,
     actorOverride?: { name: string; role: UserRole | 'guest' }
   ) => void;
+  setApiKeys: (keys: ApiKeys) => void;
 }
 
 const sanitizePhoneLast4 = (value: string) => value.replace(/\D/g, '').slice(-4);
@@ -132,6 +140,7 @@ export const useAuthStore = create<AuthState>()(
       users: SEED_USERS.map(normalizeUser),
       session: undefined,
       logs: [],
+      apiKeys: {},
 
       login: async (rawName, rawPassword) => {
         const name = normalizeName(rawName);
@@ -299,17 +308,19 @@ export const useAuthStore = create<AuthState>()(
         const nextLogs = [entry, ...logs].slice(0, LOG_LIMIT);
         set({ logs: nextLogs });
       },
+
+      setApiKeys: (keys) => {
+        set((state) => ({ apiKeys: { ...state.apiKeys, ...keys } }));
+      },
     }),
     {
       name: 'lecture-auth-store',
       skipHydration: false,
-      // 접속 시 항상 로그인 화면부터 시작하도록 세션을 비움
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.error('authStore 복원 실패:', error);
         }
         if (state) {
-          state.session = undefined;
           if (state.users && state.users.length === 0) {
             state.users = SEED_USERS;
           }
@@ -318,6 +329,12 @@ export const useAuthStore = create<AuthState>()(
           }
         }
       },
+      partialize: (state) => ({
+        users: state.users,
+        session: state.session,
+        logs: state.logs,
+        apiKeys: state.apiKeys,
+      }),
     }
   )
 );

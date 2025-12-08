@@ -7,7 +7,6 @@ import { colorThemes, ColorPalette } from '@/lib/colorThemes';
 interface Props {
   classPlan: ClassPlan;
   colorTheme?: ColorTheme;
-  typography?: ClassPlan['typography'];
 }
 
 interface CalendarDay {
@@ -20,35 +19,10 @@ interface CalendarDay {
   classType?: 'regular' | 'special'; // 정규수업 또는 특강수업
 }
 
-const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue', typography }) => {
+const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) => {
   // 색상 테마 가져오기
   const colors: ColorPalette = colorThemes[colorTheme] || colorThemes.blue;
 
-  // 특강수업 색상 계산 헬퍼 함수 (더 세련된 색상)
-  const getSpecialColor = (primary: string) => {
-    // 블루 계열 (#6A9FB8 등) → 세련된 파스텔 보라색 (블루와 잘 어울림)
-    if (primary.includes('6A9F') || primary.includes('3B82') || primary.includes('4A7F')) {
-      return { bg: '#E9D5FF', text: '#6B21A8', border: '#C084FC' }; // 부드러운 파스텔 보라
-    }
-    // 퍼플 계열 → 세련된 민트/틸 계열
-    if (primary.includes('7C3A') || primary.includes('5B21')) {
-      return { bg: '#D1FAE5', text: '#065F46', border: '#6EE7B7' }; // 부드러운 민트 그린
-    }
-    // 오렌지 계열 → 세련된 라벤더/퍼플 계열
-    if (primary.includes('F973') || primary.includes('EA58')) {
-      return { bg: '#E9D5FF', text: '#6B21A8', border: '#C084FC' }; // 부드러운 라벤더
-    }
-    // 틸 계열 → 세련된 피치/코랄 계열
-    if (primary.includes('14B8') || primary.includes('0D94')) {
-      return { bg: '#FED7AA', text: '#9A3412', border: '#FDBA74' }; // 부드러운 피치
-    }
-    // 그린 계열 → 세련된 라벤더/퍼플 계열
-    if (primary.includes('0E6A') || primary.includes('0A4E')) {
-      return { bg: '#E9D5FF', text: '#6B21A8', border: '#C084FC' }; // 부드러운 라벤더
-    }
-    // 기본값: 부드러운 파스텔 보라
-    return { bg: '#E9D5FF', text: '#6B21A8', border: '#C084FC' };
-  };
   // 수업 요일 파싱 (예: "월수금" -> [1, 3, 5])
   const parseClassDays = (classDay: string): number[] => {
     const dayMap: Record<string, number> = {
@@ -141,7 +115,7 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue', typo
 
   const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
-  const CalendarGrid = ({ month, calendar, monthName }: { month: number; calendar: CalendarDay[]; monthName: string }) => {
+  const CalendarGrid = ({ calendar, monthName }: { calendar: CalendarDay[]; monthName: string }) => {
     const chunks: CalendarDay[][] = [];
     for (let i = 0; i < calendar.length; i += 7) {
       chunks.push(calendar.slice(i, i + 7));
@@ -256,11 +230,11 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue', typo
     <div className="mb-3">
       <div className="flex gap-2">
         <div className="flex-1 rounded-2xl border border-white/70 bg-white/92 shadow-[0_14px_36px_rgba(15,23,42,0.08)] p-3">
-          <CalendarGrid month={1} calendar={january} monthName="1월" />
+          <CalendarGrid calendar={january} monthName="1월" />
         </div>
         <div className="flex-1 flex flex-col gap-2">
           <div className="rounded-2xl border border-white/70 bg-white/92 shadow-[0_14px_36px_rgba(15,23,42,0.08)] p-3">
-            <CalendarGrid month={2} calendar={february} monthName="2월" />
+            <CalendarGrid calendar={february} monthName="2월" />
           </div>
           {/* 범례 */}
           <div className="mt-1 flex gap-2 text-[11pt]">

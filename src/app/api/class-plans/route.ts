@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientAndUser, unauthorized, badRequest, serverError } from '@/lib/apiHelpers';
+import type { TablesInsert } from '@/lib/supabase.types';
 
 export const GET = async (req: NextRequest) => {
   const pair = await getClientAndUser(req);
@@ -22,7 +23,15 @@ export const POST = async (req: NextRequest) => {
   const { client, userId } = pair;
 
   const body = await req.json().catch(() => ({}));
-  const { plan, weeklyItems = [], feeRows = [] } = body;
+  const {
+    plan,
+    weeklyItems = [],
+    feeRows = [],
+  }: {
+    plan?: TablesInsert<'class_plans'>;
+    weeklyItems?: TablesInsert<'weekly_plan_items'>[];
+    feeRows?: TablesInsert<'fee_rows'>[];
+  } = body;
 
   if (!plan?.title) {
     return badRequest('title is required');
@@ -37,7 +46,7 @@ export const POST = async (req: NextRequest) => {
 
   if (weeklyItems.length) {
     await client.from('weekly_plan_items').insert(
-      weeklyItems.map((w: any, idx: number) => ({
+      weeklyItems.map((w, idx) => ({
         ...w,
         class_plan_id: data.id,
         position: w.position ?? idx,
@@ -46,7 +55,7 @@ export const POST = async (req: NextRequest) => {
   }
   if (feeRows.length) {
     await client.from('fee_rows').insert(
-      feeRows.map((f: any) => ({
+      feeRows.map((f) => ({
         ...f,
         class_plan_id: data.id,
       }))

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import { ClassPlan, FeeRow, WeeklyItem } from '@/lib/types';
+import { ClassPlan, FeeRow, WeeklyItem, SizePreset, TypographySettings } from '@/lib/types';
 import { supabase } from '@/lib/supabaseClient';
+import type { Tables, TablesInsert } from '@/lib/supabase.types';
 
 interface ClassPlanState {
   classPlans: ClassPlan[];
@@ -70,7 +71,12 @@ const normalizePlan = (plan: ClassPlan): ClassPlan => {
   };
 };
 
-const toDbWeekly = (items: WeeklyItem[]) =>
+type ClassPlanRow = Tables<'class_plans'> & {
+  weekly_plan_items?: Tables<'weekly_plan_items'>[];
+  fee_rows?: Tables<'fee_rows'>[];
+};
+
+const toDbWeekly = (items: WeeklyItem[]): Partial<TablesInsert<'weekly_plan_items'>>[] =>
   items.map((w, idx) => ({
     week_label: w.weekLabel,
     topic: w.topic,
@@ -79,7 +85,7 @@ const toDbWeekly = (items: WeeklyItem[]) =>
     position: idx,
   }));
 
-const toDbFeeRows = (rows?: FeeRow[]) =>
+const toDbFeeRows = (rows?: FeeRow[]): Partial<TablesInsert<'fee_rows'>>[] =>
   rows?.map((r) => ({
     month: r.month,
     class_type: r.classType,
@@ -90,9 +96,9 @@ const toDbFeeRows = (rows?: FeeRow[]) =>
     subtotal: r.subtotal,
   })) || [];
 
-const dbToClassPlan = (row: any): ClassPlan => {
+const dbToClassPlan = (row: ClassPlanRow): ClassPlan => {
   const weeklyPlan: WeeklyItem[] =
-    row.weekly_plan_items?.map((w: any) => ({
+    row.weekly_plan_items?.map((w: Tables<'weekly_plan_items'>) => ({
       weekLabel: w.week_label,
       topic: w.topic ?? '',
       detail: w.detail ?? undefined,
@@ -100,7 +106,7 @@ const dbToClassPlan = (row: any): ClassPlan => {
     })) ?? defaultWeeklyPlan;
 
   const feeRows: FeeRow[] =
-    row.fee_rows?.map((f: any) => ({
+    row.fee_rows?.map((f: Tables<'fee_rows'>) => ({
       month: f.month,
       classType: f.class_type,
       day: f.day ?? '',
@@ -118,10 +124,23 @@ const dbToClassPlan = (row: any): ClassPlan => {
       }
     : undefined;
 
+  const titleType = row.title_type === 'name' || row.title_type === 'class' ? row.title_type : undefined;
+
+  const etcPosition =
+    row.etc_position === 'top' || row.etc_position === 'bottom' ? row.etc_position : undefined;
+
+  const templateId = typeof row.template_id === 'string' ? (row.template_id as ClassPlan['templateId']) : 'style1-blue';
+  const sizePreset: SizePreset =
+    row.size_preset === '4x5' || row.size_preset === '1x1' ? row.size_preset : 'A4';
+  const typography =
+    row.typography && typeof row.typography === 'object' && !Array.isArray(row.typography)
+      ? (row.typography as unknown as TypographySettings)
+      : undefined;
+
   return normalizePlan({
     id: row.id,
     title: row.title,
-    titleType: row.title_type ?? undefined,
+    titleType,
     subject: row.subject ?? '',
     targetStudent: row.target_student ?? '',
     targetStudentDetail: row.target_student_detail ?? '',
@@ -139,10 +158,10 @@ const dbToClassPlan = (row: any): ClassPlan => {
     keywords: row.keywords ?? '',
     etc: row.etc ?? '',
     showEtc: row.show_etc ?? false,
-    etcPosition: row.etc_position ?? undefined,
-    templateId: row.template_id ?? 'style1-blue',
-    sizePreset: row.size_preset ?? 'A4',
-    typography: row.typography ?? undefined,
+    etcPosition,
+    templateId,
+    sizePreset,
+    typography,
     weeklyPlan,
     feeInfo,
     lastSaved: row.last_saved ?? undefined,

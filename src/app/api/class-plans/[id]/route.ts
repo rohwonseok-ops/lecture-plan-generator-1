@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientAndUser, unauthorized, notFound, serverError } from '@/lib/apiHelpers';
+import type { TablesInsert } from '@/lib/supabase.types';
 
 export const GET = async (_req: NextRequest, { params }: { params: { id: string } }) => {
   const pair = await getClientAndUser(_req);
@@ -24,7 +25,15 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
   const { client, userId } = pair;
 
   const body = await req.json().catch(() => ({}));
-  const { patch = {}, weeklyItems, feeRows } = body;
+  const {
+    patch = {},
+    weeklyItems,
+    feeRows,
+  }: {
+    patch?: Partial<TablesInsert<'class_plans'>>;
+    weeklyItems?: TablesInsert<'weekly_plan_items'>[];
+    feeRows?: TablesInsert<'fee_rows'>[];
+  } = body;
 
   const { error } = await client
     .from('class_plans')
@@ -37,7 +46,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
     await client.from('weekly_plan_items').delete().eq('class_plan_id', params.id);
     if (weeklyItems.length) {
       await client.from('weekly_plan_items').insert(
-        weeklyItems.map((w: any, idx: number) => ({
+        weeklyItems.map((w, idx) => ({
           ...w,
           class_plan_id: params.id,
           position: w.position ?? idx,
@@ -50,7 +59,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
     await client.from('fee_rows').delete().eq('class_plan_id', params.id);
     if (feeRows.length) {
       await client.from('fee_rows').insert(
-        feeRows.map((f: any) => ({
+        feeRows.map((f) => ({
           ...f,
           class_plan_id: params.id,
         }))

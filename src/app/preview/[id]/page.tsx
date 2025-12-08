@@ -41,7 +41,7 @@ export default function PreviewPage() {
         <div className="text-center">
           <p className="text-xl font-bold text-zinc-600 mb-4">강의 계획을 찾을 수 없습니다</p>
           <button 
-            onClick={() => router.push('/classes')}
+            onClick={() => router.push('/')}
             className="text-blue-600 hover:text-blue-800 font-medium"
           >
             목록으로 돌아가기
@@ -59,7 +59,6 @@ export default function PreviewPage() {
     'style2-purple',
     'style3-blue',
     'style3-orange',
-    'style3-navyGold',
     // 레거시 호환 옵션
     'classic',
     'report',
@@ -105,7 +104,7 @@ export default function PreviewPage() {
       {/* Top Bar */}
       <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-10">
         <div className="flex items-center space-x-4">
-          <button onClick={() => router.push('/classes')} className="p-2 hover:bg-gray-100 rounded-full text-gray-600">
+          <button onClick={() => router.push('/')} className="p-2 hover:bg-gray-100 rounded-full text-gray-600">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h2 className="font-bold text-gray-800">Preview & Export</h2>

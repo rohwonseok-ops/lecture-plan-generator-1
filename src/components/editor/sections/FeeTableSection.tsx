@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ClassPlan, FeeInfo, FeeRow } from '@/lib/types';
 import { Plus, Trash2 } from 'lucide-react';
 
@@ -19,6 +19,10 @@ const defaultFeeInfo: FeeInfo = {
 };
 
 const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
+  // React hooks는 컴포넌트 최상단에 선언
+  const [selectedMonth, setSelectedMonth] = React.useState<string | null>(null);
+  const [showMessage, setShowMessage] = React.useState<string>('');
+
   const feeInfo = classPlan.feeInfo || defaultFeeInfo;
 
   // 수강료 합계 자동 계산
@@ -32,11 +36,6 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
       monthTotals[row.month] += row.subtotal;
     });
     return Object.entries(monthTotals).map(([month, total]) => ({ month, total }));
-  };
-
-  const updateFeeInfo = (newFeeInfo: Partial<FeeInfo>) => {
-    const updatedFeeInfo = { ...feeInfo, ...newFeeInfo };
-    onChange({ feeInfo: updatedFeeInfo });
   };
 
   const updateRow = (index: number, field: keyof FeeRow, value: string | number) => {
@@ -114,9 +113,6 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
     groupedByMonth[row.month].rows.push(row);
     groupedByMonth[row.month].indices.push(idx);
   });
-
-  const [selectedMonth, setSelectedMonth] = React.useState<string | null>(null);
-  const [showMessage, setShowMessage] = React.useState<string>('');
 
   return (
     <div className="h-full flex flex-col p-2 bg-white overflow-hidden">

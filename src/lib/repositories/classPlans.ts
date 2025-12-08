@@ -2,8 +2,6 @@ import { supabase } from '../supabaseClient';
 import type { Tables, TablesInsert, TablesUpdate } from '../supabase.types';
 
 type ClassPlanRow = Tables<'class_plans'>;
-type WeeklyRow = Tables<'weekly_plan_items'>;
-type FeeRow = Tables<'fee_rows'>;
 
 export const listClassPlans = async () => {
   return supabase

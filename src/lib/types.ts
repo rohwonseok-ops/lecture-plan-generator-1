@@ -48,7 +48,65 @@ export interface TypographySettings {
 export type TemplateCategory = 'style1' | 'style2' | 'style3';
 
 // 색상 테마
-export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green' | 'dancheong' | 'navyGold' | 'blackOrange';
+export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green' | 'dancheong';
+
+// 템플릿 에디터용 타입 (커스텀 템플릿)
+export type TemplateStatus = 'draft' | 'official';
+export type TemplatePalette = {
+  name?: string;
+  primary: string;
+  secondary?: string;
+  accent?: string;
+  neutral?: string;
+  gradientFrom?: string;
+  gradientTo?: string;
+};
+
+export type TemplateBlockType = 'text' | 'box' | 'image';
+
+export interface TemplateBlock {
+  id: string;
+  type: TemplateBlockType;
+  content?: {
+    text?: string;
+    imageUrl?: string;
+  };
+  layout: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    zIndex: number;
+  };
+  style: {
+    fill?: string;
+    gradientFrom?: string;
+    gradientTo?: string;
+    textColor?: string;
+    fontSize?: number;
+    fontWeight?: number;
+    align?: 'left' | 'center' | 'right';
+    borderColor?: string;
+    borderWidth?: number;
+    radius?: number;
+    shadow?: boolean;
+    opacity?: number;
+  };
+  locked?: boolean;
+  hidden?: boolean;
+}
+
+export interface TemplateMeta {
+  id: string;
+  name: string;
+  category: TemplateCategory | 'custom';
+  status: TemplateStatus;
+  palette: TemplatePalette;
+  thumbnailUrl?: string;
+  updatedAt: string;
+  createdAt: string;
+  blocks?: TemplateBlock[];
+}
 
 // TemplateId = 카테고리-색상 조합 + 레거시 호환 ID
 export type TemplateId = 
@@ -97,20 +155,23 @@ export const parseTemplateId = (templateId?: string | TemplateId): { category: T
     return legacyMap[templateId];
   }
   
-    // 새 형식 (style1-blue)
-    const parts = templateId.split('-');
-    if (parts.length === 2) {
-      const category = parts[0] as TemplateCategory;
-      const color = parts[1] as ColorTheme;
-      
-      // 유효성 검사
-      const validCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
-      const validColors: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong', 'navyGold', 'blackOrange'];
-      
-      if (validCategories.includes(category) && validColors.includes(color)) {
-        return { category, color };
-      }
-    }
+  // 새 형식 (style1-blue)
+  const parts = templateId.split('-');
+  if (parts.length === 2) {
+    const category = parts[0] as TemplateCategory;
+    const color = parts[1] as ColorTheme;
+    
+    // 유효성 검사
+    const validCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
+    const validColors: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong'];
+    
+    const categoryValid = validCategories.includes(category);
+    const colorValid = validColors.includes(color);
+
+    // 카테고리가 유효하면 그대로 유지, 색상만 기본값으로 보정
+    if (categoryValid && colorValid) return { category, color };
+    if (categoryValid && !colorValid) return { category, color: defaultColor };
+  }
   
   // 기본값 반환
   return { category: defaultCategory, color: defaultColor };

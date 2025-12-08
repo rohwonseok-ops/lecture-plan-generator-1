@@ -1,13 +1,14 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
+
 import React from 'react';
 import { ClassPlan, ColorTheme, FeeRow } from '@/lib/types';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
 import { getFontClassName, getDefaultTypography } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   Table,
   TableBody,
@@ -55,39 +56,13 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const headerBackground = `linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 45%), ${colors.gradient || colors.primary}`;
   const headerShadow = '0 14px 34px rgba(15,23,42,0.18)';
 
-  const isNavyGold = colorTheme === 'navyGold';
-  const pageBackground = isNavyGold
-    ? 'linear-gradient(140deg, #0A1226 0%, #0F1C3B 55%, #1C2746 100%)'
-    : 'linear-gradient(135deg, #f8fafc 0%, #ffffff 55%, #f1f5f9 100%)';
+  const pageBackground = 'linear-gradient(135deg, #f8fafc 0%, #ffffff 55%, #f1f5f9 100%)';
 
   return (
     <div
       className="w-full min-h-full p-5 relative"
       style={{ background: pageBackground }}
     >
-      {isNavyGold && (
-        <div className="absolute inset-0 pointer-events-none">
-          <div
-            className="absolute inset-0"
-            style={{
-              opacity: 0.22,
-              backgroundImage: `
-                radial-gradient(circle at 12% 18%, rgba(217,185,112,0.18), transparent 28%),
-                radial-gradient(circle at 88% 22%, rgba(204,172,96,0.16), transparent 30%),
-                radial-gradient(circle at 15% 78%, rgba(217,185,112,0.14), transparent 26%),
-                radial-gradient(circle at 82% 75%, rgba(204,172,96,0.12), transparent 24%)
-              `
-            }}
-          ></div>
-          <div
-            className="absolute inset-0 opacity-25"
-            style={{
-              backgroundImage: 'repeating-linear-gradient(90deg, rgba(217,185,112,0.08) 0 1px, transparent 1px 28px)',
-              mixBlendMode: 'screen'
-            }}
-          ></div>
-        </div>
-      )}
       <div
         className={`flex-1 rounded-3xl border border-white/70 bg-white/92 backdrop-blur flex flex-col text-slate-900 shadow-[0_22px_55px_rgba(15,23,42,0.10)] relative ${bodyFontClass}`}
         style={{ fontSize: `${typography.bodySize}pt`, fontWeight: bodyWeight }}
@@ -409,7 +384,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </svg>
             <h3 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>월간계획</h3>
           </div>
-          <MonthlyCalendar classPlan={classPlan} colorTheme={colorTheme} typography={typography} />
+          <MonthlyCalendar classPlan={classPlan} colorTheme={colorTheme} />
         </div>
 
         {/* 수강료 안내 */}

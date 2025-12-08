@@ -17,7 +17,7 @@ export default function ChangePasswordPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const authPersist = (useAuthStore as any).persist;
+    const authPersist = useAuthStore.persist;
     const unsub = authPersist?.onFinishHydration?.(() => setHydrated(true));
     setHydrated(authPersist?.hasHydrated?.() ?? false);
     return () => unsub?.();
