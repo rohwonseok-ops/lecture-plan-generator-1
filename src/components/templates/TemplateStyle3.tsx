@@ -62,6 +62,11 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const midPoint = Math.ceil(weeklyPlan.length / 2);
   const leftWeeks = weeklyPlan.slice(0, midPoint);
   const rightWeeks = weeklyPlan.slice(midPoint);
+  const weekBadgeStyle = {
+    backgroundColor: colors.light,
+    border: `1px solid ${colors.border}`,
+    color: colors.dark,
+  };
 
   return (
     <div
@@ -212,7 +217,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>담임강사</h4>
+              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>담임강사</h4>
             </div>
             <Card className="border-zinc-200 bg-zinc-50/50 flex-1">
               <CardContent className="p-2.5 relative h-full flex items-center">
@@ -227,7 +232,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>수업일정</h4>
+              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>수업일정</h4>
             </div>
             <Card className="border-zinc-200 bg-zinc-50/50 flex-1">
               <CardContent className="p-2.5 relative h-full flex items-center">
@@ -242,7 +247,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
-              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습과정 및 교재</h4>
+              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>학습과정 및 교재</h4>
             </div>
             <Card className="border-zinc-200 flex-1" style={{ backgroundColor: `${colors.light}50` }}>
               <CardContent className="p-0" style={{ fontSize: `${typography.bodySize}pt` }}>
@@ -252,7 +257,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                       <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${colors.light}90 0%, ${colors.light}60 100%)`, color: colors.primary, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>
                         과정 1
                       </TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}` }}>
+                      <TableCell className={`py-1.5 px-2 text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}` }}>
                         {classPlan.course1 || '-'}
                       </TableCell>
                       <TableCell className={`py-1.5 px-2 text-left text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
@@ -263,7 +268,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                       <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${colors.light}90 0%, ${colors.light}60 100%)`, color: colors.primary, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>
                         과정 2
                       </TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}` }}>
+                      <TableCell className={`py-1.5 px-2 text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}` }}>
                         {classPlan.course2 || '-'}
                       </TableCell>
                       <TableCell className={`py-1.5 px-2 text-left text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
@@ -285,11 +290,11 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습목표</h4>
+              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>학습목표</h4>
             </div>
             <Card className="border-zinc-200 bg-zinc-50/50 h-full flex flex-col">
               <CardContent className="p-2.5 relative flex-1">
-                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
+                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, lineHeight: 1.45 }}>
                   {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
                 </p>
               </CardContent>
@@ -302,11 +307,11 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
-              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습관리</h4>
+              <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>학습관리</h4>
             </div>
             <Card className="border-zinc-200 bg-zinc-50/50 h-full flex flex-col">
               <CardContent className="p-2.5 relative flex-1">
-                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
+                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, lineHeight: 1.45 }}>
                   {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
                 </p>
               </CardContent>
@@ -340,7 +345,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
-            <h3 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>주차별 학습계획</h3>
+            <h3 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>주차별 학습계획</h3>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {/* 왼쪽 블록 */}
@@ -354,17 +359,17 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                     <CardContent className="p-1.5 flex items-center gap-1.5">
                       {hasLabel && (
                         <Badge 
-                          className="text-white text-[9pt] px-1.5 shrink-0"
-                          style={{ backgroundColor: colors.primary }}
+                          className="text-[10pt] px-1.5 shrink-0"
+                          style={weekBadgeStyle}
                         >
                           {displayLabel}
                         </Badge>
                       )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.8em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
+                        <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
-                            <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.75em', fontWeight: bodyWeight }}>{week.detail}</div>
+                            <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.detail}</div>
                           </div>
                         )}
                       </div>
@@ -384,17 +389,17 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                     <CardContent className="p-1.5 flex items-center gap-1.5">
                       {hasLabel && (
                         <Badge 
-                          className="text-white text-[9pt] px-1.5 shrink-0"
-                          style={{ backgroundColor: colors.primary }}
+                          className="text-[10pt] px-1.5 shrink-0"
+                          style={weekBadgeStyle}
                         >
                           {displayLabel}
                         </Badge>
                       )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.8em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
+                        <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
-                            <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.75em', fontWeight: bodyWeight }}>{week.detail}</div>
+                            <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.detail}</div>
                           </div>
                         )}
                       </div>
@@ -412,7 +417,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <h3 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>월간계획</h3>
+            <h3 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>월간계획</h3>
           </div>
           <MonthlyCalendar classPlan={classPlan} colorTheme={colorTheme} />
         </div>

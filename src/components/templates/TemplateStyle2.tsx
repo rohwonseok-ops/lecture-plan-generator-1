@@ -99,22 +99,22 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="flex items-start gap-3">
           {/* 아이콘 박스 */}
           <div 
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-lg" 
+            className="w-12 h-12 rounded-lg flex items-center justify-center text-white shadow-lg" 
             style={{ backgroundColor: getAccent(0) }}
           >
-            <svg className="fill-none stroke-current" style={{ width: `${(typography.titleSize + 4) * 0.8}pt`, height: `${(typography.titleSize + 4) * 0.8}pt` }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${(typography.titleSize + 4) * 0.95}pt`, height: `${(typography.titleSize + 4) * 0.95}pt` }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
           <div>
             <h1 className={`text-2xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${typography.titleSize + 4}pt`, fontWeight: titleWeight, color: '#0f172a' }}>
               {classPlan.showTitle && classPlan.title && (
-                <span className="mr-2" style={{ color: '#0f172a' }}>[{classPlan.title}]</span>
+                <span className="mr-2" style={{ color: getAccent(0) }}>[{classPlan.title}]</span>
               )}
               <span style={{ color: '#0f172a' }}>윈터 프로그램</span>{' '}
-              <span style={{ color: getAccent(0) }}>안내문</span>
+              <span style={{ color: '#0f172a' }}>안내문</span>
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: '#6b7280' }}>2026 WINTER</p>
+            <p className="text-sm mt-0.5" style={{ color: '#0f172a' }}>2026 WINTER</p>
           </div>
         </div>
         <div className="text-right">
@@ -247,13 +247,13 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                   <TableBody>
                     <TableRow style={{ borderColor: colors.border }}>
                       <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${getAccentLighter(5)} 0%, ${getAccentLight(5)} 100%)`, color: getAccent(5), fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>과정 1</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}`, color: '#18181b' }}>{classPlan.course1 || '-'}</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#18181b' }}>{classPlan.material1 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}`, color: '#3f3f46' }}>{classPlan.course1 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#3f3f46' }}>{classPlan.material1 || '-'}</TableCell>
                     </TableRow>
                     <TableRow style={{ borderColor: colors.border }}>
                       <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${getAccentLighter(5)} 0%, ${getAccentLight(5)} 100%)`, color: getAccent(5), fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>과정 2</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}`, color: '#18181b' }}>{classPlan.course2 || '-'}</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#18181b' }}>{classPlan.material2 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}`, color: '#3f3f46' }}>{classPlan.course2 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#3f3f46' }}>{classPlan.material2 || '-'}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -275,7 +275,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </div>
             <Card className="overflow-hidden h-full flex flex-col" style={{ borderColor: colors.border, backgroundColor: getAccentLight(4) }}>
               <CardContent className="p-2.5 relative flex-1">
-                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
+                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, lineHeight: 1.45 }}>
                   {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
                 </p>
               </CardContent>
@@ -293,7 +293,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </div>
             <Card className="overflow-hidden h-full flex flex-col" style={{ borderColor: colors.border, backgroundColor: getAccentLight(5) }}>
               <CardContent className="p-2.5 relative flex-1">
-                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
+                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, lineHeight: 1.45 }}>
                   {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
                 </p>
               </CardContent>

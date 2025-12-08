@@ -396,7 +396,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             >
               {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
             </p>
-          </CardContent>
+            </CardContent>
           </Card>
         </div>
 
