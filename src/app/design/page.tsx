@@ -7,7 +7,14 @@ import Image from 'next/image';
 import { Upload, Sparkles, ArrowLeft } from 'lucide-react';
 
 const DEFAULT_PROMPT =
-  '이 디자인의 가독성, 정보 구조, 색상 대비, 레이아웃 개선점을 요약해줘. 꼭 필요한 수정 3~5개와 개선 방향을 제안해줘.';
+  [
+    '업로드한 이미지를 분석해 강의계획서 템플릿에 어떻게 적용할지 제안해줘.',
+    '- 색상 팔레트: 주요/보조/배경/강조 HEX 4~6개',
+    '- 폰트 톤: 제목/본문 굵기와 계층',
+    '- 레이아웃: 헤더, 학습목표, 학습관리, 주차별 학습계획, 월간계획에 맞는 배치와 여백',
+    '- 시각적 요소: 배지/아이콘/테이블 스타일 간략 지침',
+    '마지막에 적용 요약 체크리스트 4~6개로 정리해줘.',
+  ].join('\n');
 
 export default function DesignAnalysisPage() {
   const router = useRouter();
@@ -91,7 +98,7 @@ export default function DesignAnalysisPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-zinc-900">디자인 분석</h1>
-            <p className="text-xs text-zinc-500">이미지를 업로드해 개선 포인트를 LLM으로 분석합니다.</p>
+            <p className="text-xs text-zinc-500">이미지를 강의계획서 템플릿으로 전환하기 위한 디자인 분석 도구입니다.</p>
           </div>
           <button
             onClick={() => router.push('/')}
@@ -126,7 +133,7 @@ export default function DesignAnalysisPage() {
 
           <div className="bg-white border border-zinc-200 rounded-xl p-4 space-y-3">
             <h2 className="text-sm font-semibold text-zinc-900">분석 요청</h2>
-            <label className="block text-xs font-medium text-zinc-800 mb-1">지시문</label>
+            <label className="block text-xs font-medium text-zinc-800 mb-1">지시문 (템플릿 제안에 필요한 정보를 자동 포함)</label>
             <textarea
               className="w-full text-xs rounded-lg border border-zinc-300 px-3 py-2 min-h-[120px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               value={prompt}
@@ -138,7 +145,7 @@ export default function DesignAnalysisPage() {
               className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-lg transition disabled:opacity-60"
             >
               <Sparkles className="w-4 h-4" />
-              {loading ? '분석 중...' : 'LLM으로 분석하기'}
+              {loading ? '분석 중...' : 'LLM으로 템플릿 제안받기'}
             </button>
             {error && <div className="text-[11px] text-red-600">{error}</div>}
             {result && (
