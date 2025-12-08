@@ -558,9 +558,10 @@ export default function HomePage() {
                 <button 
                   onClick={handleDownload}
                   disabled={!selectedPlan}
-                  className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                  className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-60"
+                  aria-label="PNG 다운로드"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>PNG 다운로드</span>
                 </button>
               </div>
