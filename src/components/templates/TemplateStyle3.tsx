@@ -152,7 +152,12 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
               </div>
               <Card className="border-zinc-200">
                 <CardContent className="p-3 relative">
-                  <p className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{classPlan.etc}</p>
+              <p
+                className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ fontSize: '0.9em', fontWeight: bodyWeight, lineHeight: 1.6 }}
+              >
+                {classPlan.etc}
+              </p>
                 </CardContent>
               </Card>
             </div>
@@ -170,7 +175,12 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </div>
             <Card className="border-zinc-200">
               <CardContent className="p-3">
-                <p className={`text-sm leading-5 whitespace-pre-wrap ${bodyFontClass}`}>{classPlan.etc}</p>
+                <p
+                  className={`text-sm leading-5 whitespace-pre-wrap ${bodyFontClass}`}
+                  style={{ lineHeight: 1.6 }}
+                >
+                  {classPlan.etc}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -182,7 +192,12 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="mx-6 mt-4" style={{ fontSize: `${typography.bodySize}pt` }}>
           <Card className="border-zinc-200 bg-zinc-50/50">
             <CardContent className="p-3 relative">
-              <p className={`leading-6 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.95em', fontWeight: bodyWeight }}>{classPlan.parentIntro}</p>
+              <p
+                className={`leading-6 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ fontSize: '0.95em', fontWeight: bodyWeight, lineHeight: 1.6 }}
+              >
+                {classPlan.parentIntro}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -308,7 +323,12 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </div>
             <Card className="border-zinc-200">
               <CardContent className="p-3">
-                <p className={`text-sm leading-5 whitespace-pre-wrap ${bodyFontClass}`}>{classPlan.etc}</p>
+                <p
+                  className={`text-sm leading-5 whitespace-pre-wrap ${bodyFontClass}`}
+                  style={{ lineHeight: 1.6 }}
+                >
+                  {classPlan.etc}
+                </p>
               </CardContent>
             </Card>
           </div>

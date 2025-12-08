@@ -216,7 +216,12 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 borderColor: '#FCD34D',
               }}
             >
-              <p className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.875em', fontWeight: bodyWeight, color: primaryText }}>{classPlan.etc}</p>
+            <p
+              className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
+              style={{ fontSize: '0.875em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.6 }}
+            >
+              {classPlan.etc}
+            </p>
             </div>
           </div>
         </div>
@@ -238,7 +243,12 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           style={{ backgroundColor: colors.light, border: `1px solid ${colors.border}`, fontSize: `${typography.bodySize}pt` }}
         >
           <div className="relative">
-            <p className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.95em', fontWeight: bodyWeight, color: primaryText }}>{classPlan.parentIntro}</p>
+            <p
+              className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
+              style={{ fontSize: '0.95em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.5 }}
+            >
+              {classPlan.parentIntro}
+            </p>
           </div>
         </div>
       )}
@@ -354,7 +364,10 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-3 relative flex-1">
-              <p className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+              <p
+                className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45 }}
+              >
                 {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
               </p>
             </CardContent>
@@ -377,17 +390,25 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               </CardTitle>
           </CardHeader>
           <CardContent className="p-3 relative flex-1">
-            <p className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+            <p
+              className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`}
+              style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45 }}
+            >
               {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
             </p>
-            </CardContent>
+          </CardContent>
           </Card>
         </div>
 
         {/* 홍보문구 - 맨아래 (수강료 위) */}
         {classPlan.showEtc && classPlan.etc && classPlan.etcPosition === 'bottom' && (
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 relative">
-            <p className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>{classPlan.etc}</p>
+            <p
+              className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
+              style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.6 }}
+            >
+              {classPlan.etc}
+            </p>
           </div>
         )}
 

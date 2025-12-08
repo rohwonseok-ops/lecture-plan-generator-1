@@ -153,7 +153,12 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <div className="flex-1">
             <Card style={{ borderColor: colors.border, background: `linear-gradient(to right, ${getAccentLighter(1)}, ${getAccentLight(1)})` }}>
               <CardContent className="p-3 relative">
-                <p className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#3f3f46' }}>{classPlan.etc}</p>
+                <p
+                  className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
+                  style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#3f3f46', lineHeight: 1.6 }}
+                >
+                  {classPlan.etc}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -165,7 +170,12 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="px-8 mb-4">
           <Card style={{ borderColor: colors.border, background: `linear-gradient(to right, ${getAccentLighter(1)}, ${getAccentLight(1)})` }}>
             <CardContent className="p-3">
-              <p className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}>{classPlan.etc}</p>
+              <p
+                className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ lineHeight: 1.6 }}
+              >
+                {classPlan.etc}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -176,7 +186,12 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="px-8 mb-4 mt-4" style={{ fontSize: `${typography.bodySize}pt` }}>
           <Card style={{ borderColor: colors.border, backgroundColor: getAccentLight(2) }}>
             <CardContent className="p-3 relative">
-              <p className={`leading-6 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.95em', fontWeight: bodyWeight }}>{classPlan.parentIntro}</p>
+              <p
+                className={`leading-6 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ fontSize: '0.95em', fontWeight: bodyWeight, lineHeight: 1.6 }}
+              >
+                {classPlan.parentIntro}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -290,7 +305,12 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         {classPlan.showEtc && classPlan.etc && classPlan.etcPosition === 'bottom' && (
             <Card style={{ borderColor: colors.border, background: `linear-gradient(to right, ${getAccentLighter(1)}, ${getAccentLight(1)})` }}>
             <CardContent className="p-3">
-              <p className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}>{classPlan.etc}</p>
+              <p
+                className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ lineHeight: 1.6 }}
+              >
+                {classPlan.etc}
+              </p>
             </CardContent>
           </Card>
         )}
