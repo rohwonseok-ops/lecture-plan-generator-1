@@ -43,19 +43,21 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 <div className="flex-shrink-0 w-12 h-8 bg-white border border-zinc-300 rounded flex items-center justify-center transition">
                   <input
                     type="text"
-                    className="w-full h-full text-zinc-700 font-medium text-[10px] bg-transparent border-none text-center focus:outline-none focus:ring-1 focus:ring-blue-500 rounded placeholder:text-zinc-400"
+                    className="w-full h-full text-zinc-700 font-medium text-[10px] bg-transparent border-none text-center focus:outline-none focus:ring-1 focus:ring-blue-500 rounded placeholder:text-zinc-500"
                     value={displayLabel}
                     onChange={(e) => handleWeekChange(globalIndex, 'weekLabel', e.target.value)}
                     placeholder={defaultLabel}
+                    aria-label={`${globalIndex + 1}주차 라벨`}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
                   <input
                     type="text"
-                    className="w-full text-xs font-medium px-2 py-1 bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+                    className="w-full text-xs font-medium px-2 py-1 bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
                     value={week.topic}
                     onChange={(e) => handleWeekChange(globalIndex, 'topic', e.target.value)}
                     placeholder={`${globalIndex + 1}주차 수업 주제`}
+                    aria-label={`${globalIndex + 1}주차 수업 주제`}
                   />
                 </div>
               </div>
@@ -75,19 +77,21 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 <div className="flex-shrink-0 w-12 h-8 bg-white border border-zinc-300 rounded flex items-center justify-center transition">
                   <input
                     type="text"
-                    className="w-full h-full text-zinc-700 font-medium text-[10px] bg-transparent border-none text-center focus:outline-none focus:ring-1 focus:ring-blue-500 rounded placeholder:text-zinc-400"
+                    className="w-full h-full text-zinc-700 font-medium text-[10px] bg-transparent border-none text-center focus:outline-none focus:ring-1 focus:ring-blue-500 rounded placeholder:text-zinc-500"
                     value={displayLabel}
                     onChange={(e) => handleWeekChange(globalIndex, 'weekLabel', e.target.value)}
                     placeholder={defaultLabel}
+                    aria-label={`${globalIndex + 1}주차 라벨`}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
                   <input
                     type="text"
-                    className="w-full text-xs font-medium px-2 py-1 bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+                    className="w-full text-xs font-medium px-2 py-1 bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
                     value={week.topic}
                     onChange={(e) => handleWeekChange(globalIndex, 'topic', e.target.value)}
                     placeholder={`${globalIndex + 1}주차 수업 주제`}
+                    aria-label={`${globalIndex + 1}주차 수업 주제`}
                   />
                 </div>
               </div>

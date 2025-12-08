@@ -47,10 +47,11 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 checked={classPlan.showTargetStudent || false}
                 onChange={(e) => onChange({ showTargetStudent: e.target.checked })}
                 className="sr-only peer"
+                aria-label="수강대상 표시"
               />
-              <div className="w-5 h-5 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center">
+              <div className="w-5 h-5 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center" aria-hidden="true">
                 {classPlan.showTargetStudent && (
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 )}
@@ -60,11 +61,12 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           </div>
           <input
             type="text"
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400 disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
             value={classPlan.targetStudent || ''}
             onChange={handleChange('targetStudent')}
             placeholder="초등 5-6"
             disabled={!classPlan.showTargetStudent}
+            aria-label="수강대상"
           />
         </div>
         <div className="col-span-10">
@@ -76,10 +78,11 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                   checked={classPlan.showEtc || false}
                   onChange={(e) => onChange({ showEtc: e.target.checked })}
                   className="sr-only peer"
+                  aria-label="홍보문구 및 특이사항 표시"
                 />
-                <div className="w-5 h-5 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center">
+                <div className="w-5 h-5 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center" aria-hidden="true">
                   {classPlan.showEtc && (
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
@@ -91,6 +94,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                   value={classPlan.etcPosition || 'bottom'}
                   onChange={(e) => onChange({ etcPosition: e.target.value as 'top' | 'bottom' })}
                   className="ml-2 text-[9px] px-2 py-0.5 border border-zinc-300 rounded bg-white text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  aria-label="홍보문구 위치"
                 >
                   <option value="top">맨위</option>
                   <option value="bottom">맨아래</option>
@@ -112,18 +116,19 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </button>
           </div>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-16 text-zinc-800 placeholder:text-zinc-400 disabled:bg-zinc-100 disabled:text-zinc-400 disabled:cursor-not-allowed"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-16 text-zinc-800 placeholder:text-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
             value={classPlan.etc || ''}
             onChange={handleChange('etc')}
             placeholder="강좌 홍보 문구, 특이사항 (템플릿에는 타이틀 없이 표시)"
             disabled={!classPlan.showEtc}
+            aria-label="홍보문구 및 특이사항"
           />
         </div>
 
         {/* Row 2: 학부모 안내글 (인트로) */}
         <div className="col-span-12">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase">학부모 안내글 (인트로)</label>
+            <label className="text-[10px] font-bold text-zinc-600 uppercase">학부모 안내글 (인트로)</label>
             <button
               onClick={() => handleAiGenerate('parentIntro', 'parentIntro')}
               disabled={generatingField === 'parentIntro'}
@@ -139,10 +144,11 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </button>
           </div>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-16 text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-16 text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.parentIntro || ''}
             onChange={handleChange('parentIntro')}
             placeholder="학부모님께 전하는 인사말 및 안내 문구"
+            aria-label="학부모 안내글"
           />
         </div>
 
@@ -156,7 +162,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 className={`flex-1 px-2 py-1 text-[10px] rounded font-medium transition-all ${
                   classPlan.titleType === 'class' || !classPlan.titleType
                     ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-zinc-500 hover:text-zinc-900'
+                    : 'text-zinc-700 hover:text-zinc-900'
                 }`}
               >
                 반명
@@ -167,7 +173,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 className={`flex-1 px-2 py-1 text-[10px] rounded font-medium transition-all ${
                   classPlan.titleType === 'name'
                     ? 'bg-white text-blue-600 shadow-sm' 
-                    : 'text-zinc-500 hover:text-zinc-900'
+                    : 'text-zinc-700 hover:text-zinc-900'
                 }`}
               >
                 강좌명
@@ -176,16 +182,17 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           </div>
           <input
             type="text"
-            className="w-full h-9 text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+            className="w-full h-9 text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.title || ''}
             onChange={handleChange('title')}
             placeholder={classPlan.titleType === 'name' ? "예: 수학 몰입특강" : "예: A반"}
+            aria-label={classPlan.titleType === 'name' ? "강좌명" : "반명"}
           />
         </div>
         <div className="col-span-3">
           <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">강사명</label>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[44px] text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[44px] text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.teacherName || ''}
             onChange={handleChange('teacherName')}
             onKeyDown={(e) => {
@@ -201,12 +208,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             placeholder="홍길동 (필요 시 두 줄 입력, Shift+Enter 줄바꿈)"
             rows={2}
             style={twoLineDividerStyle}
+            aria-label="강사명"
           />
         </div>
         <div className="col-span-3">
           <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">수업요일</label>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[36px] text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[36px] text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.classDay || ''}
             onChange={handleChange('classDay')}
             onKeyDown={(e) => {
@@ -222,12 +230,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             placeholder="월수금 (Shift+Enter로 줄바꿈)"
             rows={2}
             style={twoLineDividerStyle}
+            aria-label="수업요일"
           />
         </div>
         <div className="col-span-3">
           <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">수업시간</label>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[36px] text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[36px] text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.classTime || ''}
             onChange={handleChange('classTime')}
             onKeyDown={(e) => {
@@ -243,6 +252,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             placeholder="13:00-17:00 (Shift+Enter로 줄바꿈)"
             rows={2}
             style={twoLineDividerStyle}
+            aria-label="수업시간"
           />
         </div>
         
@@ -251,40 +261,44 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">학습과정1</label>
           <input
             type="text"
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.course1 || ''}
             onChange={handleChange('course1')}
             placeholder="3-1 개념"
+            aria-label="학습과정1"
           />
         </div>
         <div className="col-span-3">
           <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">교재1</label>
           <input
             type="text"
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.material1 || ''}
             onChange={handleChange('material1')}
             placeholder="개념플러스유형"
+            aria-label="교재1"
           />
         </div>
         <div className="col-span-3">
           <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">학습과정2</label>
           <input
             type="text"
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.course2 || ''}
             onChange={handleChange('course2')}
             placeholder="3-1 응용"
+            aria-label="학습과정2"
           />
         </div>
         <div className="col-span-3">
           <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">교재2</label>
           <input
             type="text"
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.material2 || ''}
             onChange={handleChange('material2')}
             placeholder="쎈"
+            aria-label="교재2"
           />
         </div>
         
@@ -307,10 +321,11 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </button>
           </div>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-14 text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-14 text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.learningGoal || ''}
             onChange={handleChange('learningGoal')}
             placeholder="학습 목표"
+            aria-label="학습목표"
           />
         </div>
         <div className="col-span-6">
@@ -331,10 +346,11 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </button>
           </div>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-14 text-zinc-800 placeholder:text-zinc-400"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-14 text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.management || ''}
             onChange={handleChange('management')}
             placeholder="테스트/클리닉/피드백"
+            aria-label="학습관리"
           />
         </div>
 

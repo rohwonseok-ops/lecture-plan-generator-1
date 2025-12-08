@@ -200,6 +200,7 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
                         className="w-full px-2 py-1 bg-white border border-zinc-200 hover:border-zinc-400 rounded focus:border-blue-500 outline-none text-zinc-800 text-xs"
                         value={row.classType}
                         onChange={(e) => updateRow(globalIdx, 'classType', e.target.value)}
+                        aria-label={`${row.month} 수업구분`}
                       />
                     </td>
                     <td className="px-1.5 py-1.5 border-r border-zinc-200">
@@ -208,6 +209,7 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
                         className="w-full px-2 py-1 bg-white border border-zinc-200 hover:border-zinc-400 rounded focus:border-blue-500 outline-none text-zinc-800 text-xs"
                         value={row.day}
                         onChange={(e) => updateRow(globalIdx, 'day', e.target.value)}
+                        aria-label={`${row.month} 요일`}
                       />
                     </td>
                     <td className="px-1.5 py-1.5 border-r border-zinc-200">
@@ -216,6 +218,7 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
                         className="w-full px-2 py-1 bg-white border border-zinc-200 hover:border-zinc-400 rounded focus:border-blue-500 outline-none text-zinc-800 text-xs"
                         value={row.time}
                         onChange={(e) => updateRow(globalIdx, 'time', e.target.value)}
+                        aria-label={`${row.month} 시간`}
                       />
                     </td>
                     <td className="px-1.5 py-1.5 border-r border-zinc-200 text-right">
@@ -224,6 +227,7 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
                         className="w-full px-2 py-1 bg-white border border-zinc-200 hover:border-zinc-400 rounded focus:border-blue-500 outline-none text-right text-zinc-800 text-xs"
                         value={row.unitFee}
                         onChange={(e) => updateRow(globalIdx, 'unitFee', Number(e.target.value))}
+                        aria-label={`${row.month} 수강료`}
                       />
                     </td>
                     <td className="px-1.5 py-1.5 border-r border-zinc-200 text-center">
@@ -232,6 +236,7 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
                         className="w-16 px-2 py-1 bg-white border border-zinc-200 hover:border-zinc-400 rounded focus:border-blue-500 outline-none text-center mx-auto text-zinc-800 text-xs"
                         value={row.sessions}
                         onChange={(e) => updateRow(globalIdx, 'sessions', Number(e.target.value))}
+                        aria-label={`${row.month} 회차`}
                       />
                     </td>
                     <td className="px-2 py-1.5 border-r border-zinc-200 text-right font-medium text-zinc-700 bg-zinc-50 text-xs">
@@ -245,9 +250,10 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
                     <td className="px-1 py-1.5">
                       <button
                         onClick={() => removeRow(globalIdx)}
-                        className="p-0.5 text-zinc-400 hover:text-red-500 transition"
+                        className="p-0.5 text-zinc-600 hover:text-red-500 transition"
+                        aria-label={`${row.month} ${row.classType} 행 삭제`}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3 h-3" aria-hidden="true" />
                       </button>
                     </td>
                   </tr>

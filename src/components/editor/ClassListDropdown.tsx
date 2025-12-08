@@ -38,13 +38,13 @@ const ClassListDropdown: React.FC<Props> = ({ plans, selectedId, onSelect }) => 
         <span className="text-xs font-medium text-zinc-800 truncate flex-1 text-left">
           {selectedPlan?.title || '강의 선택'}
         </span>
-        <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        <ChevronDown className={`w-4 h-4 text-zinc-600 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-zinc-200 rounded-lg shadow-lg z-50 py-1 max-h-60 overflow-y-auto">
           {plans.length === 0 ? (
-            <div className="px-3 py-2 text-xs text-zinc-400">등록된 강의가 없습니다</div>
+            <div className="px-3 py-2 text-xs text-zinc-600">등록된 강의가 없습니다</div>
           ) : (
             plans.map((plan) => (
               <button
@@ -61,7 +61,7 @@ const ClassListDropdown: React.FC<Props> = ({ plans, selectedId, onSelect }) => 
                   <div className={`text-xs font-medium truncate ${selectedId === plan.id ? 'text-blue-600' : 'text-zinc-800'}`}>
                     {plan.title || '(제목 없음)'}
                   </div>
-                  <div className="text-[10px] text-zinc-400 truncate">
+                  <div className="text-[10px] text-zinc-600 truncate">
                     {plan.teacherName || '강사 미정'} · {plan.classDay || '요일 미정'}
                   </div>
                 </div>

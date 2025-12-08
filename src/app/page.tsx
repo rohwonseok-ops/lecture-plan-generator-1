@@ -129,7 +129,7 @@ export default function HomePage() {
 
   if (!authHydrated || !session || session.mustChangePassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-zinc-500">
+      <div className="min-h-screen flex items-center justify-center text-zinc-600">
         로그인 후 이용해주세요.
       </div>
     );
@@ -372,7 +372,7 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-2">
               {lastSaveTime && (
-                <span className="text-[10px] text-zinc-500">마지막 저장: {lastSaveTime}</span>
+                <span className="text-[10px] text-zinc-600">마지막 저장: {lastSaveTime}</span>
               )}
               <button
                 onClick={handleSave}
@@ -393,7 +393,7 @@ export default function HomePage() {
                 onChange={(patch) => selectedId && updateClassPlan(selectedId, patch)}
               />
             ) : (
-              <div className="h-full flex items-center justify-center text-zinc-400">
+              <div className="h-full flex items-center justify-center text-zinc-600">
                 <p>강의를 선택하거나 새로 추가하세요</p>
               </div>
             )}
@@ -414,7 +414,7 @@ export default function HomePage() {
                     className={`px-2.5 py-1 text-[10px] rounded font-medium transition-all ${
                       currentCategory === cat 
                         ? 'bg-white text-blue-600 shadow-sm' 
-                        : 'text-zinc-500 hover:text-zinc-900'
+                        : 'text-zinc-700 hover:text-zinc-900'
                     }`}
                   >
                     {templateCategoryNames[cat]}
@@ -430,18 +430,19 @@ export default function HomePage() {
                     checked={typography.enableFontSizeChange || false}
                     onChange={(e) => handleTypographyChange('enableFontSizeChange', e.target.checked)}
                     className="sr-only peer"
+                    aria-label="폰트 크기 조정 활성화"
                   />
-                  <div className="w-4 h-4 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center">
+                  <div className="w-4 h-4 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center" aria-hidden="true">
                     {typography.enableFontSizeChange && (
-                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     )}
                   </div>
                 </label>
-                <span className="text-[8px] text-zinc-500">크기조정</span>
+                <span className="text-[8px] text-zinc-600">크기조정</span>
                 
-                <span className="text-[9px] font-bold text-zinc-400 uppercase ml-2">제목</span>
+                <span className="text-[9px] font-bold text-zinc-600 uppercase ml-2">제목</span>
                 <select
                   value={typography.titleFont}
                   onChange={(e) => handleTypographyChange('titleFont', e.target.value as FontFamily)}
@@ -474,9 +475,9 @@ export default function HomePage() {
                   }`}
                   aria-label="제목 크기 (pt)"
                 />
-                <span className="text-[8px] text-zinc-400">pt</span>
+                <span className="text-[8px] text-zinc-600">pt</span>
                 
-                <span className="text-[9px] font-bold text-zinc-400 uppercase ml-2">본문</span>
+                <span className="text-[9px] font-bold text-zinc-600 uppercase ml-2">본문</span>
                 <select
                   value={typography.bodyFont}
                   onChange={(e) => handleTypographyChange('bodyFont', e.target.value as FontFamily)}
@@ -509,7 +510,7 @@ export default function HomePage() {
                   }`}
                   aria-label="본문 크기 (pt)"
                 />
-                <span className="text-[8px] text-zinc-400">pt</span>
+                <span className="text-[8px] text-zinc-600">pt</span>
               </div>
             </div>
             
@@ -524,7 +525,7 @@ export default function HomePage() {
                       className={`px-2 py-1 text-[10px] rounded font-medium transition-all ${
                         currentColor === color 
                           ? 'bg-white text-blue-600 shadow-sm' 
-                          : 'text-zinc-500 hover:text-zinc-900'
+                          : 'text-zinc-700 hover:text-zinc-900'
                       }`}
                     >
                       {colorThemeNames[color]}
@@ -537,17 +538,17 @@ export default function HomePage() {
                 <div className="flex items-center bg-zinc-100 rounded-md p-0.5">
                   <button 
                     onClick={() => setScale(s => Math.max(0.2, s - 0.05))}
-                    className="p-1 hover:bg-white rounded text-zinc-500"
+                    className="p-1 hover:bg-white rounded text-zinc-600"
                     aria-label="축소"
                   >
                     <ZoomOut className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
-                  <span className="text-[10px] font-medium text-zinc-500 w-10 text-center">
+                  <span className="text-[10px] font-medium text-zinc-600 w-10 text-center">
                     {Math.round(scale * 100)}%
                   </span>
                   <button 
                     onClick={() => setScale(s => Math.min(1, s + 0.05))}
-                    className="p-1 hover:bg-white rounded text-zinc-500"
+                    className="p-1 hover:bg-white rounded text-zinc-600"
                     aria-label="확대"
                   >
                     <ZoomIn className="w-3.5 h-3.5" aria-hidden="true" />
@@ -588,7 +589,7 @@ export default function HomePage() {
                 </div>
               </div>
             ) : (
-              <div className="text-zinc-400 text-sm">강의를 선택하세요</div>
+              <div className="text-zinc-600 text-sm">강의를 선택하세요</div>
             )}
           </div>
         </div>
