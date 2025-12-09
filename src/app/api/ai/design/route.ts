@@ -4,8 +4,9 @@ export const runtime = 'nodejs';
 
 interface DesignEnv {
   apiKey?: string;
-  baseUrl: string;
-  model: string;
+  baseUrl?: string;
+  model?: string;
+  provider: 'openai' | 'gemini';
 }
 
 const toBase64DataUrl = async (file: File) => {
@@ -19,7 +20,7 @@ const toBase64 = async (file: File) => {
   return buffer.toString('base64');
 };
 
-const getDesignEnv = (): DesignEnv & { provider?: 'openai' | 'gemini' } => {
+const getDesignEnv = (): DesignEnv => {
   const {
     DESIGN_LLM_API_KEY,
     DESIGN_LLM_BASE_URL,
@@ -31,9 +32,13 @@ const getDesignEnv = (): DesignEnv & { provider?: 'openai' | 'gemini' } => {
 
   return {
     apiKey: DESIGN_LLM_API_KEY || OPENAI_API_KEY,
-    baseUrl: (DESIGN_LLM_BASE_URL || OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, ''),
-    model: DESIGN_LLM_MODEL || OPENAI_MODEL || 'gpt-4o-mini',
-    provider: process.env.DESIGN_LLM_PROVIDER as 'openai' | 'gemini' | undefined,
+    baseUrl: (DESIGN_LLM_BASE_URL || OPENAI_BASE_URL || '').trim(),
+    model: (DESIGN_LLM_MODEL || OPENAI_MODEL || '').trim(),
+    provider: detectProvider({
+      baseUrl: (DESIGN_LLM_BASE_URL || OPENAI_BASE_URL || '').trim(),
+      model: (DESIGN_LLM_MODEL || OPENAI_MODEL || '').trim(),
+      provider: process.env.DESIGN_LLM_PROVIDER as 'openai' | 'gemini' | undefined,
+    }),
   };
 };
 
@@ -61,11 +66,13 @@ export async function POST(req: Request) {
       ].join('\n');
 
     const env = getDesignEnv();
-    const provider = detectProvider(env);
-    const { apiKey, baseUrl, model } = env;
+    const { apiKey, baseUrl, model, provider } = env;
 
     if (!apiKey) {
       return NextResponse.json({ error: '서버에 디자인 분석용 LLM API 키가 설정되어 있지 않습니다.' }, { status: 500 });
+    }
+    if (!baseUrl || !model) {
+      return NextResponse.json({ error: '디자인 분석용 LLM 엔드포인트/모델이 설정되어 있지 않습니다.' }, { status: 500 });
     }
     if (!file) {
       return NextResponse.json({ error: '이미지 파일이 필요합니다.' }, { status: 400 });
@@ -73,7 +80,7 @@ export async function POST(req: Request) {
 
     if (provider === 'gemini') {
       const imageBase64 = await toBase64(file);
-      const url = `${baseUrl.replace(/\/+$/, '')}/models/${model}:generateContent?key=${apiKey}`;
+      const url = `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
       const geminiRes = await fetch(url, {
         method: 'POST',
         headers: {

@@ -72,7 +72,9 @@ export default function DesignAnalysisPage() {
       const res = await fetch('/api/ai/design', { method: 'POST', body: form });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || '디자인 분석에 실패했습니다.');
+        const baseMessage = json.error || json.detail || '디자인 분석에 실패했습니다.';
+        const detail = json.detail && json.error ? ` (${String(json.detail).slice(0, 200)})` : '';
+        throw new Error(`${baseMessage}${detail}`);
       }
       const json = await res.json();
       setResult(json.result || '');
