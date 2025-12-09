@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import Image from 'next/image';
-import { Upload, Sparkles, ArrowLeft, CheckCircle2, Palette, Save, Info } from 'lucide-react';
+import { Upload, Sparkles, ArrowLeft, CheckCircle2, Save, Info } from 'lucide-react';
 import { emptyTemplate, createDefaultLayout, saveTemplate } from '@/lib/repositories/templates';
 import type { TemplateMeta, TemplatePalette, TemplateBlock } from '@/lib/types';
 
@@ -168,11 +168,11 @@ export default function DesignAnalysisPage() {
       };
 
       // 섹션 텍스트 매핑 (가능한 경우)
-      setBlockText((b) => b.content?.text?.includes('학습 목표 내용을'), suggestion.sections?.learningGoal);
-      setBlockText((b) => b.content?.text?.includes('학습 관리 계획을'), suggestion.sections?.management);
-      setBlockText((b) => b.content?.text?.includes('과정 1 / 교재 1'), suggestion.sections?.course);
-      setBlockText((b) => b.content?.text?.includes('1주차 -'), suggestion.sections?.weekly);
-      setBlockText((b) => b.content?.text?.includes('월 / 구분 /'), suggestion.sections?.fee);
+      setBlockText((b) => !!b.content?.text?.includes('학습 목표 내용을'), suggestion.sections?.learningGoal);
+      setBlockText((b) => !!b.content?.text?.includes('학습 관리 계획을'), suggestion.sections?.management);
+      setBlockText((b) => !!b.content?.text?.includes('과정 1 / 교재 1'), suggestion.sections?.course);
+      setBlockText((b) => !!b.content?.text?.includes('1주차 -'), suggestion.sections?.weekly);
+      setBlockText((b) => !!b.content?.text?.includes('월 / 구분 /'), suggestion.sections?.fee);
 
       // 요약/체크리스트 블록 추가
       const summaryText = [suggestion.summary, ...(suggestion.checklist || [])]
