@@ -113,7 +113,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
     }
     return cardHeaderStyle;
   };
-  const getHeaderTextClass = (index?: number) => {
+  const getHeaderTextClass = () => {
     if (isDancheong) return 'text-white';
     // 소프트 테마(퍼플/오렌지/틸)는 텍스트를 테마의 진한 색으로
     if (isSoftGradientTheme) return undefined; // tailwind class 생략, style로 color 지정
@@ -273,7 +273,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,250,252,0.85))',
               }}
             >
-          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass(1)}`} style={getHeaderStyle(1)}>
+          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(1)}>
               <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
                 <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -294,7 +294,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,250,252,0.85))',
               }}
             >
-          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass(2)}`} style={getHeaderStyle(2)}>
+          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(2)}>
               <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
                 <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -315,7 +315,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(244,246,248,0.9))',
               }}
             >
-          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass(3)}`} style={getHeaderStyle(3)}>
+          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(3)}>
               <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
                 <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -364,7 +364,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,248,250,0.9))',
             }}
           >
-            <CardHeader className={`p-3 pb-2 ${getHeaderTextClass(4)}`} style={getHeaderStyle(4)}>
+            <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(4)}>
               <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
                 <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -390,7 +390,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,248,250,0.9))',
             }}
           >
-            <CardHeader className={`p-3 pb-2 ${getHeaderTextClass(5)}`} style={getHeaderStyle(5)}>
+            <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(5)}>
               <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
                 <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -429,7 +429,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(242,245,247,0.92))',
           }}
         >
-          <CardHeader className={`p-2.5 pb-1.75 ${getHeaderTextClass(6)}`} style={getHeaderStyle(6)}>
+          <CardHeader className={`p-2.5 pb-1.75 ${getHeaderTextClass()}`} style={getHeaderStyle(6)}>
             <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
               <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.875 * 1.5}pt`, height: `${typography.titleSize * 0.875 * 1.5}pt` }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -511,7 +511,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
 
         {/* 월간계획 */}
         <Card className="overflow-hidden" style={{ borderColor: colors.border, background: undefined }}>
-          <CardHeader className={`p-2.5 pb-1.75 ${getHeaderTextClass(7)}`} style={getHeaderStyle(7)}>
+          <CardHeader className={`p-2.5 pb-1.75 ${getHeaderTextClass()}`} style={getHeaderStyle(7)}>
             <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
               <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.875 * 1.5}pt`, height: `${typography.titleSize * 0.875 * 1.5}pt` }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -527,7 +527,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
         {/* 수강료 안내 */}
         {feeInfo && feeInfo.rows.length > 0 && (
           <Card className="overflow-hidden shadow-sm mt-auto" style={{ borderColor: colors.border, background: undefined }}>
-            <CardHeader className={`p-3.5 pb-2.5 ${getHeaderTextClass(8)}`} style={getHeaderStyle(8)}>
+            <CardHeader className={`p-3.5 pb-2.5 ${getHeaderTextClass()}`} style={getHeaderStyle(8)}>
               <CardTitle className={`text-sm flex items-center gap-2 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
                 <span style={{ fontSize: `${typography.titleSize * 0.75 * 1.2}pt` }}>📌</span>
                 {feeInfo.title}

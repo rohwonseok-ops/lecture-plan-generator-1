@@ -17,6 +17,9 @@ type CopyPromptType = 'parentIntro' | 'learningGoal' | 'management' | 'promoCopy
 
 interface CopyOptions {
   type?: CopyPromptType;
+  contexts?: string[];
+  seedText?: string;
+  mode?: 'generate' | 'rewrite';
 }
 
 interface CopyRequestBody {

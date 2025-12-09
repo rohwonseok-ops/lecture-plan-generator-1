@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { ClassPlan } from '@/lib/types';
-import { Sparkles, RotateCcw, Check, X } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { generateTextForClassPlan, AiGenerateOptions } from '@/lib/ai';
 
 interface Props {
@@ -23,7 +23,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
 
   const contextOptions: Record<AiGenerateOptions['type'], string[]> = {
     parentIntro: ['입시 관점', '방학 전략', '수능 연결', '몰입 강조', '심화 강조', '진도 강조'],
-    learningGoal: ['개념 중시', '내신 중시', '모의·수능', '진도 중점', '심화 중점'],
+    learningGoal: ['개념', '내신', '모의·수능', '진도', '심화', '간략 정리'],
     management: ['테스트 관리', '클리닉/보충', '피드백', '출결·습관'],
     promoCopy: ['가치 제안', '신뢰 강조', '혜택/이벤트', '기간 한정'],
     keywords: ['수학', '성적향상', '자기주도', '시험대비'],
@@ -160,7 +160,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               <Sparkles className="w-2.5 h-2.5 mr-0.5" />
               {generatingField === 'etc' ? '생성중' : 'AI'}
             </button>
-            <div className="flex flex-wrap gap-1 mt-1 ml-[54px]">
+            <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1 mt-1 ml-[54px]">
               {contextOptions.promoCopy.map((c) => (
                 <button
                   key={c}
@@ -169,7 +169,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                   className={`px-1.5 py-0.5 rounded text-[9px] border ${
                     (contexts['etc'] || []).includes(c)
                       ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
-                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-indigo-200'
+                      : 'bg-white text-zinc-600 border-sky-200 hover:border-indigo-300'
                   }`}
                 >
                   {c}
@@ -181,7 +181,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 className={`px-1.5 py-0.5 rounded text-[9px] border ${
                   useExisting.etc
                     ? 'bg-amber-50 text-amber-700 border-amber-200'
-                    : 'bg-white text-zinc-600 border-zinc-200 hover:border-amber-200'
+                    : 'bg-white text-zinc-600 border-sky-200 hover:border-amber-200'
                 }`}
                 title="기존 문구 활용"
               >
@@ -204,7 +204,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             <div className="flex items-center justify-between mb-1">
               <label className="text-[10px] font-bold text-zinc-600 uppercase">학부모 안내글 (인트로)</label>
               <div className="flex items-center gap-1">
-                <div className="flex flex-wrap gap-1">
+                <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
                   {contextOptions.parentIntro.map((c) => (
                     <button
                       key={c}
@@ -213,7 +213,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                       className={`px-1.5 py-0.5 rounded text-[9px] border ${
                         (contexts['parentIntro'] || []).includes(c)
                           ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
-                          : 'bg-white text-zinc-600 border-zinc-200 hover:border-indigo-200'
+                          : 'bg-white text-zinc-600 border-sky-200 hover:border-indigo-300'
                       }`}
                     >
                       {c}
@@ -223,9 +223,9 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                     type="button"
                     onClick={() => setUseExisting((prev) => ({ ...prev, parentIntro: !prev.parentIntro }))}
                     className={`px-1.5 py-0.5 rounded text-[9px] border ${
-                      useExisting.parentIntro
-                        ? 'bg-amber-50 text-amber-700 border-amber-200'
-                        : 'bg-white text-zinc-600 border-zinc-200 hover:border-amber-200'
+                  useExisting.parentIntro
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-white text-zinc-600 border-sky-200 hover:border-amber-200'
                     }`}
                     title="기존 문구 활용"
                   >
@@ -411,7 +411,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           <div className="flex items-center justify-between mb-1">
             <label className="text-[10px] font-bold text-blue-600 uppercase">학습목표</label>
             <div className="flex items-center gap-1">
-              <div className="flex flex-wrap gap-1">
+              <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
                 {contextOptions.learningGoal.map((c) => (
                   <button
                     key={c}
@@ -419,8 +419,8 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                     onClick={() => toggleContext('learningGoal', c)}
                     className={`px-1.5 py-0.5 rounded text-[9px] border ${
                       (contexts['learningGoal'] || []).includes(c)
-                        ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
-                        : 'bg-white text-zinc-600 border-zinc-200 hover:border-indigo-200'
+                      ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                      : 'bg-white text-zinc-600 border-sky-200 hover:border-indigo-300'
                     }`}
                   >
                     {c}
@@ -431,8 +431,8 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                   onClick={() => setUseExisting((prev) => ({ ...prev, learningGoal: !prev.learningGoal }))}
                   className={`px-1.5 py-0.5 rounded text-[9px] border ${
                     useExisting.learningGoal
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-amber-200'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-white text-zinc-600 border-sky-200 hover:border-amber-200'
                   }`}
                   title="기존 문구 활용"
                 >
@@ -466,7 +466,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           <div className="flex items-center justify-between mb-1">
             <label className="text-[10px] font-bold text-blue-600 uppercase">학습관리</label>
             <div className="flex items-center gap-1">
-              <div className="flex flex-wrap gap-1">
+              <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
                 {contextOptions.management.map((c) => (
                   <button
                     key={c}
