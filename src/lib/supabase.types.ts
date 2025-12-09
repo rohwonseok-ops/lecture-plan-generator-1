@@ -13,322 +13,408 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5";
-  };
+    PostgrestVersion: "13.0.5"
+  }
   public: {
     Tables: {
       activity_logs: {
         Row: {
-          action: string;
-          actor_id: string | null;
-          actor_name: string | null;
-          actor_role: Database["public"]["Enums"]["user_role"];
-          created_at: string;
-          detail: string | null;
-          id: string;
-        };
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          actor_role: Database["public"]["Enums"]["user_role"]
+          created_at: string
+          detail: string | null
+          id: string
+        }
         Insert: {
-          action: string;
-          actor_id?: string | null;
-          actor_name?: string | null;
-          actor_role?: Database["public"]["Enums"]["user_role"];
-          created_at?: string;
-          detail?: string | null;
-          id?: string;
-        };
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: Database["public"]["Enums"]["user_role"]
+          created_at?: string
+          detail?: string | null
+          id?: string
+        }
         Update: {
-          action?: string;
-          actor_id?: string | null;
-          actor_name?: string | null;
-          actor_role?: Database["public"]["Enums"]["user_role"];
-          created_at?: string;
-          detail?: string | null;
-          id?: string;
-        };
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          actor_role?: Database["public"]["Enums"]["user_role"]
+          created_at?: string
+          detail?: string | null
+          id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "activity_logs_actor_id_fkey";
-            columns: ["actor_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
+            foreignKeyName: "activity_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       class_plans: {
         Row: {
-          class_day: string;
-          class_time: string;
-          course1: string | null;
-          course2: string | null;
-          created_at: string;
-          etc: string | null;
-          etc_position: string | null;
-          fee_info_title: string | null;
-          id: string;
-          keywords: string | null;
-          last_saved: string | null;
-          learning_goal: string | null;
-          management: string | null;
-          material1: string | null;
-          material2: string | null;
-          owner_id: string;
-          parent_intro: string | null;
-          schedule: string | null;
-          show_etc: boolean | null;
-          show_title: boolean;
-          size_preset: string | null;
-          subject: string | null;
-          target_student: string;
-          target_student_detail: string | null;
-          teacher_name: string;
-          template_id: string | null;
-          title: string;
-          title_type: string | null;
-          typography: Json | null;
-          updated_at: string;
-        };
+          class_day: string
+          class_time: string
+          course1: string | null
+          course2: string | null
+          created_at: string
+          etc: string | null
+          etc_position: string | null
+          fee_info_title: string | null
+          id: string
+          keywords: string | null
+          last_saved: string | null
+          learning_goal: string | null
+          management: string | null
+          material1: string | null
+          material2: string | null
+          owner_id: string
+          parent_intro: string | null
+          schedule: string | null
+          show_etc: boolean | null
+          show_title: boolean
+          size_preset: string | null
+          subject: string | null
+          target_student: string
+          target_student_detail: string | null
+          teacher_name: string
+          template_id: string | null
+          title: string
+          title_type: string | null
+          typography: Json | null
+          updated_at: string
+        }
         Insert: {
-          class_day?: string;
-          class_time?: string;
-          course1?: string | null;
-          course2?: string | null;
-          created_at?: string;
-          etc?: string | null;
-          etc_position?: string | null;
-          fee_info_title?: string | null;
-          id?: string;
-          keywords?: string | null;
-          last_saved?: string | null;
-          learning_goal?: string | null;
-          management?: string | null;
-          material1?: string | null;
-          material2?: string | null;
-          owner_id: string;
-          parent_intro?: string | null;
-          schedule?: string | null;
-          show_etc?: boolean | null;
-          show_title?: boolean;
-          size_preset?: string | null;
-          subject?: string | null;
-          target_student?: string;
-          target_student_detail?: string | null;
-          teacher_name?: string;
-          template_id?: string | null;
-          title: string;
-          title_type?: string | null;
-          typography?: Json | null;
-          updated_at?: string;
-        };
+          class_day?: string
+          class_time?: string
+          course1?: string | null
+          course2?: string | null
+          created_at?: string
+          etc?: string | null
+          etc_position?: string | null
+          fee_info_title?: string | null
+          id?: string
+          keywords?: string | null
+          last_saved?: string | null
+          learning_goal?: string | null
+          management?: string | null
+          material1?: string | null
+          material2?: string | null
+          owner_id: string
+          parent_intro?: string | null
+          schedule?: string | null
+          show_etc?: boolean | null
+          show_title?: boolean
+          size_preset?: string | null
+          subject?: string | null
+          target_student?: string
+          target_student_detail?: string | null
+          teacher_name?: string
+          template_id?: string | null
+          title: string
+          title_type?: string | null
+          typography?: Json | null
+          updated_at?: string
+        }
         Update: {
-          class_day?: string;
-          class_time?: string;
-          course1?: string | null;
-          course2?: string | null;
-          created_at?: string;
-          etc?: string | null;
-          etc_position?: string | null;
-          fee_info_title?: string | null;
-          id?: string;
-          keywords?: string | null;
-          last_saved?: string | null;
-          learning_goal?: string | null;
-          management?: string | null;
-          material1?: string | null;
-          material2?: string | null;
-          owner_id?: string;
-          parent_intro?: string | null;
-          schedule?: string | null;
-          show_etc?: boolean | null;
-          show_title?: boolean;
-          size_preset?: string | null;
-          subject?: string | null;
-          target_student?: string;
-          target_student_detail?: string | null;
-          teacher_name?: string;
-          template_id?: string | null;
-          title?: string;
-          title_type?: string | null;
-          typography?: Json | null;
-          updated_at?: string;
-        };
+          class_day?: string
+          class_time?: string
+          course1?: string | null
+          course2?: string | null
+          created_at?: string
+          etc?: string | null
+          etc_position?: string | null
+          fee_info_title?: string | null
+          id?: string
+          keywords?: string | null
+          last_saved?: string | null
+          learning_goal?: string | null
+          management?: string | null
+          material1?: string | null
+          material2?: string | null
+          owner_id?: string
+          parent_intro?: string | null
+          schedule?: string | null
+          show_etc?: boolean | null
+          show_title?: boolean
+          size_preset?: string | null
+          subject?: string | null
+          target_student?: string
+          target_student_detail?: string | null
+          teacher_name?: string
+          template_id?: string | null
+          title?: string
+          title_type?: string | null
+          typography?: Json | null
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "class_plans_owner_id_fkey";
-            columns: ["owner_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
+            foreignKeyName: "class_plans_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       fee_rows: {
         Row: {
-          class_plan_id: string;
-          class_type: string;
-          created_at: string;
-          day: string | null;
-          id: string;
-          month: string;
-          sessions: number;
-          subtotal: number;
-          time: string | null;
-          unit_fee: number;
-          updated_at: string;
-        };
+          class_plan_id: string
+          class_type: string
+          created_at: string
+          day: string | null
+          id: string
+          month: string
+          sessions: number
+          subtotal: number
+          time: string | null
+          unit_fee: number
+          updated_at: string
+        }
         Insert: {
-          class_plan_id: string;
-          class_type: string;
-          created_at?: string;
-          day?: string | null;
-          id?: string;
-          month: string;
-          sessions?: number;
-          subtotal?: number;
-          time?: string | null;
-          unit_fee?: number;
-          updated_at?: string;
-        };
+          class_plan_id: string
+          class_type: string
+          created_at?: string
+          day?: string | null
+          id?: string
+          month: string
+          sessions?: number
+          subtotal?: number
+          time?: string | null
+          unit_fee?: number
+          updated_at?: string
+        }
         Update: {
-          class_plan_id?: string;
-          class_type?: string;
-          created_at?: string;
-          day?: string | null;
-          id?: string;
-          month?: string;
-          sessions?: number;
-          subtotal?: number;
-          time?: string | null;
-          unit_fee?: number;
-          updated_at?: string;
-        };
+          class_plan_id?: string
+          class_type?: string
+          created_at?: string
+          day?: string | null
+          id?: string
+          month?: string
+          sessions?: number
+          subtotal?: number
+          time?: string | null
+          unit_fee?: number
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "fee_rows_class_plan_id_fkey";
-            columns: ["class_plan_id"];
-            isOneToOne: false;
-            referencedRelation: "class_plans";
-            referencedColumns: ["id"];
+            foreignKeyName: "fee_rows_class_plan_id_fkey"
+            columns: ["class_plan_id"]
+            isOneToOne: false
+            referencedRelation: "class_plans"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       profiles: {
         Row: {
-          active: boolean;
-          created_at: string;
-          id: string;
-          must_change_password: boolean;
-          name: string;
-          phone_last4: string;
-          role: Database["public"]["Enums"]["user_role"];
-          updated_at: string;
-        };
+          active: boolean
+          created_at: string
+          id: string
+          must_change_password: boolean
+          name: string
+          phone_last4: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
         Insert: {
-          active?: boolean;
-          created_at?: string;
-          id: string;
-          must_change_password?: boolean;
-          name: string;
-          phone_last4: string;
-          role?: Database["public"]["Enums"]["user_role"];
-          updated_at?: string;
-        };
+          active?: boolean
+          created_at?: string
+          id: string
+          must_change_password?: boolean
+          name: string
+          phone_last4: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
         Update: {
-          active?: boolean;
-          created_at?: string;
-          id?: string;
-          must_change_password?: boolean;
-          name?: string;
-          phone_last4?: string;
-          role?: Database["public"]["Enums"]["user_role"];
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      weekly_plan_items: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          must_change_password?: boolean
+          name?: string
+          phone_last4?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      template_blocks: {
         Row: {
-          class_plan_id: string;
-          created_at: string;
-          detail: string | null;
-          id: string;
-          note: string | null;
-          position: number;
-          topic: string | null;
-          updated_at: string;
-          week_label: string;
-        };
+          content: Json | null
+          height: number
+          hidden: boolean | null
+          id: string
+          locked: boolean | null
+          style: Json | null
+          template_id: string
+          type: string
+          width: number
+          x: number
+          y: number
+          z_index: number | null
+        }
         Insert: {
-          class_plan_id: string;
-          created_at?: string;
-          detail?: string | null;
-          id?: string;
-          note?: string | null;
-          position: number;
-          topic?: string | null;
-          updated_at?: string;
-          week_label: string;
-        };
+          content?: Json | null
+          height?: number
+          hidden?: boolean | null
+          id: string
+          locked?: boolean | null
+          style?: Json | null
+          template_id: string
+          type: string
+          width?: number
+          x?: number
+          y?: number
+          z_index?: number | null
+        }
         Update: {
-          class_plan_id?: string;
-          created_at?: string;
-          detail?: string | null;
-          id?: string;
-          note?: string | null;
-          position?: number;
-          topic?: string | null;
-          updated_at?: string;
-          week_label?: string;
-        };
+          content?: Json | null
+          height?: number
+          hidden?: boolean | null
+          id?: string
+          locked?: boolean | null
+          style?: Json | null
+          template_id?: string
+          type?: string
+          width?: number
+          x?: number
+          y?: number
+          z_index?: number | null
+        }
         Relationships: [
           {
-            foreignKeyName: "weekly_plan_items_class_plan_id_fkey";
-            columns: ["class_plan_id"];
-            isOneToOne: false;
-            referencedRelation: "class_plans";
-            referencedColumns: ["id"];
+            foreignKeyName: "template_blocks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-    };
+        ]
+      }
+      templates: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          name: string
+          palette: Json | null
+          status: string
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id: string
+          name: string
+          palette?: Json | null
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          palette?: Json | null
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      weekly_plan_items: {
+        Row: {
+          class_plan_id: string
+          created_at: string
+          detail: string | null
+          id: string
+          note: string | null
+          position: number
+          topic: string | null
+          updated_at: string
+          week_label: string
+        }
+        Insert: {
+          class_plan_id: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          note?: string | null
+          position: number
+          topic?: string | null
+          updated_at?: string
+          week_label: string
+        }
+        Update: {
+          class_plan_id?: string
+          created_at?: string
+          detail?: string | null
+          id?: string
+          note?: string | null
+          position?: number
+          topic?: string | null
+          updated_at?: string
+          week_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_plan_items_class_plan_id_fkey"
+            columns: ["class_plan_id"]
+            isOneToOne: false
+            referencedRelation: "class_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
     Views: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     Functions: {
       auth_role: {
-        Args: Record<PropertyKey, never>;
-        Returns: Database["public"]["Enums"]["user_role"];
-      };
-      is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
-    };
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      is_admin: { Args: never; Returns: boolean }
+    }
     Enums: {
-      user_role: "admin" | "user";
-    };
+      user_role: "admin" | "user"
+    }
     CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
-};
+      [_ in never]: never
+    }
+  }
+}
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R;
+      Row: infer R
     }
     ? R
     : never
@@ -336,95 +422,94 @@ export type Tables<
         DefaultSchema["Views"])
     ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R;
+        Row: infer R
       }
       ? R
       : never
-    : never;
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I;
+      Insert: infer I
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I;
+        Insert: infer I
       }
       ? I
       : never
-    : never;
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U;
+      Update: infer U
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U;
+        Update: infer U
       }
       ? U
       : never
-    : never;
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never;
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals;
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {\n    schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
+  schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never;
+    : never
 
 export const Constants = {
   public: {
@@ -432,5 +517,4 @@ export const Constants = {
       user_role: ["admin", "user"],
     },
   },
-} as const;
-
+} as const
