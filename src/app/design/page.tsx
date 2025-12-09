@@ -54,6 +54,7 @@ export default function DesignAnalysisPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);
   const [result, setResult] = useState<string>('');
+  const [requestId, setRequestId] = useState<string | null>(null);
   const [suggestion, setSuggestion] = useState<DesignSuggestion | null>(null);
   const [loading, setLoading] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -97,6 +98,7 @@ export default function DesignAnalysisPage() {
     setResult('');
     setSuggestion(null);
     setApplyMessage(null);
+    setRequestId(null);
 
     try {
       const form = new FormData();
@@ -112,6 +114,7 @@ export default function DesignAnalysisPage() {
       }
       const json = await res.json();
       setResult(json.result || '');
+      setRequestId(json.requestId || null);
       setSuggestion(json.suggestion || null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '디자인 분석 중 오류가 발생했습니다.';
@@ -274,6 +277,9 @@ export default function DesignAnalysisPage() {
               <div className="mt-2 text-xs text-zinc-800 bg-zinc-50 border border-zinc-200 rounded-lg p-3 whitespace-pre-wrap leading-relaxed">
                 {result}
               </div>
+            )}
+            {requestId && (
+              <div className="text-[11px] text-zinc-400">요청 ID: {requestId}</div>
             )}
             {suggestion && (
               <div className="mt-2 space-y-2 text-xs">

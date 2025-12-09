@@ -94,6 +94,7 @@ const detectProvider = (env: { baseUrl: string; model: string; provider?: string
 
 export async function POST(req: Request) {
   try {
+    const requestId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
     const form = await req.formData();
     const file = form.get('file') as File | null;
     const prompt =
@@ -110,14 +111,19 @@ export async function POST(req: Request) {
     const env = getDesignEnv();
     const { apiKey, baseUrl, model, provider } = env;
 
+    console.info('[api/ai/design] start', { requestId, provider, baseUrl, model, fileType: file?.type, fileSize: file ? file.size : 0 });
+
     if (!apiKey) {
-      return NextResponse.json({ error: '서버에 디자인 분석용 LLM API 키가 설정되어 있지 않습니다.' }, { status: 500 });
+      console.error('[api/ai/design] missing apiKey', { requestId });
+      return NextResponse.json({ error: '서버에 디자인 분석용 LLM API 키가 설정되어 있지 않습니다.', requestId }, { status: 500 });
     }
     if (!baseUrl || !model) {
-      return NextResponse.json({ error: '디자인 분석용 LLM 엔드포인트/모델이 설정되어 있지 않습니다.' }, { status: 500 });
+      console.error('[api/ai/design] missing baseUrl/model', { requestId });
+      return NextResponse.json({ error: '디자인 분석용 LLM 엔드포인트/모델이 설정되어 있지 않습니다.', requestId }, { status: 500 });
     }
     if (!file) {
-      return NextResponse.json({ error: '이미지 파일이 필요합니다.' }, { status: 400 });
+      console.error('[api/ai/design] missing file', { requestId });
+      return NextResponse.json({ error: '이미지 파일이 필요합니다.', requestId }, { status: 400 });
     }
 
     if (provider === 'gemini') {
@@ -157,8 +163,9 @@ export async function POST(req: Request) {
 
       if (!geminiRes.ok) {
         const errorText = await geminiRes.text();
+        console.error('[api/ai/design] gemini error', { requestId, status: geminiRes.status, errorText });
         return NextResponse.json(
-          { error: `LLM 호출 실패 (${geminiRes.status})`, detail: errorText },
+          { error: `LLM 호출 실패 (${geminiRes.status})`, detail: errorText, requestId },
           { status: geminiRes.status }
         );
       }
@@ -170,7 +177,8 @@ export async function POST(req: Request) {
           .join(' ')
           .trim() || '';
       const { resultText, suggestion } = parseSuggestion(rawText);
-      return NextResponse.json({ result: resultText, suggestion });
+      console.info('[api/ai/design] gemini success', { requestId, hasSuggestion: !!suggestion });
+      return NextResponse.json({ result: resultText, suggestion, requestId });
     } else {
       const imageDataUrl = await toBase64DataUrl(file);
 
@@ -216,8 +224,9 @@ export async function POST(req: Request) {
 
       if (!openaiRes.ok) {
         const errorText = await openaiRes.text();
+        console.error('[api/ai/design] openai error', { requestId, status: openaiRes.status, errorText });
         return NextResponse.json(
-          { error: `LLM 호출 실패 (${openaiRes.status})`, detail: errorText },
+          { error: `LLM 호출 실패 (${openaiRes.status})`, detail: errorText, requestId },
           { status: openaiRes.status }
         );
       }
@@ -225,12 +234,14 @@ export async function POST(req: Request) {
       const data = await openaiRes.json();
       const rawText = data?.choices?.[0]?.message?.content?.trim() || '';
       const { resultText, suggestion } = parseSuggestion(rawText);
-      return NextResponse.json({ result: resultText, suggestion });
+      console.info('[api/ai/design] openai success', { requestId, hasSuggestion: !!suggestion });
+      return NextResponse.json({ result: resultText, suggestion, requestId });
     }
   } catch (err: unknown) {
-    console.error('[api/ai/design]', err);
+    const requestId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+    console.error('[api/ai/design]', { requestId, err });
     const message = err instanceof Error ? err.message : '서버 오류가 발생했습니다.';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message, requestId }, { status: 500 });
   }
 }
 
