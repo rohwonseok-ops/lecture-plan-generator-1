@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { ClassPlan, WeeklyItem } from '@/lib/types';
+import { ClassPlan, WeeklyItem, FieldFontSizes } from '@/lib/types';
+import { getFieldFontSize, getDefaultTypography } from '@/lib/utils';
+import FontSizeControl from '../FontSizeControl';
 
 interface Props {
   classPlan: ClassPlan;
@@ -13,6 +15,30 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     weekLabel: '',
     topic: ''
   }));
+
+  // 타이포그래피 설정
+  const typography = classPlan.typography || getDefaultTypography();
+  const fieldFontSizes = typography.fieldFontSizes;
+
+  // 필드별 폰트 크기 업데이트
+  const handleFieldFontSizeChange = useCallback((field: keyof FieldFontSizes, size: number) => {
+    const currentTypography = classPlan.typography || getDefaultTypography();
+    const currentFieldSizes = currentTypography.fieldFontSizes || {};
+    onChange({
+      typography: {
+        ...currentTypography,
+        fieldFontSizes: {
+          ...currentFieldSizes,
+          [field]: size,
+        },
+      },
+    });
+  }, [classPlan.typography, onChange]);
+
+  // 필드 폰트 크기 가져오기 (기본값: bodySize)
+  const getFontSize = useCallback((field: keyof FieldFontSizes): number => {
+    return getFieldFontSize(fieldFontSizes, field, typography.bodySize);
+  }, [fieldFontSizes, typography.bodySize]);
 
   const handleWeekChange = useCallback((index: number, field: keyof WeeklyItem, value: string) => {
     const newPlan = [...weeklyPlan];
@@ -98,7 +124,23 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
   return (
     <div className="flex flex-col p-1.5 bg-white">
       <div className="flex items-center justify-between mb-1">
-        <h3 className="text-xs font-bold text-blue-600">📅 주차별 수업 계획 ({weekCount}주)</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs font-bold text-blue-600">📅 주차별 수업 계획 ({weekCount}주)</h3>
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-zinc-500">주차</span>
+            <FontSizeControl
+              value={getFontSize('weeklyPlanWeek')}
+              onChange={(size) => handleFieldFontSizeChange('weeklyPlanWeek', size)}
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-zinc-500">주제</span>
+            <FontSizeControl
+              value={getFontSize('weeklyPlanTopic')}
+              onChange={(size) => handleFieldFontSizeChange('weeklyPlanTopic', size)}
+            />
+          </div>
+        </div>
         <div className="flex items-center gap-1">
           <span className="text-[10px] text-zinc-600">총 주차</span>
           <input

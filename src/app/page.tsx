@@ -18,6 +18,10 @@ import ClassListDropdown from '@/components/editor/ClassListDropdown';
 import EditorPanel from '@/components/editor/EditorPanel';
 import CsvUploadModal from '@/components/import/CsvUploadModal';
 import TeacherDropdown from '@/components/editor/TeacherDropdown';
+import EditModeToolbar from '@/components/templates/EditModeToolbar';
+import TemplateEditOverlay from '@/components/templates/TemplateEditOverlay';
+import { useTemplateEditStore } from '@/store/templateEditStore';
+import { TemplateLayoutConfig } from '@/lib/types';
 
 // 템플릿 카테고리 목록
 const templateCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
@@ -45,6 +49,7 @@ export default function HomePage() {
   const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
+  const { isEditMode } = useTemplateEditStore();
 
   useEffect(() => {
     const authPersist = useAuthStore.persist;
@@ -289,6 +294,29 @@ export default function HomePage() {
     }
   };
 
+  // 레이아웃 저장 핸들러
+  const handleLayoutSave = (config: TemplateLayoutConfig, applyToCategory: boolean) => {
+    if (!selectedId) return;
+    
+    // 현재 강의에 레이아웃 설정 저장
+    updateClassPlan(selectedId, { layoutConfig: config });
+    
+    // 카테고리 전체 적용 시
+    if (applyToCategory) {
+      const currentCategory = parseTemplateId(selectedPlan?.templateId).category;
+      classPlans.forEach(plan => {
+        if (plan.id !== selectedId) {
+          const planCategory = parseTemplateId(plan.templateId).category;
+          if (planCategory === currentCategory) {
+            updateClassPlan(plan.id, { layoutConfig: config });
+          }
+        }
+      });
+    }
+    
+    recordActivity('template.layout', `레이아웃 저장${applyToCategory ? ' (카테고리 전체 적용)' : ''}`);
+  };
+
   // 폰트 굵기 옵션 (차이를 확연하게 구별)
   const fontWeightOptions = [
     { value: 300, label: '보통' },    // 300: Light
@@ -463,25 +491,7 @@ export default function HomePage() {
               
               {/* 폰트 설정 */}
               <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-zinc-200 text-[11px] leading-none">
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={typography.enableFontSizeChange || false}
-                    onChange={(e) => handleTypographyChange('enableFontSizeChange', e.target.checked)}
-                    className="sr-only peer"
-                    aria-label="폰트 크기 조정 활성화"
-                  />
-                  <div className="w-4 h-4 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center" aria-hidden="true">
-                    {typography.enableFontSizeChange && (
-                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                  </div>
-                </label>
-                <span className="text-[10px] text-zinc-600">크기조정</span>
-                
-                <span className="text-[10px] font-bold text-zinc-700 uppercase ml-2">제목</span>
+                <span className="text-[10px] font-bold text-zinc-700 uppercase">제목</span>
                 <select
                   value={typography.titleFont}
                   onChange={(e) => handleTypographyChange('titleFont', e.target.value as FontFamily)}
@@ -508,13 +518,10 @@ export default function HomePage() {
                   max="32"
                   value={typography.titleSize}
                   onChange={(e) => handleTypographyChange('titleSize', parseInt(e.target.value) || 16)}
-                  disabled={!typography.enableFontSizeChange}
-                  className={`w-12 text-[10px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none ${
-                    !typography.enableFontSizeChange ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : ''
-                  }`}
+                  className="w-12 text-[10px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                   aria-label="제목 크기 (pt)"
                 />
-                <span className="text-[10px] text-zinc-600">pt</span>
+                <span className="text-[10px] text-zinc-500">pt</span>
                 
                 <span className="text-[10px] font-bold text-zinc-700 uppercase ml-2">본문</span>
                 <select
@@ -527,33 +534,10 @@ export default function HomePage() {
                     <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
-                <select
-                  value={typography.bodyWeight || 300}
-                  onChange={(e) => handleTypographyChange('bodyWeight', parseInt(e.target.value) || 300)}
-                  className="text-[10px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-16"
-                  aria-label="본문 굵기 선택"
-                >
-                  {fontWeightOptions.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  min="8"
-                  max="24"
-                  value={typography.bodySize}
-                  onChange={(e) => handleTypographyChange('bodySize', parseInt(e.target.value) || 13)}
-                  disabled={!typography.enableFontSizeChange}
-                  className={`w-10 text-[9px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none ${
-                    !typography.enableFontSizeChange ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : ''
-                  }`}
-                  aria-label="본문 크기 (pt)"
-                />
-                <span className="text-[8px] text-zinc-600">pt</span>
               </div>
             </div>
             
-            {/* 두 번째 줄: 색상 선택 + 줌/다운로드 */}
+            {/* 두 번째 줄: 색상 선택 + 레이아웃 편집 + 줌/다운로드 */}
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center space-x-4 flex-1">
                 <div className="flex bg-zinc-100 rounded-md p-0.5 gap-0.5">
@@ -571,6 +555,12 @@ export default function HomePage() {
                     </button>
                   ))}
                 </div>
+                
+                {/* 레이아웃 편집 툴바 */}
+                <EditModeToolbar
+                  currentCategory={currentCategory}
+                  onSave={handleLayoutSave}
+                />
               </div>
               
               <div className="flex items-center space-x-2 flex-shrink-0">
@@ -608,7 +598,7 @@ export default function HomePage() {
           </div>
 
           {/* Preview Canvas */}
-          <div className="flex-1 min-h-0 overflow-auto flex items-start justify-center p-6 custom-scrollbar">
+          <div className={`flex-1 min-h-0 overflow-auto flex items-start justify-center p-6 custom-scrollbar ${isEditMode ? 'bg-amber-50/50' : ''}`}>
             {selectedPlan ? (
               <div 
                 style={{ 
@@ -617,15 +607,24 @@ export default function HomePage() {
                 }}
                 className="shadow-2xl"
               >
+                {/* 편집 모드 안내 */}
+                {isEditMode && (
+                  <div className="mb-2 text-center text-[10px] text-amber-700 bg-amber-100 border border-amber-200 rounded px-3 py-1" data-no-export="true">
+                    드래그하여 요소 이동, 모서리 드래그하여 크기 조절
+                  </div>
+                )}
                 {/* A4 비율 유지 컨테이너 - 콘텐츠에 따라 동적 크기 조절 */}
                 <div 
                   ref={canvasRef}
+                  className="relative"
                   style={{
                     width: `${templateWidth}px`,
                     minHeight: `${templateWidth * A4_RATIO}px`,
                   }}
                 >
                   {renderTemplate()}
+                  {/* 편집 모드 오버레이 */}
+                  <TemplateEditOverlay />
                 </div>
               </div>
             ) : (

@@ -3,9 +3,9 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React from 'react';
-import { ClassPlan, ColorTheme, FeeRow } from '@/lib/types';
+import { ClassPlan, ColorTheme, FeeRow, FieldFontSizes } from '@/lib/types';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
-import { getFontClassName, getDefaultTypography } from '@/lib/utils';
+import { getFontClassName, getDefaultTypography, getFieldFontSize } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -52,6 +52,12 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
   
   const titleWeight = typography.titleWeight || 400;
   const bodyWeight = typography.bodyWeight || 400;
+  const fieldFontSizes = typography.fieldFontSizes;
+
+  // 필드별 폰트 크기 가져오기 헬퍼
+  const getSize = (field: keyof FieldFontSizes): number => {
+    return getFieldFontSize(fieldFontSizes, field, typography.bodySize);
+  };
   const headerBackground = `linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 45%), ${colors.gradient || colors.primary}`;
   const headerShadow = '0 14px 34px rgba(15,23,42,0.18)';
 
@@ -139,7 +145,6 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const rightWeeks = weeklyPlan.slice(midPoint);
 
   const primaryText = '#3f3f46';
-  const secondaryText = '#52525b';
   const strongText = '#27272a';
 
   return (
@@ -153,6 +158,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
       >
         {/* Header */}
         <div
+          data-section-id="header"
           className="px-10 text-white rounded-t-3xl"
           style={{
             background: headerBackground,
@@ -173,7 +179,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </div>
             <h1 className={`text-3xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${typography.titleSize + 4}pt`, fontWeight: titleWeight }}>
               {classPlan.showTitle && classPlan.title && (
-                <span className="mr-2">[{classPlan.title}]</span>
+                <span className="mr-2" style={{ fontSize: `${getSize('title')}pt` }}>[{classPlan.title}]</span>
               )}
               윈터 프로그램 안내문
             </h1>
@@ -208,7 +214,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 </CardTitle>
               </CardHeader>
             <CardContent className="p-3 relative">
-              <p className={`leading-5 ${bodyFontClass}`} style={{ fontSize: '0.75em', fontWeight: bodyWeight, color: primaryText }}>
+              <p className={`leading-5 ${bodyFontClass}`} style={{ fontSize: `${getSize('targetStudent')}pt`, fontWeight: bodyWeight, color: primaryText }}>
                 {classPlan.targetStudent}
                 {classPlan.targetStudentDetail && (
                   <span className="text-zinc-500 ml-1" style={{ fontSize: '0.833em', fontWeight: bodyWeight, color: undefined }}>({classPlan.targetStudentDetail})</span>
@@ -227,7 +233,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             >
             <p
               className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
-              style={{ fontSize: '0.875em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.6 }}
+              style={{ fontSize: `${getSize('etc')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.6 }}
             >
               {classPlan.etc}
             </p>
@@ -240,7 +246,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
       {classPlan.showEtc && classPlan.etc && classPlan.etcPosition === 'top' && (!classPlan.showTargetStudent || !classPlan.targetStudent) && (
         <div className="px-8 py-4 rounded-lg mx-8 mt-4">
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-            <p className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}>{classPlan.etc}</p>
+            <p className={`leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: `${getSize('etc')}pt` }}>{classPlan.etc}</p>
           </div>
         </div>
       )}
@@ -248,13 +254,14 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
       {/* 학부모 안내글 - 헤더 바로 아래 */}
       {classPlan.parentIntro && (
         <div 
+          data-section-id="parent-intro"
           className="px-6 py-3 rounded-lg mx-8 mt-4"
           style={{ backgroundColor: colors.light, border: `1px solid ${colors.border}`, fontSize: `${typography.bodySize}pt` }}
         >
           <div className="relative">
             <p
               className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
-              style={{ fontSize: '0.95em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.5 }}
+              style={{ fontSize: `${getSize('parentIntro')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.5 }}
             >
               {classPlan.parentIntro}
             </p>
@@ -267,6 +274,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="grid grid-cols-4 gap-3">
           {/* 담임강사 카드 */}
             <Card
+              data-section-id="teacher-info"
               className="overflow-hidden shadow-[0_10px_28px_rgba(15,23,42,0.12)]"
               style={{
                 borderColor: colors.border,
@@ -282,7 +290,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               </CardTitle>
             </CardHeader>
               <CardContent className="p-3 relative">
-                <p className={`leading-5 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>{classPlan.teacherName}</p>
+                <p className={`leading-5 ${bodyFontClass}`} style={{ fontSize: `${getSize('teacherName')}pt`, fontWeight: bodyWeight, color: primaryText }}>{classPlan.teacherName}</p>
             </CardContent>
           </Card>
 
@@ -303,7 +311,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               </CardTitle>
             </CardHeader>
               <CardContent className="p-3 relative">
-                <p className={`leading-5 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>{classPlan.classDay} {classPlan.classTime}</p>
+                <p className={`leading-5 ${bodyFontClass}`} style={{ fontSize: `${getSize('classDay')}pt`, fontWeight: bodyWeight, color: primaryText }}>{classPlan.classDay} {classPlan.classTime}</p>
             </CardContent>
           </Card>
 
@@ -324,16 +332,16 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0" style={{ fontSize: `${typography.bodySize}pt`, color: undefined }}>
-              <Table style={{ fontSize: `${typography.bodySize}pt` }}>
+                <Table style={{ fontSize: `${typography.bodySize}pt` }}>
                 <TableBody>
                   <TableRow style={{ borderColor: colors.lighter }}>
                     <TableCell className={`py-1.5 px-2 w-16 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`, color: strongText, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)' }}>
                       과정 1
                     </TableCell>
-                    <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.lighter}`, color: primaryText }}>
+                    <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: `${getSize('course1')}pt`, fontWeight: bodyWeight, borderRight: `1px solid ${colors.lighter}`, color: primaryText }}>
                       {classPlan.course1 || '-'}
                     </TableCell>
-                    <TableCell className={`py-1.5 px-2 text-left ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+                    <TableCell className={`py-1.5 px-2 text-left ${bodyFontClass}`} style={{ fontSize: `${getSize('material1')}pt`, fontWeight: bodyWeight, color: primaryText }}>
                       {classPlan.material1 || '-'}
                     </TableCell>
                   </TableRow>
@@ -341,10 +349,10 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                     <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`, color: strongText, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)' }}>
                       과정 2
                     </TableCell>
-                    <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.lighter}`, color: primaryText }}>
+                    <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: `${getSize('course2')}pt`, fontWeight: bodyWeight, borderRight: `1px solid ${colors.lighter}`, color: primaryText }}>
                       {classPlan.course2 || '-'}
                     </TableCell>
-                    <TableCell className={`py-1.5 px-2 text-left ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+                    <TableCell className={`py-1.5 px-2 text-left ${bodyFontClass}`} style={{ fontSize: `${getSize('material2')}pt`, fontWeight: bodyWeight, color: primaryText }}>
                       {classPlan.material2 || '-'}
                     </TableCell>
                   </TableRow>
@@ -358,6 +366,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="grid grid-cols-2 gap-3 items-stretch">
           {/* 학습목표 카드 */}
           <Card
+            data-section-id="learning-goal"
             className="overflow-hidden shadow-[0_10px_28px_rgba(15,23,42,0.12)] h-full flex flex-col"
             style={{
               borderColor: colors.border,
@@ -375,7 +384,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             <CardContent className="p-3 relative flex-1">
               <p
                 className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`}
-                style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45 }}
+                style={{ fontSize: `${getSize('learningGoal')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45 }}
               >
                 {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
               </p>
@@ -384,6 +393,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
 
           {/* 학습관리 카드 */}
           <Card
+            data-section-id="management"
             className="overflow-hidden shadow-[0_10px_28px_rgba(15,23,42,0.12)] h-full flex flex-col"
             style={{
               borderColor: colors.border,
@@ -401,7 +411,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <CardContent className="p-3 relative flex-1">
             <p
               className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`}
-              style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45 }}
+              style={{ fontSize: `${getSize('management')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45 }}
             >
               {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
             </p>
@@ -414,7 +424,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 relative">
             <p
               className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
-              style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText, lineHeight: 1.6 }}
+              style={{ fontSize: `${getSize('etc')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.6 }}
             >
               {classPlan.etc}
             </p>
@@ -423,6 +433,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
 
         {/* 주차별 학습계획 - 동적 2열 */}
         <Card
+          data-section-id="weekly-plan"
           className="overflow-hidden shadow-[0_12px_30px_rgba(15,23,42,0.12)]"
           style={{
             borderColor: colors.border,
@@ -454,19 +465,14 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                     >
                       {hasLabel && (
                         <span 
-                          className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 text-[10pt] font-bold rounded shrink-0"
-                          style={weekBadgeStyle}
+                          className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 font-bold rounded shrink-0"
+                          style={{ ...weekBadgeStyle, fontSize: `${getSize('weeklyPlanWeek')}pt` }}
                         >
                           {displayLabel}
                         </span>
                       )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: strongText }}>{week.topic || ''}</div>
-                        {week.detail && (
-                          <div className="relative">
-                            <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: secondaryText }}>{week.detail}</div>
-                          </div>
-                        )}
+                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: `${getSize('weeklyPlanTopic')}pt`, fontWeight: bodyWeight, color: strongText }}>{week.topic || ''}</div>
                       </div>
                     </div>
                   );
@@ -487,19 +493,14 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                     >
                       {hasLabel && (
                         <span 
-                          className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 text-[10pt] font-bold rounded shrink-0"
-                          style={weekBadgeStyle}
+                          className="inline-flex items-center justify-center min-w-[30px] h-5 px-1.5 font-bold rounded shrink-0"
+                          style={{ ...weekBadgeStyle, fontSize: `${getSize('weeklyPlanWeek')}pt` }}
                         >
                           {displayLabel}
                         </span>
                       )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: strongText }}>{week.topic || ''}</div>
-                        {week.detail && (
-                          <div className="relative">
-                            <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: secondaryText }}>{week.detail}</div>
-                          </div>
-                        )}
+                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: `${getSize('weeklyPlanTopic')}pt`, fontWeight: bodyWeight, color: strongText }}>{week.topic || ''}</div>
                       </div>
                     </div>
                   );
@@ -510,7 +511,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
         </Card>
 
         {/* 월간계획 */}
-        <Card className="overflow-hidden" style={{ borderColor: colors.border, background: undefined }}>
+        <Card data-section-id="monthly-calendar" className="overflow-hidden" style={{ borderColor: colors.border, background: undefined }}>
           <CardHeader className={`p-2.5 pb-1.75 ${getHeaderTextClass()}`} style={getHeaderStyle(7)}>
             <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
               <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.875 * 1.5}pt`, height: `${typography.titleSize * 0.875 * 1.5}pt` }} viewBox="0 0 24 24">
@@ -526,25 +527,25 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
 
         {/* 수강료 안내 */}
         {feeInfo && feeInfo.rows.length > 0 && (
-          <Card className="overflow-hidden shadow-sm mt-auto" style={{ borderColor: colors.border, background: undefined }}>
+          <Card data-section-id="fee-table" className="overflow-hidden shadow-sm mt-auto" style={{ borderColor: colors.border, background: undefined }}>
             <CardHeader className={`p-3.5 pb-2.5 ${getHeaderTextClass()}`} style={getHeaderStyle(8)}>
               <CardTitle className={`text-sm flex items-center gap-2 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
                 <span style={{ fontSize: `${typography.titleSize * 0.75 * 1.2}pt` }}>📌</span>
                 {feeInfo.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0" style={{ fontSize: `${typography.bodySize}pt` }}>
-              <Table style={{ fontSize: `${typography.bodySize}pt` }}>
+            <CardContent className="p-0" style={{ fontSize: `${getSize('feeTable')}pt` }}>
+              <Table style={{ fontSize: `${getSize('feeTable')}pt` }}>
                  <TableHeader>
                    <TableRow style={{ backgroundColor: colors.light, borderColor: colors.lighter }}>
-                     <TableHead className={`h-8 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>월</TableHead>
-                     <TableHead className={`h-8 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>수업구분</TableHead>
-                     <TableHead className={`h-8 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>요일</TableHead>
-                     <TableHead className={`h-8 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>시간</TableHead>
-                     <TableHead className={`h-8 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>수강료</TableHead>
-                     <TableHead className={`h-8 text-center ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>회차</TableHead>
-                     <TableHead className={`h-8 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>합계</TableHead>
-                     <TableHead className={`h-8 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight }}>총 합계</TableHead>
+                     <TableHead className={`h-8 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight }}>월</TableHead>
+                     <TableHead className={`h-8 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight }}>수업구분</TableHead>
+                     <TableHead className={`h-8 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight }}>요일</TableHead>
+                     <TableHead className={`h-8 ${bodyFontClass}`} style={{ color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight }}>시간</TableHead>
+                     <TableHead className={`h-8 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight }}>수강료</TableHead>
+                     <TableHead className={`h-8 text-center ${bodyFontClass}`} style={{ color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight }}>회차</TableHead>
+                     <TableHead className={`h-8 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight }}>합계</TableHead>
+                     <TableHead className={`h-8 text-right ${bodyFontClass}`} style={{ color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight }}>총 합계</TableHead>
                    </TableRow>
                  </TableHeader>
                 <TableBody>
@@ -557,34 +558,34 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                           <TableCell 
                             className={`py-2 ${bodyFontClass}`}
                             rowSpan={rows.length}
-                             style={{ backgroundColor: colors.light, color: colors.dark, fontSize: '0.9em', fontWeight: titleWeight, borderRight: '2px solid', borderRightColor: colors.border || colors.primary }}
+                             style={{ backgroundColor: colors.light, color: colors.dark, fontSize: `${getSize('feeTable')}pt`, fontWeight: titleWeight, borderRight: '2px solid', borderRightColor: colors.border || colors.primary }}
                           >
                             {month}
                           </TableCell>
                         )}
-                         <TableCell className={`py-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+                         <TableCell className={`py-2 ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable')}pt`, fontWeight: bodyWeight, color: primaryText }}>
                           {row.classType}
                         </TableCell>
-                         <TableCell className={`py-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+                         <TableCell className={`py-2 ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable')}pt`, fontWeight: bodyWeight, color: primaryText }}>
                           {row.day}
                         </TableCell>
-                         <TableCell className={`py-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+                         <TableCell className={`py-2 ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable')}pt`, fontWeight: bodyWeight, color: primaryText }}>
                           {row.time}
                         </TableCell>
-                         <TableCell className={`py-2 text-right ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+                         <TableCell className={`py-2 text-right ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable')}pt`, fontWeight: bodyWeight, color: primaryText }}>
                           {row.unitFee.toLocaleString()}
                         </TableCell>
-                         <TableCell className={`py-2 text-center ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: primaryText }}>
+                         <TableCell className={`py-2 text-center ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable')}pt`, fontWeight: bodyWeight, color: primaryText }}>
                           {row.sessions}
                         </TableCell>
-                         <TableCell className={`py-2 text-right ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: strongText }}>
+                         <TableCell className={`py-2 text-right ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable')}pt`, fontWeight: bodyWeight, color: strongText }}>
                           {row.subtotal.toLocaleString()}
                         </TableCell>
                         {idx === 0 && (
                           <TableCell 
                             className={`py-2 text-right ${bodyFontClass}`}
                             rowSpan={rows.length}
-                             style={{ backgroundColor: colors.light, color: colors.dark || colors.primary, fontSize: '0.9em', fontWeight: 700 }}
+                             style={{ backgroundColor: colors.light, color: colors.dark || colors.primary, fontSize: `${getSize('feeTable')}pt`, fontWeight: 700 }}
                           >
                             {monthTotal.toLocaleString()}
                           </TableCell>

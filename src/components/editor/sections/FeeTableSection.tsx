@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
-import { ClassPlan, FeeInfo, FeeRow } from '@/lib/types';
+import React, { useCallback } from 'react';
+import { ClassPlan, FeeInfo, FeeRow, FieldFontSizes } from '@/lib/types';
 import { Plus, Trash2 } from 'lucide-react';
+import { getFieldFontSize, getDefaultTypography } from '@/lib/utils';
+import FontSizeControl from '../FontSizeControl';
 
 interface Props {
   classPlan: ClassPlan;
@@ -24,6 +26,30 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const [showMessage, setShowMessage] = React.useState<string>('');
 
   const feeInfo = classPlan.feeInfo || defaultFeeInfo;
+
+  // 타이포그래피 설정
+  const typography = classPlan.typography || getDefaultTypography();
+  const fieldFontSizes = typography.fieldFontSizes;
+
+  // 필드별 폰트 크기 업데이트
+  const handleFieldFontSizeChange = useCallback((field: keyof FieldFontSizes, size: number) => {
+    const currentTypography = classPlan.typography || getDefaultTypography();
+    const currentFieldSizes = currentTypography.fieldFontSizes || {};
+    onChange({
+      typography: {
+        ...currentTypography,
+        fieldFontSizes: {
+          ...currentFieldSizes,
+          [field]: size,
+        },
+      },
+    });
+  }, [classPlan.typography, onChange]);
+
+  // 필드 폰트 크기 가져오기 (기본값: bodySize)
+  const getFontSize = useCallback((field: keyof FieldFontSizes): number => {
+    return getFieldFontSize(fieldFontSizes, field, typography.bodySize);
+  }, [fieldFontSizes, typography.bodySize]);
 
   // 수강료 합계 자동 계산
   const calculateSubtotal = (unitFee: number, sessions: number) => unitFee * sessions;
@@ -115,9 +141,15 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
   });
 
   return (
-    <div className="h-full flex flex-col p-2 bg-white overflow-hidden">
-      <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
+    <div className="p-2 bg-white">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-2">
           <h3 className="text-xs font-bold text-blue-600">💰 수강료 안내</h3>
+          <FontSizeControl
+            value={getFontSize('feeTable')}
+            onChange={(size) => handleFieldFontSizeChange('feeTable', size)}
+          />
+        </div>
         <div className="flex items-center gap-2">
         <button
           onClick={addRow}
@@ -152,7 +184,7 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
         <div className="mb-1.5 text-xs text-red-600 font-medium">{showMessage}</div>
       )}
 
-      <div className="flex-1 overflow-auto min-h-0">
+      <div>
         <table className="w-full text-xs border-collapse">
           <thead>
             <tr className="bg-zinc-700 text-white">

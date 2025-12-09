@@ -33,6 +33,31 @@ export type FontFamily =
   | 'noto-sans-kr'   // Noto Sans KR
   | 'korail';        // 코레일체
 
+// 필드별 폰트 크기 설정 (옵셔널, 없으면 기본 titleSize/bodySize 사용)
+export interface FieldFontSizes {
+  // 기본 정보
+  targetStudent?: number;      // 수강대상
+  etc?: number;                // 홍보문구
+  parentIntro?: number;        // 학부모 안내글
+  title?: number;              // 반명/강좌명
+  teacherName?: number;        // 강사명
+  classDay?: number;           // 수업요일
+  classTime?: number;          // 수업시간
+  // 학습과정
+  course1?: number;            // 학습과정1
+  material1?: number;          // 교재1
+  course2?: number;            // 학습과정2
+  material2?: number;          // 교재2
+  // 학습 내용
+  learningGoal?: number;       // 학습목표
+  management?: number;         // 학습관리
+  // 주차별 계획
+  weeklyPlanWeek?: number;     // 주차 라벨 (1주차, 2주차 등)
+  weeklyPlanTopic?: number;    // 주차별 주제
+  // 수강료
+  feeTable?: number;           // 수강료 테이블
+}
+
 // 타이포그래피 설정
 export interface TypographySettings {
   titleFont: FontFamily;
@@ -42,10 +67,39 @@ export interface TypographySettings {
   bodySize: number;       // pt 단위
   bodyWeight?: number;    // 본문 폰트 굵기 (400: 보통, 600: 세미볼드, 700: 볼드)
   enableFontSizeChange?: boolean;  // 폰트 크기 변경 허용 여부
+  fieldFontSizes?: FieldFontSizes; // 필드별 개별 폰트 크기
 }
 
 // 템플릿 카테고리 (레이아웃 스타일)
 export type TemplateCategory = 'style1' | 'style2' | 'style3';
+
+// 템플릿 요소 레이아웃 (드래그 편집용)
+export interface ElementLayout {
+  x?: number;           // X 위치 (% 또는 px)
+  y?: number;           // Y 위치 (% 또는 px)
+  width?: number;       // 너비 (% 또는 px)
+  height?: number;      // 높이 (% 또는 px)
+  visible?: boolean;    // 표시 여부
+}
+
+// 템플릿 레이아웃 커스터마이징 (스타일 카테고리별 적용)
+export interface TemplateLayoutConfig {
+  // 각 섹션별 레이아웃
+  header?: ElementLayout;
+  targetStudent?: ElementLayout;
+  etc?: ElementLayout;
+  parentIntro?: ElementLayout;
+  teacherInfo?: ElementLayout;
+  scheduleInfo?: ElementLayout;
+  courseInfo?: ElementLayout;
+  learningGoal?: ElementLayout;
+  management?: ElementLayout;
+  weeklyPlan?: ElementLayout;
+  monthlyCalendar?: ElementLayout;
+  feeTable?: ElementLayout;
+  // 스타일 카테고리에 전체 적용 여부
+  applyToCategory?: boolean;
+}
 
 // 색상 테마
 export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green' | 'dancheong';
@@ -220,6 +274,7 @@ export interface ClassPlan {
   templateId?: TemplateId;
   sizePreset?: SizePreset;
   typography?: TypographySettings;
+  layoutConfig?: TemplateLayoutConfig;  // 템플릿 레이아웃 커스터마이징
   
   // Meta
   lastSaved?: string;     // 마지막 저장 시간

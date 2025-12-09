@@ -163,6 +163,11 @@ export const downloadAsPng = async (
       scrollY: 0,
       windowWidth: element.scrollWidth,
       windowHeight: element.scrollHeight,
+      ignoreElements: (el) => {
+        // data-no-export="true"가 지정된 요소는 제외
+        if (el instanceof HTMLElement && el.dataset?.noExport === 'true') return true;
+        return false;
+      },
     });
 
     // 스타일 복원

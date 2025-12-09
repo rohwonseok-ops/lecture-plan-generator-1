@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { ClassPlan } from '@/lib/types';
+import { ClassPlan, FieldFontSizes } from '@/lib/types';
 import { Sparkles } from 'lucide-react';
 import { generateTextForClassPlan, AiGenerateOptions } from '@/lib/ai';
+import { getFieldFontSize, getDefaultTypography } from '@/lib/utils';
+import FontSizeControl from '../FontSizeControl';
 
 interface Props {
   classPlan: ClassPlan;
@@ -102,6 +104,30 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
     onChange({ [field]: e.target.value });
   }, [onChange]);
 
+  // 타이포그래피 설정
+  const typography = classPlan.typography || getDefaultTypography();
+  const fieldFontSizes = typography.fieldFontSizes;
+
+  // 필드별 폰트 크기 업데이트
+  const handleFieldFontSizeChange = useCallback((field: keyof FieldFontSizes, size: number) => {
+    const currentTypography = classPlan.typography || getDefaultTypography();
+    const currentFieldSizes = currentTypography.fieldFontSizes || {};
+    onChange({
+      typography: {
+        ...currentTypography,
+        fieldFontSizes: {
+          ...currentFieldSizes,
+          [field]: size,
+        },
+      },
+    });
+  }, [classPlan.typography, onChange]);
+
+  // 필드 폰트 크기 가져오기 (기본값: bodySize)
+  const getFontSize = useCallback((field: keyof FieldFontSizes): number => {
+    return getFieldFontSize(fieldFontSizes, field, typography.bodySize);
+  }, [fieldFontSizes, typography.bodySize]);
+
   const toggleContext = (field: keyof ClassPlan, value: string) => {
     setContexts((prev) => {
       const current = prev[field as string] || [];
@@ -123,24 +149,30 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
       <div className="grid grid-cols-12 gap-2.5">
         {/* Row 1: 수강대상 20%, 홍보문구 및 특이사항 80% */}
         <div className="col-span-2">
-          <div className="flex items-center gap-2 mb-1">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={classPlan.showTargetStudent || false}
-                onChange={(e) => onChange({ showTargetStudent: e.target.checked })}
-                className="sr-only peer"
-                aria-label="수강대상 표시"
-              />
-              <div className="w-5 h-5 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center" aria-hidden="true">
-                {classPlan.showTargetStudent && (
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-            </label>
-            <label className="block text-xs font-bold text-blue-600 uppercase cursor-pointer" onClick={() => onChange({ showTargetStudent: !classPlan.showTargetStudent })}>수강대상</label>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={classPlan.showTargetStudent || false}
+                  onChange={(e) => onChange({ showTargetStudent: e.target.checked })}
+                  className="sr-only peer"
+                  aria-label="수강대상 표시"
+                />
+                <div className="w-5 h-5 bg-white border-2 border-zinc-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-1 transition-all flex items-center justify-center" aria-hidden="true">
+                  {classPlan.showTargetStudent && (
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </label>
+              <label className="block text-xs font-bold text-blue-600 uppercase cursor-pointer" onClick={() => onChange({ showTargetStudent: !classPlan.showTargetStudent })}>수강대상</label>
+            </div>
+            <FontSizeControl
+              value={getFontSize('targetStudent')}
+              onChange={(size) => handleFieldFontSizeChange('targetStudent', size)}
+            />
           </div>
           <input
             type="text"
@@ -183,6 +215,10 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                   <option value="bottom">맨아래</option>
                 </select>
               )}
+              <FontSizeControl
+                value={getFontSize('etc')}
+                onChange={(size) => handleFieldFontSizeChange('etc', size)}
+              />
             </div>
             <button
               onClick={() => handleAiGenerate('etc', 'promoCopy')}
@@ -240,7 +276,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         {/* Row 2: 학부모 안내글 (인트로) */}
         <div className="col-span-12">
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[10px] font-bold text-zinc-600 uppercase">학부모 안내글 (인트로)</label>
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-bold text-zinc-600 uppercase">학부모 안내글 (인트로)</label>
+                <FontSizeControl
+                  value={getFontSize('parentIntro')}
+                  onChange={(size) => handleFieldFontSizeChange('parentIntro', size)}
+                />
+              </div>
               <div className="flex items-center gap-1">
                 <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
                   {contextOptions.parentIntro.map((c) => (
@@ -297,7 +339,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
 
         {/* Row 3: 반명/강좌명, 강사명, 수업요일, 수업시간 */}
         <div className="col-span-3">
-          <div className="mb-1">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex bg-zinc-100 rounded-md p-0.5 gap-0.5">
               <button
                 type="button"
@@ -322,6 +364,10 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 강좌명
               </button>
             </div>
+            <FontSizeControl
+              value={getFontSize('title')}
+              onChange={(size) => handleFieldFontSizeChange('title', size)}
+            />
           </div>
           <input
             type="text"
@@ -333,7 +379,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           />
         </div>
         <div className="col-span-3">
-          <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">강사명</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] font-bold text-blue-600 uppercase">강사명</label>
+            <FontSizeControl
+              value={getFontSize('teacherName')}
+              onChange={(size) => handleFieldFontSizeChange('teacherName', size)}
+            />
+          </div>
           <textarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[44px] text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.teacherName || ''}
@@ -355,7 +407,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           />
         </div>
         <div className="col-span-3">
-          <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">수업요일</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] font-bold text-blue-600 uppercase">수업요일</label>
+            <FontSizeControl
+              value={getFontSize('classDay')}
+              onChange={(size) => handleFieldFontSizeChange('classDay', size)}
+            />
+          </div>
           <textarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[36px] text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.classDay || ''}
@@ -401,7 +459,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         
         {/* Row 4: 학습과정1, 교재1, 학습과정2, 교재2 (각각 25%) */}
         <div className="col-span-3">
-          <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">학습과정1</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] font-bold text-blue-600 uppercase">학습과정1</label>
+            <FontSizeControl
+              value={getFontSize('course1')}
+              onChange={(size) => handleFieldFontSizeChange('course1', size)}
+            />
+          </div>
           <input
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
@@ -412,7 +476,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           />
         </div>
         <div className="col-span-3">
-          <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">교재1</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] font-bold text-blue-600 uppercase">교재1</label>
+            <FontSizeControl
+              value={getFontSize('material1')}
+              onChange={(size) => handleFieldFontSizeChange('material1', size)}
+            />
+          </div>
           <input
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
@@ -423,7 +493,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           />
         </div>
         <div className="col-span-3">
-          <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">학습과정2</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] font-bold text-blue-600 uppercase">학습과정2</label>
+            <FontSizeControl
+              value={getFontSize('course2')}
+              onChange={(size) => handleFieldFontSizeChange('course2', size)}
+            />
+          </div>
           <input
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
@@ -434,7 +510,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           />
         </div>
         <div className="col-span-3">
-          <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">교재2</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[10px] font-bold text-blue-600 uppercase">교재2</label>
+            <FontSizeControl
+              value={getFontSize('material2')}
+              onChange={(size) => handleFieldFontSizeChange('material2', size)}
+            />
+          </div>
           <input
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
@@ -448,7 +530,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         {/* Row 5: 학습목표와 학습관리 (각각 50%), 폰트 파란색 */}
         <div className="col-span-6">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-blue-600 uppercase">학습목표</label>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-bold text-blue-600 uppercase">학습목표</label>
+              <FontSizeControl
+                value={getFontSize('learningGoal')}
+                onChange={(size) => handleFieldFontSizeChange('learningGoal', size)}
+              />
+            </div>
             <div className="flex items-center gap-1">
               <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
                 {contextOptions.learningGoal.map((c) => (
@@ -504,7 +592,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
         <div className="col-span-6">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-blue-600 uppercase">학습관리</label>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-bold text-blue-600 uppercase">학습관리</label>
+              <FontSizeControl
+                value={getFontSize('management')}
+                onChange={(size) => handleFieldFontSizeChange('management', size)}
+              />
+            </div>
             <div className="flex items-center gap-1">
               <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
                 {contextOptions.management.map((c) => (
