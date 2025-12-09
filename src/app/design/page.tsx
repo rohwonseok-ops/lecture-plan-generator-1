@@ -101,11 +101,11 @@ export default function DesignAnalysisPage() {
             <p className="text-xs text-zinc-500">이미지를 강의계획서 템플릿으로 전환하기 위한 디자인 분석 도구입니다.</p>
           </div>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/admin/templates')}
             className="text-xs text-blue-600 hover:text-blue-700 font-semibold inline-flex items-center gap-1"
           >
             <ArrowLeft className="w-4 h-4" />
-            메인으로
+            템플릿 관리로
           </button>
         </div>
 
