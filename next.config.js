@@ -18,8 +18,6 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
 
-  // 웹폰트 최적화
-  optimizeFonts: true,
 }
 
 module.exports = nextConfig

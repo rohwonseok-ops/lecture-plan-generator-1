@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useClassPlanStore } from '@/store/classPlanStore';
 import { useAuthStore } from '@/store/authStore';
 import { recordActivity } from '@/lib/activityLogger';
-import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2, Settings, History, LayoutTemplate, Sparkles } from 'lucide-react';
+import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2, Settings, History, LayoutTemplate } from 'lucide-react';
 import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings } from '@/lib/types';
 import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
 import { getDefaultTypography } from '@/lib/utils';
@@ -358,12 +358,6 @@ export default function HomePage() {
               </Link>
             </>
           )}
-          <Link
-            href="/design"
-            className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 rounded-md transition font-medium flex items-center gap-1"
-          >
-            <Sparkles className="w-3.5 h-3.5" /> 디자인 분석
-          </Link>
           <span className="text-[11px] text-zinc-200 px-2 py-1 bg-white/5 rounded-md">
             {session.name} · {session.role === 'admin' ? '관리자' : '일반'}
           </span>
@@ -468,7 +462,7 @@ export default function HomePage() {
               </div>
               
               {/* 폰트 설정 */}
-              <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-zinc-200">
+              <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-zinc-200 text-[11px] leading-none">
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -485,13 +479,13 @@ export default function HomePage() {
                     )}
                   </div>
                 </label>
-                <span className="text-[8px] text-zinc-600">크기조정</span>
+                <span className="text-[10px] text-zinc-600">크기조정</span>
                 
-                <span className="text-[9px] font-bold text-zinc-600 uppercase ml-2">제목</span>
+                <span className="text-[10px] font-bold text-zinc-700 uppercase ml-2">제목</span>
                 <select
                   value={typography.titleFont}
                   onChange={(e) => handleTypographyChange('titleFont', e.target.value as FontFamily)}
-                  className="text-[9px] px-1.5 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  className="text-[10px] px-1.5 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                   aria-label="제목 폰트 선택"
                 >
                   {fontOptions.map(option => (
@@ -501,7 +495,7 @@ export default function HomePage() {
                 <select
                   value={typography.titleWeight || 300}
                   onChange={(e) => handleTypographyChange('titleWeight', parseInt(e.target.value) || 300)}
-                  className="text-[9px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-14"
+                  className="text-[10px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-16"
                   aria-label="제목 굵기 선택"
                 >
                   {fontWeightOptions.map(option => (
@@ -515,18 +509,18 @@ export default function HomePage() {
                   value={typography.titleSize}
                   onChange={(e) => handleTypographyChange('titleSize', parseInt(e.target.value) || 16)}
                   disabled={!typography.enableFontSizeChange}
-                  className={`w-10 text-[9px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none ${
+                  className={`w-12 text-[10px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none ${
                     !typography.enableFontSizeChange ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : ''
                   }`}
                   aria-label="제목 크기 (pt)"
                 />
-                <span className="text-[8px] text-zinc-600">pt</span>
+                <span className="text-[10px] text-zinc-600">pt</span>
                 
-                <span className="text-[9px] font-bold text-zinc-600 uppercase ml-2">본문</span>
+                <span className="text-[10px] font-bold text-zinc-700 uppercase ml-2">본문</span>
                 <select
                   value={typography.bodyFont}
                   onChange={(e) => handleTypographyChange('bodyFont', e.target.value as FontFamily)}
-                  className="text-[9px] px-1.5 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                  className="text-[10px] px-1.5 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                   aria-label="본문 폰트 선택"
                 >
                   {fontOptions.map(option => (
@@ -536,7 +530,7 @@ export default function HomePage() {
                 <select
                   value={typography.bodyWeight || 300}
                   onChange={(e) => handleTypographyChange('bodyWeight', parseInt(e.target.value) || 300)}
-                  className="text-[9px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-14"
+                  className="text-[10px] px-1 py-0.5 bg-white border border-zinc-300 rounded text-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-16"
                   aria-label="본문 굵기 선택"
                 >
                   {fontWeightOptions.map(option => (

@@ -99,22 +99,22 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="flex items-start gap-3">
           {/* 아이콘 박스 */}
           <div 
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-lg" 
+            className="w-12 h-12 rounded-lg flex items-center justify-center text-white shadow-lg" 
             style={{ backgroundColor: getAccent(0) }}
           >
-            <svg className="fill-none stroke-current" style={{ width: `${(typography.titleSize + 4) * 0.8}pt`, height: `${(typography.titleSize + 4) * 0.8}pt` }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${(typography.titleSize + 4) * 1.1}pt`, height: `${(typography.titleSize + 4) * 1.1}pt` }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
           <div>
             <h1 className={`text-2xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${typography.titleSize + 4}pt`, fontWeight: titleWeight, color: '#0f172a' }}>
               {classPlan.showTitle && classPlan.title && (
-                <span className="mr-2" style={{ color: '#0f172a' }}>[{classPlan.title}]</span>
+                <span className="mr-2" style={{ color: getAccent(0) }}>[{classPlan.title}]</span>
               )}
               <span style={{ color: '#0f172a' }}>윈터 프로그램</span>{' '}
-              <span style={{ color: getAccent(0) }}>안내문</span>
+              <span style={{ color: '#0f172a' }}>안내문</span>
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: '#6b7280' }}>2026 WINTER</p>
+            <p className="text-sm mt-0.5" style={{ color: '#0f172a' }}>2026 WINTER</p>
           </div>
         </div>
         <div className="text-right">
@@ -153,7 +153,12 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <div className="flex-1">
             <Card style={{ borderColor: colors.border, background: `linear-gradient(to right, ${getAccentLighter(1)}, ${getAccentLight(1)})` }}>
               <CardContent className="p-3 relative">
-                <p className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#3f3f46' }}>{classPlan.etc}</p>
+                <p
+                  className={`leading-5 whitespace-pre-wrap ${bodyFontClass}`}
+                  style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#3f3f46', lineHeight: 1.6 }}
+                >
+                  {classPlan.etc}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -165,7 +170,12 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="px-8 mb-4">
           <Card style={{ borderColor: colors.border, background: `linear-gradient(to right, ${getAccentLighter(1)}, ${getAccentLight(1)})` }}>
             <CardContent className="p-3">
-              <p className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}>{classPlan.etc}</p>
+              <p
+                className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ lineHeight: 1.6 }}
+              >
+                {classPlan.etc}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -176,7 +186,12 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="px-8 mb-4 mt-4" style={{ fontSize: `${typography.bodySize}pt` }}>
           <Card style={{ borderColor: colors.border, backgroundColor: getAccentLight(2) }}>
             <CardContent className="p-3 relative">
-              <p className={`leading-6 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`} style={{ fontSize: '0.95em', fontWeight: bodyWeight }}>{classPlan.parentIntro}</p>
+              <p
+                className={`leading-6 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ fontSize: '0.95em', fontWeight: bodyWeight, lineHeight: 1.6 }}
+              >
+                {classPlan.parentIntro}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -232,13 +247,13 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                   <TableBody>
                     <TableRow style={{ borderColor: colors.border }}>
                       <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${getAccentLighter(5)} 0%, ${getAccentLight(5)} 100%)`, color: getAccent(5), fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>과정 1</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}`, color: '#18181b' }}>{classPlan.course1 || '-'}</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#18181b' }}>{classPlan.material1 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}`, color: '#3f3f46' }}>{classPlan.course1 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#3f3f46' }}>{classPlan.material1 || '-'}</TableCell>
                     </TableRow>
                     <TableRow style={{ borderColor: colors.border }}>
                       <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${getAccentLighter(5)} 0%, ${getAccentLight(5)} 100%)`, color: getAccent(5), fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.04)' }}>과정 2</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}`, color: '#18181b' }}>{classPlan.course2 || '-'}</TableCell>
-                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#18181b' }}>{classPlan.material2 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, borderRight: `1px solid ${colors.border}`, color: '#3f3f46' }}>{classPlan.course2 || '-'}</TableCell>
+                      <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: '#3f3f46' }}>{classPlan.material2 || '-'}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -253,14 +268,14 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">
               <div className="w-1 h-4 rounded" style={{ backgroundColor: getAccent(5) }}></div>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: getAccent(5) }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.35}pt`, height: `${typography.titleSize * 0.75 * 1.35}pt`, color: getAccent(5) }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습목표</h4>
             </div>
             <Card className="overflow-hidden h-full flex flex-col" style={{ borderColor: colors.border, backgroundColor: getAccentLight(4) }}>
               <CardContent className="p-2.5 relative flex-1">
-                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
+                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, lineHeight: 1.45 }}>
                   {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
                 </p>
               </CardContent>
@@ -271,14 +286,14 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">
               <div className="w-1 h-4 rounded" style={{ backgroundColor: getAccent(5) }}></div>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: getAccent(5) }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.35}pt`, height: `${typography.titleSize * 0.75 * 1.35}pt`, color: getAccent(5) }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
               <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습관리</h4>
             </div>
             <Card className="overflow-hidden h-full flex flex-col" style={{ borderColor: colors.border, backgroundColor: getAccentLight(5) }}>
               <CardContent className="p-2.5 relative flex-1">
-                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>
+                <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, lineHeight: 1.45 }}>
                   {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
                 </p>
               </CardContent>
@@ -290,7 +305,12 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         {classPlan.showEtc && classPlan.etc && classPlan.etcPosition === 'bottom' && (
             <Card style={{ borderColor: colors.border, background: `linear-gradient(to right, ${getAccentLighter(1)}, ${getAccentLight(1)})` }}>
             <CardContent className="p-3">
-              <p className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}>{classPlan.etc}</p>
+              <p
+                className={`text-sm leading-5 text-zinc-700 whitespace-pre-wrap ${bodyFontClass}`}
+                style={{ lineHeight: 1.6 }}
+              >
+                {classPlan.etc}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -299,7 +319,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-1 h-5 rounded" style={{ backgroundColor: getAccent(6) }}></div>
-            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: getAccent(6) }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.5}pt`, height: `${typography.titleSize * 0.75 * 1.5}pt`, color: getAccent(6) }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
             <h3 className={`text-base text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>주차별 학습계획</h3>
@@ -331,7 +351,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="relative">
-                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
+                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                           </div>
                           {week.detail && (
                             <div className="relative">
@@ -366,7 +386,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="relative">
-                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
+                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                           </div>
                           {week.detail && (
                             <div className="relative">
@@ -387,7 +407,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-1 h-5 rounded" style={{ backgroundColor: getAccent(7) }}></div>
-            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: getAccent(7) }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.5}pt`, height: `${typography.titleSize * 0.75 * 1.5}pt`, color: getAccent(7) }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <h3 className={`text-base text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>월간계획</h3>

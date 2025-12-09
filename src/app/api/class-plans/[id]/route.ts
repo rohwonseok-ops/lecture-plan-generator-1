@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getClientAndUser, unauthorized, notFound, serverError } from '@/lib/apiHelpers';
 import type { TablesInsert } from '@/lib/supabase.types';
 
-export const GET = async (_req: NextRequest, { params }: { params: { id: string } }) => {
+export const GET = async (_req: NextRequest, context: { params: Promise<{ id: string }> }) => {
+  const { id } = await context.params;
   const pair = await getClientAndUser(_req);
   if (!pair) return unauthorized();
   const { client, userId } = pair;
@@ -10,7 +11,7 @@ export const GET = async (_req: NextRequest, { params }: { params: { id: string 
   const { data, error } = await client
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('owner_id', userId)
     .single();
 
@@ -19,7 +20,8 @@ export const GET = async (_req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json({ data });
 };
 
-export const PUT = async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const PUT = async (req: NextRequest, context: { params: Promise<{ id: string }> }) => {
+  const { id } = await context.params;
   const pair = await getClientAndUser(req);
   if (!pair) return unauthorized();
   const { client, userId } = pair;
@@ -38,17 +40,17 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
   const { error } = await client
     .from('class_plans')
     .update(patch)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('owner_id', userId);
   if (error) return serverError(error.message);
 
   if (weeklyItems) {
-    await client.from('weekly_plan_items').delete().eq('class_plan_id', params.id);
+    await client.from('weekly_plan_items').delete().eq('class_plan_id', id);
     if (weeklyItems.length) {
       await client.from('weekly_plan_items').insert(
         weeklyItems.map((w, idx) => ({
           ...w,
-          class_plan_id: params.id,
+          class_plan_id: id,
           position: w.position ?? idx,
         }))
       );
@@ -56,12 +58,12 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
   }
 
   if (feeRows) {
-    await client.from('fee_rows').delete().eq('class_plan_id', params.id);
+    await client.from('fee_rows').delete().eq('class_plan_id', id);
     if (feeRows.length) {
       await client.from('fee_rows').insert(
         feeRows.map((f) => ({
           ...f,
-          class_plan_id: params.id,
+          class_plan_id: id,
         }))
       );
     }
@@ -70,7 +72,7 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
   const { data: full, error: fullError } = await client
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('owner_id', userId)
     .single();
 
@@ -78,7 +80,8 @@ export const PUT = async (req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ data: full });
 };
 
-export const DELETE = async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const DELETE = async (req: NextRequest, context: { params: Promise<{ id: string }> }) => {
+  const { id } = await context.params;
   const pair = await getClientAndUser(req);
   if (!pair) return unauthorized();
   const { client, userId } = pair;
@@ -86,7 +89,7 @@ export const DELETE = async (req: NextRequest, { params }: { params: { id: strin
   const { error } = await client
     .from('class_plans')
     .delete()
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('owner_id', userId);
   if (error) return serverError(error.message);
   return NextResponse.json({ ok: true });
