@@ -305,7 +305,7 @@ export default function DesignAnalysisPage() {
               <div className="text-[11px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg p-2 space-y-1">
                 <div>상태 코드: {debugInfo.status ?? 'N/A'}</div>
                 {debugInfo.detail && <div className="break-words">에러 상세: {debugInfo.detail}</div>}
-                {debugInfo.raw && (
+                {Boolean(debugInfo.raw) && (
                   <div>
                     <button
                       onClick={() => setShowRaw((v) => !v)}
