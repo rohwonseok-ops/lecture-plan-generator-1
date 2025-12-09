@@ -24,7 +24,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const contextOptions: Record<AiGenerateOptions['type'], string[]> = {
     parentIntro: ['입시 관점', '방학 전략', '수능 연결', '몰입 강조', '심화 강조', '진도 강조'],
     learningGoal: ['개념', '내신', '모의·수능', '진도', '심화', '간략 정리'],
-    management: ['테스트 관리', '클리닉/보충', '피드백', '출결·습관'],
+    management: ['테스트', '클리닉/보충', '피드백', '출결·습관', '개념 강조', '오답 관리'],
     promoCopy: ['가치 제안', '신뢰 강조', '혜택/이벤트', '기간 한정'],
     keywords: ['수학', '성적향상', '자기주도', '시험대비'],
   };
@@ -59,6 +59,43 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
       onChange({ [preview.field]: preview.text });
       setPreview(null);
     }
+  };
+
+  const renderPreview = (field: keyof ClassPlan, type: AiGenerateOptions['type']) => {
+    if (!preview || preview.field !== field) return null;
+    return (
+      <div className="mt-2 border border-zinc-200 rounded-lg bg-white p-2.5 shadow-sm space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold text-zinc-700">AI 미리보기</span>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => handleAiGenerate(field, type)}
+              disabled={generatingField === field}
+              className="px-2 py-0.5 text-[10px] bg-zinc-100 text-zinc-700 rounded hover:bg-zinc-200 disabled:opacity-60"
+            >
+              다시 생성
+            </button>
+            <button
+              onClick={handleApplyPreview}
+              className="px-2 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              적용
+            </button>
+            <button
+              onClick={() => setPreview(null)}
+              className="px-2 py-0.5 text-[10px] bg-white border border-zinc-200 text-zinc-600 rounded hover:bg-zinc-100"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
+        <textarea
+          className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-20 text-zinc-800 placeholder:text-zinc-500"
+          value={preview.text}
+          onChange={(e) => setPreview(prev => prev ? { ...prev, text: e.target.value } : prev)}
+        />
+      </div>
+    );
   };
 
   const handleChange = useCallback((field: keyof ClassPlan) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -197,6 +234,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             disabled={!classPlan.showEtc}
             aria-label="홍보문구 및 특이사항"
           />
+          {renderPreview('etc', 'promoCopy')}
         </div>
 
         {/* Row 2: 학부모 안내글 (인트로) */}
@@ -254,6 +292,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             placeholder="학부모님께 전하는 인사말 및 안내 문구"
             aria-label="학부모 안내글"
           />
+          {renderPreview('parentIntro', 'parentIntro')}
         </div>
 
         {/* Row 3: 반명/강좌명, 강사명, 수업요일, 수업시간 */}
@@ -461,6 +500,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             placeholder="학습 목표"
             aria-label="학습목표"
           />
+          {renderPreview('learningGoal', 'learningGoal')}
         </div>
         <div className="col-span-6">
           <div className="flex items-center justify-between mb-1">
@@ -516,6 +556,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             placeholder="테스트/클리닉/피드백"
             aria-label="학습관리"
           />
+          {renderPreview('management', 'management')}
         </div>
 
       </div>
