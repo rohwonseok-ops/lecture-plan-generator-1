@@ -67,6 +67,9 @@ export async function POST(req: Request) {
 `;
 
     const type = options?.type;
+    const contexts = options?.contexts || [];
+    const seedText = options?.seedText;
+    const mode = options?.mode || 'generate';
 
     const prompts: Record<CopyPromptType, string> = {
       parentIntro: '학부모에게 보내는 짧은 인사와 안내 문구를 2~3문장으로 작성하세요.',
@@ -76,7 +79,15 @@ export async function POST(req: Request) {
       keywords: '해시태그 형태로 5~7개 작성하세요. 예: #수학 #성적향상',
     };
 
-    const message = type ? prompts[type] : '짧은 안내 문구를 작성하세요.';
+    const contextText = contexts.length > 0 ? `\n선택된 맥락: ${contexts.join(', ')}` : '';
+    const seedTextPrompt = seedText
+      ? `\n다음 기존 문구를 보완/정리해 톤만 다듬어라. 핵심 내용은 유지하되, 과장 없이 간결하게:\n"""${seedText}"""`
+      : '';
+    const modeHint = mode === 'rewrite' ? '\n새로 창작하지 말고 기존 내용을 개선하는 데 집중하세요.' : '';
+
+    const message = type
+      ? `${prompts[type]}${contextText}${seedTextPrompt}${modeHint}`
+      : `짧은 안내 문구를 작성하세요.${contextText}${seedTextPrompt}${modeHint}`;
 
     const openaiRes = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',

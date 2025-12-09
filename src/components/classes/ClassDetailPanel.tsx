@@ -14,6 +14,32 @@ interface Props {
 const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
   const [generatingField, setGeneratingField] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{
+    field: keyof ClassPlan | null;
+    text: string;
+    type?: AiGenerateOptions['type'];
+  } | null>(null);
+  const [useExisting, setUseExisting] = useState<Record<string, boolean>>({});
+  const [contexts, setContexts] = useState<Record<string, string[]>>({});
+
+  const contextOptions: Record<AiGenerateOptions['type'], string[]> = {
+    parentIntro: ['입시 관점', '방학 전략', '수능 연결', '몰입 강조', '심화 강조', '진도 강조'],
+    learningGoal: ['개념 중시', '내신 중시', '모의·수능', '진도 중점', '심화 중점'],
+    management: ['테스트 관리', '클리닉/보충', '피드백', '출결·습관'],
+    promoCopy: ['가치 제안', '신뢰 강조', '혜택/이벤트', '기간 한정'],
+    keywords: ['수학', '성적향상', '자기주도', '시험대비'],
+  };
+
+  const toggleContext = (field: keyof ClassPlan, value: string) => {
+    setContexts((prev) => {
+      const current = prev[field as string] || [];
+      const exists = current.includes(value);
+      return {
+        ...prev,
+        [field as string]: exists ? current.filter((v) => v !== value) : [...current, value],
+      };
+    });
+  };
 
   if (!classPlan) {
     return (
@@ -28,14 +54,26 @@ const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
 
     setGeneratingField(field as string);
     try {
-      const generatedText = await generateTextForClassPlan(classPlan, { type });
-      onChange({ [field]: generatedText });
+      const generatedText = await generateTextForClassPlan(classPlan, {
+        type,
+        mode: useExisting[field as string] ? 'rewrite' : 'generate',
+        seedText: useExisting[field as string] ? String(classPlan[field] || '') : undefined,
+        contexts: contexts[field as string] || [],
+      });
+      setPreview({ field, text: generatedText, type });
       setErrorMsg(null);
     } catch (error) {
       console.error("AI Generation failed", error);
       setErrorMsg(error instanceof Error ? error.message : 'AI 생성 중 오류가 발생했습니다.');
     } finally {
       setGeneratingField(null);
+    }
+  };
+
+  const handleApplyPreview = () => {
+    if (preview?.field) {
+      onChange({ [preview.field]: preview.text });
+      setPreview(null);
     }
   };
 
@@ -89,10 +127,40 @@ const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
       <div className="flex items-center justify-between">
         <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wide">{label}</label>
         {aiType && (
-          <AiButton
-            onClick={() => handleAiGenerate(field, aiType)}
-            isGenerating={generatingField === field}
-          />
+          <div className="flex items-center gap-1">
+            <div className="flex flex-wrap gap-1">
+              {(contextOptions[aiType] || []).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => toggleContext(field, c)}
+                  className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                    (contexts[field as string] || []).includes(c)
+                      ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-indigo-200'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setUseExisting((prev) => ({ ...prev, [field]: !prev[field] }))}
+                className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                  useExisting[field as string]
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-white text-zinc-600 border-zinc-200 hover:border-amber-200'
+                }`}
+                title="기존 문구 활용"
+              >
+                기존 문구
+              </button>
+            </div>
+            <AiButton
+              onClick={() => handleAiGenerate(field, aiType)}
+              isGenerating={generatingField === field}
+            />
+          </div>
         )}
       </div>
       {multiline ? (
@@ -124,6 +192,40 @@ const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
         {errorMsg && (
           <div className="text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
             {errorMsg}
+          </div>
+        )}
+
+        {preview && (
+          <div className="border border-zinc-200 rounded-lg bg-white p-3 shadow-sm space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-zinc-700">AI 미리보기</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handleAiGenerate(preview.field!, preview.type!)}
+                  disabled={generatingField === preview.field}
+                  className="px-2 py-0.5 text-[10px] bg-zinc-100 text-zinc-700 rounded hover:bg-zinc-200 disabled:opacity-60"
+                >
+                  다시 생성
+                </button>
+                <button
+                  onClick={handleApplyPreview}
+                  className="px-2 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  적용
+                </button>
+                <button
+                  onClick={() => setPreview(null)}
+                  className="px-2 py-0.5 text-[10px] bg-white border border-zinc-200 text-zinc-600 rounded hover:bg-zinc-100"
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+            <textarea
+              className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-24 text-zinc-800 placeholder:text-zinc-500"
+              value={preview.text}
+              onChange={(e) => setPreview(prev => prev ? { ...prev, text: e.target.value } : prev)}
+            />
           </div>
         )}
 

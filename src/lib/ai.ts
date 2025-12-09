@@ -5,6 +5,9 @@ import { ClassPlan } from './types';
 export interface AiGenerateOptions {
   type: 'parentIntro' | 'learningGoal' | 'promoCopy' | 'keywords' | 'management';
   tone?: 'formal' | 'friendly' | 'passionate';
+  contexts?: string[];
+  seedText?: string;
+  mode?: 'generate' | 'rewrite';
 }
 
 export const generateTextForClassPlan = async (plan: ClassPlan, options: AiGenerateOptions): Promise<string> => {

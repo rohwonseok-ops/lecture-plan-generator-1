@@ -494,10 +494,10 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         </span>
                       )}
                       <div className="flex-1 min-w-0 relative">
-                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.825em', fontWeight: bodyWeight, color: strongText }}>{week.topic || ''}</div>
+                        <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: strongText }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
-                            <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.825em', fontWeight: bodyWeight, color: secondaryText }}>{week.detail}</div>
+                            <div className={`leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight, color: secondaryText }}>{week.detail}</div>
                           </div>
                         )}
                       </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { ClassPlan } from '@/lib/types';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, RotateCcw, Check, X } from 'lucide-react';
 import { generateTextForClassPlan, AiGenerateOptions } from '@/lib/ai';
 
 interface Props {
@@ -13,6 +13,21 @@ interface Props {
 const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const [generatingField, setGeneratingField] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{
+    field: keyof ClassPlan | null;
+    text: string;
+    type?: AiGenerateOptions['type'];
+  } | null>(null);
+  const [useExisting, setUseExisting] = useState<Record<string, boolean>>({});
+  const [contexts, setContexts] = useState<Record<string, string[]>>({});
+
+  const contextOptions: Record<AiGenerateOptions['type'], string[]> = {
+    parentIntro: ['입시 관점', '방학 전략', '수능 연결', '몰입 강조', '심화 강조', '진도 강조'],
+    learningGoal: ['개념 중시', '내신 중시', '모의·수능', '진도 중점', '심화 중점'],
+    management: ['테스트 관리', '클리닉/보충', '피드백', '출결·습관'],
+    promoCopy: ['가치 제안', '신뢰 강조', '혜택/이벤트', '기간 한정'],
+    keywords: ['수학', '성적향상', '자기주도', '시험대비'],
+  };
   const twoLineDividerStyle: React.CSSProperties = {
     backgroundImage: 'linear-gradient(to right, #e5e7eb, #e5e7eb)',
     backgroundSize: '100% 1px',
@@ -23,8 +38,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const handleAiGenerate = async (field: keyof ClassPlan, type: AiGenerateOptions['type']) => {
     setGeneratingField(field as string);
     try {
-      const generatedText = await generateTextForClassPlan(classPlan, { type });
-      onChange({ [field]: generatedText });
+      const generatedText = await generateTextForClassPlan(classPlan, {
+        type,
+        mode: useExisting[field as string] ? 'rewrite' : 'generate',
+        seedText: useExisting[field as string] ? String(classPlan[field] || '') : undefined,
+        contexts: contexts[field as string] || [],
+      });
+      setPreview({ field, text: generatedText, type });
       setErrorMsg(null);
     } catch (error) {
       console.error("AI Generation failed", error);
@@ -34,9 +54,27 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
     }
   };
 
+  const handleApplyPreview = () => {
+    if (preview?.field) {
+      onChange({ [preview.field]: preview.text });
+      setPreview(null);
+    }
+  };
+
   const handleChange = useCallback((field: keyof ClassPlan) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     onChange({ [field]: e.target.value });
   }, [onChange]);
+
+  const toggleContext = (field: keyof ClassPlan, value: string) => {
+    setContexts((prev) => {
+      const current = prev[field as string] || [];
+      const exists = current.includes(value);
+      return {
+        ...prev,
+        [field as string]: exists ? current.filter((v) => v !== value) : [...current, value],
+      };
+    });
+  };
 
   return (
     <div className="p-3 bg-zinc-100">
@@ -122,6 +160,34 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               <Sparkles className="w-2.5 h-2.5 mr-0.5" />
               {generatingField === 'etc' ? '생성중' : 'AI'}
             </button>
+            <div className="flex flex-wrap gap-1 mt-1 ml-[54px]">
+              {contextOptions.promoCopy.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => toggleContext('etc', c)}
+                  className={`px-1.5 py-0.5 rounded text-[9px] border ${
+                    (contexts['etc'] || []).includes(c)
+                      ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-indigo-200'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setUseExisting((prev) => ({ ...prev, etc: !prev.etc }))}
+                className={`px-1.5 py-0.5 rounded text-[9px] border ${
+                  useExisting.etc
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-white text-zinc-600 border-zinc-200 hover:border-amber-200'
+                }`}
+                title="기존 문구 활용"
+              >
+                기존 문구
+              </button>
+            </div>
           </div>
           <textarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-16 text-zinc-800 placeholder:text-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
@@ -135,22 +201,52 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
 
         {/* Row 2: 학부모 안내글 (인트로) */}
         <div className="col-span-12">
-          <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-zinc-600 uppercase">학부모 안내글 (인트로)</label>
-            <button
-              onClick={() => handleAiGenerate('parentIntro', 'parentIntro')}
-              disabled={generatingField === 'parentIntro'}
-              className={`ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
-                generatingField === 'parentIntro' 
-                  ? 'bg-zinc-200 text-zinc-400 cursor-wait' 
-                  : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
-              }`}
-              title="AI 추천"
-            >
-              <Sparkles className="w-2.5 h-2.5 mr-0.5" />
-              {generatingField === 'parentIntro' ? '생성중' : 'AI'}
-            </button>
-          </div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[10px] font-bold text-zinc-600 uppercase">학부모 안내글 (인트로)</label>
+              <div className="flex items-center gap-1">
+                <div className="flex flex-wrap gap-1">
+                  {contextOptions.parentIntro.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => toggleContext('parentIntro', c)}
+                      className={`px-1.5 py-0.5 rounded text-[9px] border ${
+                        (contexts['parentIntro'] || []).includes(c)
+                          ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                          : 'bg-white text-zinc-600 border-zinc-200 hover:border-indigo-200'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setUseExisting((prev) => ({ ...prev, parentIntro: !prev.parentIntro }))}
+                    className={`px-1.5 py-0.5 rounded text-[9px] border ${
+                      useExisting.parentIntro
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-white text-zinc-600 border-zinc-200 hover:border-amber-200'
+                    }`}
+                    title="기존 문구 활용"
+                  >
+                    기존 문구
+                  </button>
+                </div>
+                <button
+                  onClick={() => handleAiGenerate('parentIntro', 'parentIntro')}
+                  disabled={generatingField === 'parentIntro'}
+                  className={`ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
+                    generatingField === 'parentIntro' 
+                      ? 'bg-zinc-200 text-zinc-400 cursor-wait' 
+                      : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
+                  }`}
+                  title="AI 추천"
+                >
+                  <Sparkles className="w-2.5 h-2.5 mr-0.5" />
+                  {generatingField === 'parentIntro' ? '생성중' : 'AI'}
+                </button>
+              </div>
+            </div>
           <textarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-16 text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.parentIntro || ''}
@@ -314,19 +410,49 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         <div className="col-span-6">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[10px] font-bold text-blue-600 uppercase">학습목표</label>
-            <button
-              onClick={() => handleAiGenerate('learningGoal', 'learningGoal')}
-              disabled={generatingField === 'learningGoal'}
-              className={`ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
-                generatingField === 'learningGoal' 
-                  ? 'bg-zinc-200 text-zinc-400 cursor-wait' 
-                  : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
-              }`}
-              title="AI 추천"
-            >
-              <Sparkles className="w-2.5 h-2.5 mr-0.5" />
-              {generatingField === 'learningGoal' ? '생성중' : 'AI'}
-            </button>
+            <div className="flex items-center gap-1">
+              <div className="flex flex-wrap gap-1">
+                {contextOptions.learningGoal.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => toggleContext('learningGoal', c)}
+                    className={`px-1.5 py-0.5 rounded text-[9px] border ${
+                      (contexts['learningGoal'] || []).includes(c)
+                        ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                        : 'bg-white text-zinc-600 border-zinc-200 hover:border-indigo-200'
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setUseExisting((prev) => ({ ...prev, learningGoal: !prev.learningGoal }))}
+                  className={`px-1.5 py-0.5 rounded text-[9px] border ${
+                    useExisting.learningGoal
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-amber-200'
+                  }`}
+                  title="기존 문구 활용"
+                >
+                  기존 문구
+                </button>
+              </div>
+              <button
+                onClick={() => handleAiGenerate('learningGoal', 'learningGoal')}
+                disabled={generatingField === 'learningGoal'}
+                className={`ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
+                  generatingField === 'learningGoal' 
+                    ? 'bg-zinc-200 text-zinc-400 cursor-wait' 
+                    : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
+                }`}
+                title="AI 추천"
+              >
+                <Sparkles className="w-2.5 h-2.5 mr-0.5" />
+                {generatingField === 'learningGoal' ? '생성중' : 'AI'}
+              </button>
+            </div>
           </div>
           <textarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-14 text-zinc-800 placeholder:text-zinc-500"
@@ -339,19 +465,49 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         <div className="col-span-6">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[10px] font-bold text-blue-600 uppercase">학습관리</label>
-            <button
-              onClick={() => handleAiGenerate('management', 'management')}
-              disabled={generatingField === 'management'}
-              className={`ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
-                generatingField === 'management' 
-                  ? 'bg-zinc-200 text-zinc-400 cursor-wait' 
-                  : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
-              }`}
-              title="AI 추천"
-            >
-              <Sparkles className="w-2.5 h-2.5 mr-0.5" />
-              {generatingField === 'management' ? '생성중' : 'AI'}
-            </button>
+            <div className="flex items-center gap-1">
+              <div className="flex flex-wrap gap-1">
+                {contextOptions.management.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => toggleContext('management', c)}
+                    className={`px-1.5 py-0.5 rounded text-[9px] border ${
+                      (contexts['management'] || []).includes(c)
+                        ? 'bg-indigo-50 text-indigo-600 border-indigo-200'
+                        : 'bg-white text-zinc-600 border-zinc-200 hover:border-indigo-200'
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setUseExisting((prev) => ({ ...prev, management: !prev.management }))}
+                  className={`px-1.5 py-0.5 rounded text-[9px] border ${
+                    useExisting.management
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-white text-zinc-600 border-zinc-200 hover:border-amber-200'
+                  }`}
+                  title="기존 문구 활용"
+                >
+                  기존 문구
+                </button>
+              </div>
+              <button
+                onClick={() => handleAiGenerate('management', 'management')}
+                disabled={generatingField === 'management'}
+                className={`ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
+                  generatingField === 'management' 
+                    ? 'bg-zinc-200 text-zinc-400 cursor-wait' 
+                    : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
+                }`}
+                title="AI 추천"
+              >
+                <Sparkles className="w-2.5 h-2.5 mr-0.5" />
+                {generatingField === 'management' ? '생성중' : 'AI'}
+              </button>
+            </div>
           </div>
           <textarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-14 text-zinc-800 placeholder:text-zinc-500"
@@ -363,6 +519,40 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
 
       </div>
+
+      {preview && (
+        <div className="mt-3 border border-zinc-200 rounded-lg bg-white p-2.5 shadow-sm space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-zinc-700">AI 미리보기</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handleAiGenerate(preview.field!, preview.type!)}
+                disabled={generatingField === preview.field}
+                className="px-2 py-0.5 text-[10px] bg-zinc-100 text-zinc-700 rounded hover:bg-zinc-200 disabled:opacity-60"
+              >
+                다시 생성
+              </button>
+              <button
+                onClick={handleApplyPreview}
+                className="px-2 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                적용
+              </button>
+              <button
+                onClick={() => setPreview(null)}
+                className="px-2 py-0.5 text-[10px] bg-white border border-zinc-200 text-zinc-600 rounded hover:bg-zinc-100"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+          <textarea
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-20 text-zinc-800 placeholder:text-zinc-500"
+            value={preview.text}
+            onChange={(e) => setPreview(prev => prev ? { ...prev, text: e.target.value } : prev)}
+          />
+        </div>
+      )}
     </div>
   );
 };
