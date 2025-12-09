@@ -102,7 +102,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
             className="w-12 h-12 rounded-lg flex items-center justify-center text-white shadow-lg" 
             style={{ backgroundColor: getAccent(0) }}
           >
-            <svg className="fill-none stroke-current" style={{ width: `${(typography.titleSize + 4) * 0.95}pt`, height: `${(typography.titleSize + 4) * 0.95}pt` }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${(typography.titleSize + 4) * 1.1}pt`, height: `${(typography.titleSize + 4) * 1.1}pt` }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
@@ -268,7 +268,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">
               <div className="w-1 h-4 rounded" style={{ backgroundColor: getAccent(5) }}></div>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: getAccent(5) }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.35}pt`, height: `${typography.titleSize * 0.75 * 1.35}pt`, color: getAccent(5) }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습목표</h4>
@@ -286,7 +286,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">
               <div className="w-1 h-4 rounded" style={{ backgroundColor: getAccent(5) }}></div>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: getAccent(5) }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.35}pt`, height: `${typography.titleSize * 0.75 * 1.35}pt`, color: getAccent(5) }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
               <h4 className={`text-xs text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>학습관리</h4>
@@ -319,7 +319,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-1 h-5 rounded" style={{ backgroundColor: getAccent(6) }}></div>
-            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: getAccent(6) }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.5}pt`, height: `${typography.titleSize * 0.75 * 1.5}pt`, color: getAccent(6) }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
             <h3 className={`text-base text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>주차별 학습계획</h3>
@@ -351,7 +351,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="relative">
-                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
+                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                           </div>
                           {week.detail && (
                             <div className="relative">
@@ -386,7 +386,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="relative">
-                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
+                            <div className={`text-zinc-800 ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                           </div>
                           {week.detail && (
                             <div className="relative">
@@ -407,7 +407,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-1 h-5 rounded" style={{ backgroundColor: getAccent(7) }}></div>
-            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: getAccent(7) }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.5}pt`, height: `${typography.titleSize * 0.75 * 1.5}pt`, color: getAccent(7) }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <h3 className={`text-base text-zinc-800 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>월간계획</h3>

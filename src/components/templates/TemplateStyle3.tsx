@@ -132,7 +132,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: colors.primary }}></div>
-                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.5}pt`, height: `${typography.titleSize * 0.75 * 1.5}pt`, color: colors.primary }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
                 <h4 className={`text-xs ${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>수강대상</h4>
@@ -214,7 +214,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
           {/* 담임강사 */}
           <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.4}pt`, height: `${typography.titleSize * 0.75 * 1.4}pt`, color: colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>담임강사</h4>
@@ -229,7 +229,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
           {/* 수업일정 */}
           <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.5}pt`, height: `${typography.titleSize * 0.75 * 1.5}pt`, color: colors.primary }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <h4 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>수업일정</h4>
@@ -342,7 +342,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
         {/* 주차별 학습계획 - 동적 2열 */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.4}pt`, height: `${typography.titleSize * 0.75 * 1.4}pt` }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
             <h3 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>주차별 학습계획</h3>
@@ -369,7 +369,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
-                            <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.detail}</div>
+                            <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.detail}</div>
                           </div>
                         )}
                       </div>
@@ -399,7 +399,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         <div className={`truncate text-zinc-800 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.topic || ''}</div>
                         {week.detail && (
                           <div className="relative">
-                            <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.85em', fontWeight: bodyWeight }}>{week.detail}</div>
+                            <div className={`truncate text-zinc-500 leading-tight ${bodyFontClass}`} style={{ fontSize: '0.9em', fontWeight: bodyWeight }}>{week.detail}</div>
                           </div>
                         )}
                       </div>
@@ -414,7 +414,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
         {/* 월간계획 */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5">
-            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt`, color: colors.primary }} viewBox="0 0 24 24">
+            <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.4}pt`, height: `${typography.titleSize * 0.75 * 1.4}pt` }} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <h3 className={`${titleFontClass}`} style={{ color: colors.primary, fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight + 200 }}>월간계획</h3>
