@@ -89,6 +89,15 @@ export default function DesignAnalysisPage() {
     setError(null);
   };
 
+  type DesignApiResponse = {
+    result?: string;
+    suggestion?: DesignSuggestion | null;
+    error?: string;
+    detail?: string;
+    requestId?: string;
+    [key: string]: unknown;
+  };
+
   const handleAnalyze = async () => {
     if (!file) {
       setError('이미지를 업로드해주세요.');
@@ -109,7 +118,7 @@ export default function DesignAnalysisPage() {
       form.append('prompt', prompt);
 
       const res = await fetch('/api/ai/design', { method: 'POST', body: form });
-      let json: any = null;
+      let json: DesignApiResponse | null = null;
       try {
         json = await res.json();
       } catch {
