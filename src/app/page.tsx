@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useClassPlanStore } from '@/store/classPlanStore';
 import { useAuthStore } from '@/store/authStore';
 import { recordActivity } from '@/lib/activityLogger';
-import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2, Settings, History, LayoutTemplate, Sparkles } from 'lucide-react';
+import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2, Settings, History, LayoutTemplate } from 'lucide-react';
 import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings } from '@/lib/types';
 import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
 import { getDefaultTypography } from '@/lib/utils';

@@ -104,7 +104,11 @@ export async function POST(req: Request) {
       }
 
       const data = await geminiRes.json();
-      const result = data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join(' ').trim() || '';
+      const result =
+        data?.candidates?.[0]?.content?.parts
+          ?.map((p: { text?: string }) => p?.text || '')
+          .join(' ')
+          .trim() || '';
       return NextResponse.json({ result });
     } else {
       const imageDataUrl = await toBase64DataUrl(file);
