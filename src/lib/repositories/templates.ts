@@ -83,7 +83,13 @@ export async function fetchTemplate(id: string): Promise<TemplateMeta | null> {
     .select('*')
     .eq('id', id)
     .single();
-  if (error || !tpl) return null;
+  if (error) {
+    if (error.code !== 'PGRST116') {
+      console.error('fetchTemplate error:', error);
+    }
+    return null;
+  }
+  if (!tpl) return null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const row = tpl as any;
@@ -129,26 +135,37 @@ export async function fetchTemplate(id: string): Promise<TemplateMeta | null> {
 
 export async function saveTemplate(meta: TemplateMeta) {
   // upsert template
-  await supabase
+  const { error: tplError } = await supabase
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from(TABLE_TEMPLATES as any)
     .upsert({
-    id: meta.id,
-    name: meta.name,
-    category: meta.category,
-    status: meta.status,
-    palette: meta.palette,
-    thumbnail_url: meta.thumbnailUrl ?? null,
-    updated_at: new Date().toISOString(),
-  });
+      id: meta.id,
+      name: meta.name,
+      category: meta.category,
+      status: meta.status,
+      palette: meta.palette,
+      thumbnail_url: meta.thumbnailUrl ?? null,
+      updated_at: new Date().toISOString(),
+    });
+
+  if (tplError) {
+    console.error('Template save error:', tplError);
+    throw new Error(`템플릿 저장 실패: ${tplError.message}`);
+  }
 
   if (meta.blocks) {
     // delete old blocks then insert
-    await supabase
+    const { error: delError } = await supabase
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .from(TABLE_BLOCKS as any)
       .delete()
       .eq('template_id', meta.id);
+
+    if (delError) {
+      console.error('Blocks delete error:', delError);
+      throw new Error(`기존 블록 삭제 실패: ${delError.message}`);
+    }
+
     const rows = meta.blocks.map((b) => ({
       id: b.id,
       template_id: meta.id,
@@ -163,11 +180,17 @@ export async function saveTemplate(meta: TemplateMeta) {
       locked: b.locked ?? false,
       hidden: b.hidden ?? false,
     }));
+
     if (rows.length) {
-      await supabase
+      const { error: insError } = await supabase
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from(TABLE_BLOCKS as any)
         .insert(rows);
+
+      if (insError) {
+        console.error('Blocks insert error:', insError);
+        throw new Error(`블록 저장 실패: ${insError.message}`);
+      }
     }
   }
 }
