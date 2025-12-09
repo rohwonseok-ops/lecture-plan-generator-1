@@ -61,8 +61,8 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
     }
   };
 
-  const renderPreview = (field: keyof ClassPlan, type: AiGenerateOptions['type']) => {
-    if (!preview || preview.field !== field) return null;
+  const renderPreview = (field: keyof ClassPlan, type?: AiGenerateOptions['type']) => {
+    if (!type || !preview || preview.field !== field) return null;
     return (
       <div className="mt-2 border border-zinc-200 rounded-lg bg-white p-2.5 shadow-sm space-y-2">
         <div className="flex items-center justify-between">
