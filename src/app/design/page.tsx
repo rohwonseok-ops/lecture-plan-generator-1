@@ -315,7 +315,7 @@ export default function DesignAnalysisPage() {
                     </button>
                     {showRaw && (
                       <pre className="mt-1 max-h-40 overflow-auto bg-white border border-zinc-200 rounded p-2 text-[10px] whitespace-pre-wrap">
-                        {JSON.stringify(debugInfo.raw, null, 2)}
+                        {JSON.stringify(debugInfo.raw as Record<string, unknown>, null, 2)}
                       </pre>
                     )}
                   </div>
