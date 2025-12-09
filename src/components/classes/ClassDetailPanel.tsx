@@ -127,10 +127,8 @@ const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
       <div className="flex items-center justify-between">
         <label className="block text-[11px] font-bold text-zinc-500 uppercase tracking-wide">{label}</label>
         {aiType && (
-            <div className="flex items-center gap-1">
-              <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
-            <div className="flex items-center gap-1">
-              <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
+          <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
               {(contextOptions[aiType] || []).map((c) => (
                 <button
                   key={c}
