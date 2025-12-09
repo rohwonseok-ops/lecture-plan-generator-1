@@ -60,6 +60,8 @@ export default function DesignAnalysisPage() {
   const [applying, setApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applyMessage, setApplyMessage] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<{ status?: number; requestId?: string; detail?: string; raw?: unknown }>({});
+  const [showRaw, setShowRaw] = useState(false);
 
   useEffect(() => {
     const authPersist = useAuthStore.persist;
@@ -99,6 +101,7 @@ export default function DesignAnalysisPage() {
     setSuggestion(null);
     setApplyMessage(null);
     setRequestId(null);
+    setDebugInfo({});
 
     try {
       const form = new FormData();
@@ -106,16 +109,24 @@ export default function DesignAnalysisPage() {
       form.append('prompt', prompt);
 
       const res = await fetch('/api/ai/design', { method: 'POST', body: form });
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        json = null;
+      }
+
       if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        const baseMessage = json.error || json.detail || '디자인 분석에 실패했습니다.';
-        const detail = json.detail && json.error ? ` (${String(json.detail).slice(0, 200)})` : '';
+        const baseMessage = (json && (json.error || json.detail)) || '디자인 분석에 실패했습니다.';
+        const detail = json?.detail ? ` (${String(json.detail).slice(0, 500)})` : '';
+        setDebugInfo({ status: res.status, requestId: json?.requestId, detail: json?.detail, raw: json });
+        setRequestId(json?.requestId || null);
         throw new Error(`${baseMessage}${detail}`);
       }
-      const json = await res.json();
-      setResult(json.result || '');
-      setRequestId(json.requestId || null);
-      setSuggestion(json.suggestion || null);
+      setResult(json?.result || '');
+      setRequestId(json?.requestId || null);
+      setSuggestion(json?.suggestion || null);
+      setDebugInfo({ status: res.status, requestId: json?.requestId, detail: json?.detail, raw: json });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '디자인 분석 중 오류가 발생했습니다.';
       setError(message);
@@ -280,6 +291,27 @@ export default function DesignAnalysisPage() {
             )}
             {requestId && (
               <div className="text-[11px] text-zinc-400">요청 ID: {requestId}</div>
+            )}
+            {(debugInfo.status || debugInfo.detail) && (
+              <div className="text-[11px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg p-2 space-y-1">
+                <div>상태 코드: {debugInfo.status ?? 'N/A'}</div>
+                {debugInfo.detail && <div className="break-words">에러 상세: {debugInfo.detail}</div>}
+                {debugInfo.raw && (
+                  <div>
+                    <button
+                      onClick={() => setShowRaw((v) => !v)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {showRaw ? '원본 숨기기' : '원본 JSON 보기'}
+                    </button>
+                    {showRaw && (
+                      <pre className="mt-1 max-h-40 overflow-auto bg-white border border-zinc-200 rounded p-2 text-[10px] whitespace-pre-wrap">
+                        {JSON.stringify(debugInfo.raw, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
             {suggestion && (
               <div className="mt-2 space-y-2 text-xs">
