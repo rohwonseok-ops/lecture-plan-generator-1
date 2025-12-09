@@ -195,7 +195,7 @@ export async function POST(req: Request) {
           ],
           generationConfig: {
             temperature: 0.3,
-            maxOutputTokens: 700,
+            maxOutputTokens: 2000,
           },
         }),
       });
@@ -214,11 +214,36 @@ export async function POST(req: Request) {
       }
 
       const data = await geminiRes.json();
+      const candidate = data?.candidates?.[0];
+
+      if (!candidate) {
+        console.error('[api/ai/design] gemini no candidates', { requestId, data: JSON.stringify(data) });
+        return NextResponse.json({ error: 'LLM 응답이 비어있습니다.', detail: JSON.stringify(data), requestId }, { status: 422 });
+      }
+
+      if (candidate.finishReason && candidate.finishReason !== 'STOP') {
+        console.warn('[api/ai/design] gemini blocked', { requestId, finishReason: candidate.finishReason });
+        return NextResponse.json(
+          {
+            error: `LLM 생성이 중단되었습니다 (${candidate.finishReason})`,
+            detail: '이미지 또는 프롬프트가 안전 정책에 의해 차단되었을 수 있습니다.',
+            requestId,
+          },
+          { status: 422 }
+        );
+      }
+
       const rawText =
-        data?.candidates?.[0]?.content?.parts
+        candidate.content?.parts
           ?.map((p: { text?: string }) => p?.text || '')
           .join(' ')
           .trim() || '';
+
+      if (!rawText) {
+        console.error('[api/ai/design] gemini empty content', { requestId });
+        return NextResponse.json({ error: 'LLM이 빈 텍스트를 반환했습니다.', requestId }, { status: 422 });
+      }
+
       const { resultText, suggestion } = parseSuggestion(rawText);
       console.info('[api/ai/design] gemini success', { requestId, hasSuggestion: !!suggestion });
       await logActivity(200, `gemini success (suggestion=${suggestion ? 'yes' : 'no'})`);
@@ -234,7 +259,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           model,
-          max_completion_tokens: 700,
+          max_completion_tokens: 2000,
           temperature: 0.4,
           messages: [
             {
@@ -281,6 +306,12 @@ export async function POST(req: Request) {
 
       const data = await openaiRes.json();
       const rawText = data?.choices?.[0]?.message?.content?.trim() || '';
+
+      if (!rawText) {
+        console.error('[api/ai/design] openai empty content', { requestId });
+        return NextResponse.json({ error: 'LLM이 빈 텍스트를 반환했습니다.', requestId }, { status: 422 });
+      }
+
       const { resultText, suggestion } = parseSuggestion(rawText);
       console.info('[api/ai/design] openai success', { requestId, hasSuggestion: !!suggestion });
       await logActivity(200, `openai success (suggestion=${suggestion ? 'yes' : 'no'})`);
@@ -296,4 +327,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message, requestId }, { status: 500 });
   }
 }
-
