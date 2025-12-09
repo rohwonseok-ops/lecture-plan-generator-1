@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { recordServerActivity } from '@/lib/serverLogger';
 
 export const runtime = 'nodejs';
 
@@ -62,6 +63,22 @@ const toBase64 = async (file: File) => {
   return buffer.toString('base64');
 };
 
+const truncateText = (value: string | null | undefined, max = 400) => {
+  if (!value) return '';
+  const cleaned = value.replace(/\s+/g, ' ').trim();
+  return cleaned.length > max ? `${cleaned.slice(0, max - 3)}...` : cleaned;
+};
+
+const safeHost = (value: string | undefined) => {
+  if (!value) return '';
+  try {
+    const url = new URL(value);
+    return url.host || value;
+  } catch {
+    return value;
+  }
+};
+
 const getDesignEnv = (): DesignEnv => {
   const {
     DESIGN_LLM_API_KEY,
@@ -93,8 +110,8 @@ const detectProvider = (env: { baseUrl: string; model: string; provider?: string
 };
 
 export async function POST(req: Request) {
+  const requestId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
   try {
-    const requestId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
     const form = await req.formData();
     const file = form.get('file') as File | null;
     const prompt =
@@ -111,18 +128,40 @@ export async function POST(req: Request) {
     const env = getDesignEnv();
     const { apiKey, baseUrl, model, provider } = env;
 
+    const logActivity = async (status: number, detail: string) => {
+      const prefix = [
+        `status=${status}`,
+        `requestId=${requestId}`,
+        provider ? `provider=${provider}` : null,
+        model ? `model=${model}` : null,
+        baseUrl ? `baseUrl=${safeHost(baseUrl)}` : null,
+        file ? `file=${file.type || 'unknown'}(${file.size || 0})` : null,
+        prompt ? `prompt=${truncateText(prompt, 200)}` : null,
+      ]
+        .filter(Boolean)
+        .join(' | ');
+
+      await recordServerActivity({
+        action: 'ai.design',
+        detail: `${prefix} | ${detail}`.slice(0, 1000),
+      });
+    };
+
     console.info('[api/ai/design] start', { requestId, provider, baseUrl, model, fileType: file?.type, fileSize: file ? file.size : 0 });
 
     if (!apiKey) {
       console.error('[api/ai/design] missing apiKey', { requestId });
+      await logActivity(500, 'missing apiKey');
       return NextResponse.json({ error: '서버에 디자인 분석용 LLM API 키가 설정되어 있지 않습니다.', requestId }, { status: 500 });
     }
     if (!baseUrl || !model) {
       console.error('[api/ai/design] missing baseUrl/model', { requestId });
+      await logActivity(500, 'missing baseUrl/model');
       return NextResponse.json({ error: '디자인 분석용 LLM 엔드포인트/모델이 설정되어 있지 않습니다.', requestId }, { status: 500 });
     }
     if (!file) {
       console.error('[api/ai/design] missing file', { requestId });
+      await logActivity(400, 'missing file');
       return NextResponse.json({ error: '이미지 파일이 필요합니다.', requestId }, { status: 400 });
     }
 
@@ -164,6 +203,10 @@ export async function POST(req: Request) {
       if (!geminiRes.ok) {
         const errorText = await geminiRes.text();
         console.error('[api/ai/design] gemini error', { requestId, status: geminiRes.status, errorText });
+        await logActivity(
+          geminiRes.status,
+          `gemini error: ${truncateText(errorText, 400)}`
+        );
         return NextResponse.json(
           { error: `LLM 호출 실패 (${geminiRes.status})`, detail: errorText, requestId },
           { status: geminiRes.status }
@@ -178,6 +221,7 @@ export async function POST(req: Request) {
           .trim() || '';
       const { resultText, suggestion } = parseSuggestion(rawText);
       console.info('[api/ai/design] gemini success', { requestId, hasSuggestion: !!suggestion });
+      await logActivity(200, `gemini success (suggestion=${suggestion ? 'yes' : 'no'})`);
       return NextResponse.json({ result: resultText, suggestion, requestId });
     } else {
       const imageDataUrl = await toBase64DataUrl(file);
@@ -225,6 +269,10 @@ export async function POST(req: Request) {
       if (!openaiRes.ok) {
         const errorText = await openaiRes.text();
         console.error('[api/ai/design] openai error', { requestId, status: openaiRes.status, errorText });
+        await logActivity(
+          openaiRes.status,
+          `openai error: ${truncateText(errorText, 400)}`
+        );
         return NextResponse.json(
           { error: `LLM 호출 실패 (${openaiRes.status})`, detail: errorText, requestId },
           { status: openaiRes.status }
@@ -235,12 +283,16 @@ export async function POST(req: Request) {
       const rawText = data?.choices?.[0]?.message?.content?.trim() || '';
       const { resultText, suggestion } = parseSuggestion(rawText);
       console.info('[api/ai/design] openai success', { requestId, hasSuggestion: !!suggestion });
+      await logActivity(200, `openai success (suggestion=${suggestion ? 'yes' : 'no'})`);
       return NextResponse.json({ result: resultText, suggestion, requestId });
     }
   } catch (err: unknown) {
-    const requestId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
     console.error('[api/ai/design]', { requestId, err });
     const message = err instanceof Error ? err.message : '서버 오류가 발생했습니다.';
+    await recordServerActivity({
+      action: 'ai.design',
+      detail: `status=500 | requestId=${requestId} | error=${truncateText(message, 300)}`,
+    });
     return NextResponse.json({ error: message, requestId }, { status: 500 });
   }
 }
