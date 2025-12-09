@@ -9,6 +9,48 @@ interface DesignEnv {
   provider: 'openai' | 'gemini';
 }
 
+type DesignSuggestion = {
+  palette?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+    neutral?: string;
+    gradientFrom?: string;
+    gradientTo?: string;
+  };
+  typography?: {
+    titleFont?: string;
+    titleSize?: number;
+    titleWeight?: number;
+    bodyFont?: string;
+    bodySize?: number;
+    bodyWeight?: number;
+  };
+  sections?: {
+    header?: string;
+    learningGoal?: string;
+    management?: string;
+    schedule?: string;
+    course?: string;
+    weekly?: string;
+    fee?: string;
+    misc?: string;
+  };
+  checklist?: string[];
+  summary?: string;
+  raw?: string;
+};
+
+const parseSuggestion = (raw: string): { resultText: string; suggestion?: DesignSuggestion } => {
+  const cleaned = raw.trim().replace(/```json/gi, '```').replace(/```/g, '');
+  try {
+    const parsed = JSON.parse(cleaned);
+    return { resultText: raw.trim(), suggestion: { ...(parsed || {}), raw } };
+  } catch {
+    return { resultText: raw.trim(), suggestion: undefined };
+  }
+};
+
 const toBase64DataUrl = async (file: File) => {
   const buffer = Buffer.from(await file.arrayBuffer());
   const mime = file.type || 'image/png';
@@ -90,13 +132,24 @@ export async function POST(req: Request) {
           contents: [
             {
               parts: [
-                { text: prompt },
+                {
+                  text: [
+                    '업로드된 이미지를 분석해 강의계획서 템플릿 제안을 JSON 한 개로 반환해줘.',
+                    '키: palette.primary/secondary/accent/neutral/gradientFrom/gradientTo,',
+                    'typography.titleFont/titleSize/titleWeight/bodyFont/bodySize/bodyWeight,',
+                    'sections.header/learningGoal/management/schedule/course/weekly/fee/misc,',
+                    'checklist(문자열 배열), summary(짧은 요약).',
+                    '마크다운/설명 없이 JSON만.',
+                    '',
+                    `사용자 프롬프트: ${prompt}`,
+                  ].join('\n'),
+                },
                 { inline_data: { mime_type: file.type || 'image/png', data: imageBase64 } },
               ],
             },
           ],
           generationConfig: {
-            temperature: 0.4,
+            temperature: 0.3,
             maxOutputTokens: 700,
           },
         }),
@@ -111,12 +164,13 @@ export async function POST(req: Request) {
       }
 
       const data = await geminiRes.json();
-      const result =
+      const rawText =
         data?.candidates?.[0]?.content?.parts
           ?.map((p: { text?: string }) => p?.text || '')
           .join(' ')
           .trim() || '';
-      return NextResponse.json({ result });
+      const { resultText, suggestion } = parseSuggestion(rawText);
+      return NextResponse.json({ result: resultText, suggestion });
     } else {
       const imageDataUrl = await toBase64DataUrl(file);
 
@@ -134,16 +188,29 @@ export async function POST(req: Request) {
             {
               role: 'system',
               content:
-                '너는 교육/강의용 강의계획서 템플릿을 도출하는 UX/UI 컨설턴트다. 업로드된 이미지를 정량적으로 읽고, 가독성·정보 구조·색상 대비·시각적 계층·인쇄 적합성을 진단한 뒤, 강의계획서 주요 섹션(헤더/학습목표/학습관리/주차별/월간계획)에 바로 적용 가능한 색상/폰트/레이아웃/컴포넌트 가이드를 제안한다. 결과는 간결한 불릿과 체크리스트로 제공한다.',
+                '너는 강의계획서 템플릿을 설계하는 UX/UI 컨설턴트다. 색상/폰트/레이아웃/섹션 구성을 JSON 한 개로만 응답한다.',
             },
             {
               role: 'user',
               content: [
-                { type: 'text', text: prompt },
+                {
+                  type: 'text',
+                  text: [
+                    '업로드된 이미지를 분석해 강의계획서 템플릿 제안을 JSON 한 개로 반환해줘.',
+                    '키: palette.primary/secondary/accent/neutral/gradientFrom/gradientTo,',
+                    'typography.titleFont/titleSize/titleWeight/bodyFont/bodySize/bodyWeight,',
+                    'sections.header/learningGoal/management/schedule/course/weekly/fee/misc,',
+                    'checklist(문자열 배열), summary(짧은 요약).',
+                    '마크다운/설명 없이 JSON만.',
+                    '',
+                    `사용자 프롬프트: ${prompt}`,
+                  ].join('\n'),
+                },
                 { type: 'image_url', image_url: { url: imageDataUrl } },
               ],
             },
           ],
+          response_format: { type: 'json_object' },
         }),
       });
 
@@ -156,8 +223,9 @@ export async function POST(req: Request) {
       }
 
       const data = await openaiRes.json();
-      const result = data?.choices?.[0]?.message?.content?.trim() || '';
-      return NextResponse.json({ result });
+      const rawText = data?.choices?.[0]?.message?.content?.trim() || '';
+      const { resultText, suggestion } = parseSuggestion(rawText);
+      return NextResponse.json({ result: resultText, suggestion });
     }
   } catch (err: unknown) {
     console.error('[api/ai/design]', err);
