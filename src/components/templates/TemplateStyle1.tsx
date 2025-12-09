@@ -116,7 +116,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const getHeaderTextClass = () => {
     if (isDancheong) return 'text-white';
     // 소프트 테마(퍼플/오렌지/틸)는 텍스트를 테마의 진한 색으로
-    if (isSoftGradientTheme) return undefined; // tailwind class 생략, style로 color 지정
+    if (isSoftGradientTheme) return ''; // 클래스 생략 시 빈 문자열 반환
     if (useGradientHeaders) return 'text-white';
     return cardHeaderTextClass;
   };
