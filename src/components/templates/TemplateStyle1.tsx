@@ -5,7 +5,7 @@
 import React from 'react';
 import { ClassPlan, ColorTheme, FeeRow, FieldFontSizes } from '@/lib/types';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
-import { getFontClassName, getDefaultTypography, getFieldFontSize } from '@/lib/utils';
+import { getFontClassName, getDefaultTypography, getFieldFontSize, buildScheduleRows } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -36,6 +36,44 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
   // 안전한 색상 테마 가져오기
   const colors: ColorPalette = colorThemes[colorTheme] || colorThemes.blue;
   const feeInfo = classPlan.feeInfo;
+  const layoutConfig = classPlan.layoutConfig;
+  
+  // 레이아웃 스타일 헬퍼 함수
+  const getLayoutStyle = (sectionId: string): React.CSSProperties => {
+    if (!layoutConfig) return {};
+    
+    // sectionId를 layoutConfig 키로 매핑
+    const idToKeyMap: Record<string, string> = {
+      'header': 'header',
+      'parent-intro': 'parentIntro',
+      'teacher-info': 'teacherInfo',
+      'schedule-info': 'scheduleInfo',
+      'course-info': 'courseInfo',
+      'learning-goal': 'learningGoal',
+      'management': 'management',
+      'weekly-plan': 'weeklyPlan',
+      'monthly-calendar': 'monthlyCalendar',
+      'fee-table': 'feeTable',
+    };
+    
+    const configKey = idToKeyMap[sectionId] as keyof typeof layoutConfig;
+    if (!configKey) return {};
+    
+    const layout = layoutConfig[configKey];
+    if (!layout || typeof layout === 'boolean') return {};
+    
+    const style: React.CSSProperties = {};
+    if (layout.x !== undefined || layout.y !== undefined) {
+      style.transform = `translate(${layout.x || 0}px, ${layout.y || 0}px)`;
+    }
+    if (layout.width !== undefined) {
+      style.width = `calc(100% + ${layout.width}px)`;
+    }
+    if (layout.height !== undefined) {
+      style.height = `calc(100% + ${layout.height}px)`;
+    }
+    return style;
+  };
   
   const groupedByMonth: Record<string, FeeRow[]> = {};
   if (feeInfo?.rows) {
@@ -90,10 +128,13 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const cardHeaderTextClass = useSubduedHeaders ? 'text-slate-900' : 'text-white';
   const gradientHeaderStyle = useGradientHeaders
     ? {
-        // 소프트 테마에서는 그라데이션을 제거하고 단일색(옅은 톤)으로 처리
-        background: isSoftGradientTheme ? colors.light : headerBackground,
-        color: isSoftGradientTheme ? colors.dark : undefined,
-        borderBottom: isSoftGradientTheme ? `1px solid ${colors.border}` : '1px solid rgba(255,255,255,0.25)',
+        // 소프트 테마에서는 그라데이션 질감과 더 진한 색감 적용
+        background: isSoftGradientTheme
+          ? `linear-gradient(135deg, ${colors.primary}b3 0%, ${colors.dark || colors.primary}e6 100%)`
+          : headerBackground,
+        color: isSoftGradientTheme ? '#FFFFFF' : undefined,
+        borderBottom: isSoftGradientTheme ? `1px solid ${colors.primary}f2` : '1px solid rgba(255,255,255,0.25)',
+        boxShadow: isSoftGradientTheme ? 'inset 0 -1px 0 rgba(0,0,0,0.25)' : undefined,
       }
     : undefined;
 
@@ -140,12 +181,51 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
       };
 
   const weeklyPlan = classPlan.weeklyPlan || [];
+  const scheduleRows = buildScheduleRows(classPlan.classDay, classPlan.classTime);
   const midPoint = Math.ceil(weeklyPlan.length / 2);
   const leftWeeks = weeklyPlan.slice(0, midPoint);
   const rightWeeks = weeklyPlan.slice(midPoint);
 
+  // 학습과정/교재 행 데이터
+  const courseRows = [
+    {
+      label: '과정 1',
+      course: classPlan.course1 || '-',
+      material: classPlan.material1 || '-',
+      courseSize: getSize('course1'),
+      materialSize: getSize('material1'),
+      labelSize: getSize('course1'),
+    },
+    {
+      label: '과정 2',
+      course: classPlan.course2 || '-',
+      material: classPlan.material2 || '-',
+      courseSize: getSize('course2'),
+      materialSize: getSize('material2'),
+      labelSize: getSize('course2'),
+    },
+  ];
+
   const primaryText = '#3f3f46';
   const strongText = '#27272a';
+
+  // 두 번째 줄 카드 공통 스타일(담임강사/수업일정/학습과정)
+  const infoCardStyle: React.CSSProperties = {
+    borderColor: colors.border,
+    background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,246,248,0.92))',
+    boxShadow: '0 12px 28px rgba(15,23,42,0.08)',
+  };
+
+  const getInfoHeaderStyle = (index: number) => ({
+    ...getHeaderStyle(index),
+    padding: '0.7rem 0.95rem',
+    minHeight: '2.35rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  });
+
+  const infoBodyPadding = '0.95rem 1.1rem';
 
   return (
     <div
@@ -162,14 +242,15 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           className="px-10 text-white rounded-t-3xl"
           style={{
             background: headerBackground,
-            paddingTop: '1rem',
-            paddingBottom: '1rem',
+            paddingTop: '2rem',
+            paddingBottom: '2rem',
             boxShadow: headerShadow,
+            ...getLayoutStyle('header'),
           }}
         >
           <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
               <span 
                 className="px-3 py-1 rounded-full text-sm"
                 style={{ backgroundColor: 'rgba(255,255,255,0.25)', color: '#FFFFFF', fontWeight: titleWeight }}
@@ -177,18 +258,19 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 2026 WINTER
               </span>
             </div>
-            <h1 className={`text-3xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${typography.titleSize + 4}pt`, fontWeight: titleWeight }}>
+            <h1 className={`text-3xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${(typography.titleSize + 4) * 1.3}pt`, fontWeight: titleWeight }}>
               {classPlan.showTitle && classPlan.title && (
                 <span className="mr-2" style={{ fontSize: `${getSize('title')}pt` }}>[{classPlan.title}]</span>
               )}
               윈터 프로그램 안내문
             </h1>
           </div>
-          <div className="text-right">
+          <div className="text-right flex-shrink-0 ml-6">
             <img 
               src="/images/2-1.png" 
               alt="원리와 해석 수학학원" 
-              className="h-16 object-contain"
+              className="object-contain"
+              style={{ height: '4.5rem' }}
             />
           </div>
           </div>
@@ -206,8 +288,8 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               }}
             >
               <CardHeader className={`p-2.5 pb-1.5 ${getHeaderTextClass()}`} style={getHeaderStyle(0)}>
-                <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-                  <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.2}pt`, height: `${typography.titleSize * 0.75 * 1.2}pt` }} viewBox="0 0 24 24">
+                <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight }}>
+                  <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize}pt`, height: `${typography.titleSize}pt` }} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                   수강대상
@@ -256,7 +338,13 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
         <div 
           data-section-id="parent-intro"
           className="px-6 py-3 rounded-lg mx-8 mt-4"
-          style={{ backgroundColor: colors.light, border: `1px solid ${colors.border}`, fontSize: `${typography.bodySize}pt` }}
+          style={{ 
+            backgroundColor: colors.light, 
+            border: `1px solid ${colors.border}`, 
+            fontSize: `${typography.bodySize}pt`,
+            marginTop: 'calc(1rem + 5pt)',
+            ...getLayoutStyle('parentIntro'),
+          }}
         >
           <div className="relative">
             <p
@@ -270,94 +358,225 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
       )}
 
       <div className="px-8 py-4 flex-1 flex flex-col gap-3" style={{ fontSize: `${typography.bodySize}pt` }}>
-        {/* 두 번째 줄: 담임강사 25%, 수업일정 25%, 학습과정 및 교재 50% */}
-        <div className="grid grid-cols-4 gap-3">
-          {/* 담임강사 카드 */}
+        {/* 두 번째 줄: 좌측(담임강사+수업일정) 50%, 우측(학습과정/교재) 50% */}
+        <div className="grid gap-3 items-stretch" style={{ gridTemplateColumns: '1fr 1fr' }}>
+          <div className="grid gap-3 h-full" style={{ gridTemplateColumns: '0.8fr 1.2fr' }}>
+            {/* 담임강사 카드 */}
             <Card
               data-section-id="teacher-info"
-              className="overflow-hidden shadow-[0_10px_28px_rgba(15,23,42,0.12)]"
+              className="overflow-hidden h-full flex flex-col"
               style={{
-                borderColor: colors.border,
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,250,252,0.85))',
+                ...infoCardStyle,
+                ...getLayoutStyle('teacherInfo'),
               }}
             >
-          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(1)}>
-              <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                담임강사
-              </CardTitle>
-            </CardHeader>
-              <CardContent className="p-3 relative">
-                <p className={`leading-5 ${bodyFontClass}`} style={{ fontSize: `${getSize('teacherName')}pt`, fontWeight: bodyWeight, color: primaryText }}>{classPlan.teacherName}</p>
-            </CardContent>
-          </Card>
+              <CardHeader className={`${getHeaderTextClass()} border-b border-white/20`} style={getInfoHeaderStyle(1)}>
+                <CardTitle
+                className={`flex w-full items-center justify-start gap-1.5 leading-none text-left ${titleFontClass}`}
+                style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight + 100, textAlign: 'left' }}
+                >
+                  <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize}pt`, height: `${typography.titleSize}pt` }} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  담임강사
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative flex items-center flex-1" style={{ padding: infoBodyPadding }}>
+                <p className={`leading-6 ${bodyFontClass}`} style={{ fontSize: `${getSize('teacherName')}pt`, fontWeight: bodyWeight + 100, color: primaryText }}>
+                  {classPlan.teacherName}
+                </p>
+              </CardContent>
+            </Card>
 
-          {/* 수업일정 카드 */}
+            {/* 수업일정 카드 */}
             <Card
-              className="overflow-hidden shadow-[0_10px_28px_rgba(15,23,42,0.12)]"
+              data-section-id="schedule-info"
+              className="overflow-hidden h-full flex flex-col"
               style={{
-                borderColor: colors.border,
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,250,252,0.85))',
+                ...infoCardStyle,
+                ...getLayoutStyle('scheduleInfo'),
               }}
             >
-          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(2)}>
-              <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                수업일정
-              </CardTitle>
-            </CardHeader>
-              <CardContent className="p-3 relative">
-                <p className={`leading-5 ${bodyFontClass}`} style={{ fontSize: `${getSize('classDay')}pt`, fontWeight: bodyWeight, color: primaryText }}>{classPlan.classDay} {classPlan.classTime}</p>
-            </CardContent>
-          </Card>
+              <CardHeader className={`${getHeaderTextClass()} border-b border-white/20`} style={getInfoHeaderStyle(2)}>
+                <CardTitle
+                className={`flex w-full items-center justify-start gap-1.5 leading-none text-left ${titleFontClass}`}
+                style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight + 100, textAlign: 'left' }}
+                >
+                  <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize}pt`, height: `${typography.titleSize}pt` }} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  수업일정
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="relative flex-1 flex items-center overflow-hidden" style={{ padding: '0.6rem 0.5rem' }}>
+                {scheduleRows.length === 0 ? (
+                  <p className={`leading-6 ${bodyFontClass}`} style={{ fontSize: `${getSize('classDay')}pt`, fontWeight: bodyWeight + 50, color: primaryText }}>-</p>
+                ) : (
+                  <div className="flex flex-col gap-1.5 w-full">
+                    {scheduleRows.map((row, i) => (
+                      <div
+                        key={i}
+                        className="flex items-stretch gap-1.5"
+                        style={{
+                          padding: '0.25rem 0.2rem',
+                          borderRadius: 10,
+                          border: `1px solid ${colors.lighter}`,
+                          background: i % 2 === 0 ? `${colors.light}10` : 'transparent',
+                          boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.02)',
+                        }}
+                      >
+                        <div
+                          className={`${bodyFontClass} flex items-center justify-center`}
+                          style={{
+                            padding: '0.3rem 0.55rem',
+                            minWidth: 70,
+                            background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`,
+                            color: strongText,
+                            fontSize: `${getSize('classDay') * 0.9}pt`,
+                            fontWeight: titleWeight + 100,
+                            letterSpacing: '-0.01em',
+                            borderRadius: 8,
+                            boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)',
+                            border: `1px solid ${colors.lighter}`,
+                          whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {row.period || '-'}
+                        </div>
+                        <div
+                          className={`${bodyFontClass} flex items-center justify-center`}
+                          style={{
+                            padding: '0.3rem 0.55rem',
+                            minWidth: 52,
+                            color: primaryText,
+                            fontSize: `${getSize('classDay') * 0.9}pt`,
+                            fontWeight: bodyWeight + 50,
+                            letterSpacing: '-0.01em',
+                            borderRadius: 8,
+                            border: `1px solid ${colors.lighter}`,
+                            background: '#ffffff',
+                          whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {row.day || '-'}
+                        </div>
+                        <div
+                          className={`${bodyFontClass} flex items-center flex-1 justify-start`}
+                          style={{
+                            padding: '0.3rem 0.65rem',
+                            color: primaryText,
+                            fontSize: `${getSize('classDay') * 0.9}pt`,
+                            fontWeight: bodyWeight,
+                            letterSpacing: '-0.01em',
+                            borderRadius: 8,
+                            border: `1px solid ${colors.lighter}`,
+                            background: `${colors.light}18`,
+                            minWidth: 120,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {row.time || '-'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* 학습과정 및 교재 카드 */}
-            <Card
-              className="overflow-hidden shadow-[0_10px_28px_rgba(15,23,42,0.12)] col-span-2"
-              style={{
-                borderColor: colors.border,
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(244,246,248,0.9))',
-              }}
+          <Card
+            data-section-id="course-info"
+            className="overflow-hidden h-full flex flex-col"
+            style={{
+              ...infoCardStyle,
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.97), rgba(240,243,246,0.94))',
+              ...getLayoutStyle('courseInfo'),
+            }}
+          >
+            <CardHeader
+              className={`${getHeaderTextClass()} border-b border-white/20`}
+              style={getInfoHeaderStyle(3)}
             >
-          <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(3)}>
-              <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
+              <CardTitle
+                className={`flex w-full items-center justify-start gap-1.5 leading-none text-left ${titleFontClass}`}
+                style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight + 100, textAlign: 'left' }}
+              >
+                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize}pt`, height: `${typography.titleSize}pt` }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
                 학습과정 및 교재
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0" style={{ fontSize: `${typography.bodySize}pt`, color: undefined }}>
-                <Table style={{ fontSize: `${typography.bodySize}pt` }}>
-                <TableBody>
-                  <TableRow style={{ borderColor: colors.lighter }}>
-                    <TableCell className={`py-1.5 px-2 w-16 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`, color: strongText, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)' }}>
-                      과정 1
-                    </TableCell>
-                    <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: `${getSize('course1')}pt`, fontWeight: bodyWeight, borderRight: `1px solid ${colors.lighter}`, color: primaryText }}>
-                      {classPlan.course1 || '-'}
-                    </TableCell>
-                    <TableCell className={`py-1.5 px-2 text-left ${bodyFontClass}`} style={{ fontSize: `${getSize('material1')}pt`, fontWeight: bodyWeight, color: primaryText }}>
-                      {classPlan.material1 || '-'}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow style={{ borderColor: colors.lighter }}>
-                    <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`, color: strongText, fontSize: '0.9em', fontWeight: titleWeight, boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)' }}>
-                      과정 2
-                    </TableCell>
-                    <TableCell className={`py-1.5 px-2 ${bodyFontClass}`} style={{ fontSize: `${getSize('course2')}pt`, fontWeight: bodyWeight, borderRight: `1px solid ${colors.lighter}`, color: primaryText }}>
-                      {classPlan.course2 || '-'}
-                    </TableCell>
-                    <TableCell className={`py-1.5 px-2 text-left ${bodyFontClass}`} style={{ fontSize: `${getSize('material2')}pt`, fontWeight: bodyWeight, color: primaryText }}>
-                      {classPlan.material2 || '-'}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+            <CardContent className="p-0 flex-1 flex flex-col" style={{ fontSize: `${typography.bodySize}pt` }}>
+              <div className="flex flex-col gap-1.25 p-2">
+                {courseRows.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-stretch gap-1.5"
+                    style={{
+                      padding: '0.35rem 0.3rem',
+                      borderRadius: 10,
+                      border: `1px solid ${colors.lighter}`,
+                      background: i % 2 === 0 ? `${colors.light}12` : '#ffffff',
+                      boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.02)',
+                    }}
+                  >
+                    <div
+                      className={`${bodyFontClass} flex items-center justify-center`}
+                      style={{
+                        padding: '0.35rem 0.55rem',
+                        minWidth: 60,
+                        background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`,
+                        color: strongText,
+                        fontSize: `${item.labelSize}pt`,
+                        fontWeight: titleWeight + 100,
+                        letterSpacing: '-0.01em',
+                        borderRadius: 8,
+                        boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)',
+                        border: `1px solid ${colors.lighter}`,
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                    <div
+                      className={`${bodyFontClass} flex items-center flex-1 justify-start`}
+                      style={{
+                        padding: '0.35rem 0.6rem',
+                        color: primaryText,
+                        fontSize: `${item.courseSize}pt`,
+                        fontWeight: bodyWeight,
+                        letterSpacing: '-0.01em',
+                        borderRadius: 8,
+                        border: `1px solid ${colors.lighter}`,
+                        background: '#ffffff',
+                        minWidth: 120,
+                      }}
+                    >
+                      {item.course}
+                    </div>
+                    <div
+                      className={`${bodyFontClass} flex items-center flex-1 justify-start`}
+                      style={{
+                        padding: '0.35rem 0.6rem',
+                        color: primaryText,
+                        fontSize: `${item.materialSize}pt`,
+                        fontWeight: bodyWeight,
+                        letterSpacing: '-0.01em',
+                        borderRadius: 8,
+                        border: `1px solid ${colors.lighter}`,
+                        background: `${colors.light}16`,
+                        minWidth: 120,
+                      }}
+                    >
+                      {item.material}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -371,11 +590,22 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             style={{
               borderColor: colors.border,
               background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,248,250,0.9))',
+              ...getLayoutStyle('learningGoal'),
             }}
           >
-            <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(4)}>
-              <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
+            <CardHeader
+              className={`${getHeaderTextClass()}`}
+              style={{
+                ...getHeaderStyle(4),
+                padding: '0.7rem 0.95rem',
+                minHeight: '2.35rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+              }}
+            >
+              <CardTitle className={`text-xs flex w-full items-center justify-start gap-1.5 text-left ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight, textAlign: 'left' }}>
+                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize}pt`, height: `${typography.titleSize}pt` }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 학습목표
@@ -384,7 +614,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             <CardContent className="p-3 relative flex-1">
               <p
                 className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`}
-                style={{ fontSize: `${getSize('learningGoal')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45 }}
+                style={{ fontSize: `${getSize('learningGoal')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45, paddingLeft: '4px' }}
               >
                 {classPlan.learningGoal || "학습 목표가 입력되지 않았습니다."}
               </p>
@@ -398,11 +628,22 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             style={{
               borderColor: colors.border,
               background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,248,250,0.9))',
+              ...getLayoutStyle('management'),
             }}
           >
-            <CardHeader className={`p-3 pb-2 ${getHeaderTextClass()}`} style={getHeaderStyle(5)}>
-              <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.75 * 1.3}pt`, height: `${typography.titleSize * 0.75 * 1.3}pt` }} viewBox="0 0 24 24">
+            <CardHeader
+              className={`${getHeaderTextClass()}`}
+              style={{
+                ...getHeaderStyle(5),
+                padding: '0.7rem 0.95rem',
+                minHeight: '2.35rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+              }}
+            >
+              <CardTitle className={`text-xs flex w-full items-center justify-start gap-1.5 text-left ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight, textAlign: 'left' }}>
+                <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize}pt`, height: `${typography.titleSize}pt` }} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
                 학습관리
@@ -411,7 +652,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           <CardContent className="p-3 relative flex-1">
             <p
               className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`}
-              style={{ fontSize: `${getSize('management')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45 }}
+              style={{ fontSize: `${getSize('management')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45, paddingLeft: '4px' }}
             >
               {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
             </p>
@@ -438,11 +679,22 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           style={{
             borderColor: colors.border,
             background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(242,245,247,0.92))',
+            ...getLayoutStyle('weeklyPlan'),
           }}
         >
-          <CardHeader className={`p-2.5 pb-1.75 ${getHeaderTextClass()}`} style={getHeaderStyle(6)}>
-            <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.875 * 1.5}pt`, height: `${typography.titleSize * 0.875 * 1.5}pt` }} viewBox="0 0 24 24">
+          <CardHeader
+            className={`${getHeaderTextClass()}`}
+            style={{
+              ...getHeaderStyle(6),
+              padding: '0.7rem 0.95rem',
+              minHeight: '2.35rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+            }}
+          >
+            <CardTitle className={`text-xs flex w-full items-center justify-start gap-1.5 text-left ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight, textAlign: 'left' }}>
+              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize}pt`, height: `${typography.titleSize}pt` }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
               주차별 학습계획
@@ -511,26 +763,62 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
         </Card>
 
         {/* 월간계획 */}
-        <Card data-section-id="monthly-calendar" className="overflow-hidden" style={{ borderColor: colors.border, background: undefined }}>
-          <CardHeader className={`p-2.5 pb-1.75 ${getHeaderTextClass()}`} style={getHeaderStyle(7)}>
-            <CardTitle className={`text-xs flex items-center gap-1.5 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize * 0.875 * 1.5}pt`, height: `${typography.titleSize * 0.875 * 1.5}pt` }} viewBox="0 0 24 24">
+        <Card 
+          data-section-id="monthly-calendar" 
+          className="overflow-hidden" 
+          style={{ 
+            borderColor: colors.border, 
+            background: undefined,
+            ...getLayoutStyle('monthlyCalendar'),
+          }}
+        >
+          <CardHeader
+            className={`${getHeaderTextClass()}`}
+            style={{
+              ...getHeaderStyle(7),
+              padding: '0.7rem 0.95rem',
+              minHeight: '2.35rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+            }}
+          >
+            <CardTitle className={`text-xs flex w-full items-center justify-start gap-1.5 text-left ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight, textAlign: 'left' }}>
+              <svg className="fill-none stroke-current" style={{ width: `${typography.titleSize}pt`, height: `${typography.titleSize}pt` }} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               월간계획
             </CardTitle>
           </CardHeader>
           <CardContent className="p-2">
-            <MonthlyCalendar classPlan={classPlan} colorTheme={colorTheme} />
+            <MonthlyCalendar classPlan={classPlan} colorTheme={colorTheme} fontSize={getSize('monthlyCalendar')} />
           </CardContent>
         </Card>
 
         {/* 수강료 안내 */}
         {feeInfo && feeInfo.rows.length > 0 && (
-          <Card data-section-id="fee-table" className="overflow-hidden shadow-sm mt-auto" style={{ borderColor: colors.border, background: undefined }}>
-            <CardHeader className={`p-3.5 pb-2.5 ${getHeaderTextClass()}`} style={getHeaderStyle(8)}>
-              <CardTitle className={`text-sm flex items-center gap-2 ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.75}pt`, fontWeight: titleWeight }}>
-                <span style={{ fontSize: `${typography.titleSize * 0.75 * 1.2}pt` }}>📌</span>
+          <Card 
+            data-section-id="fee-table" 
+            className="overflow-hidden shadow-sm mt-auto" 
+            style={{ 
+              borderColor: colors.border, 
+              background: undefined,
+              ...getLayoutStyle('feeTable'),
+            }}
+          >
+            <CardHeader
+              className={`${getHeaderTextClass()}`}
+              style={{
+                ...getHeaderStyle(8),
+                padding: '0.7rem 0.95rem',
+                minHeight: '2.35rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+              }}
+            >
+              <CardTitle className={`text-sm flex w-full items-center justify-start gap-2 text-left ${titleFontClass}`} style={{ fontSize: `${typography.titleSize * 0.875}pt`, fontWeight: titleWeight, textAlign: 'left' }}>
+                <span style={{ fontSize: `${typography.titleSize * 0.875 * 1.2}pt` }}>📌</span>
                 {feeInfo.title}
               </CardTitle>
             </CardHeader>

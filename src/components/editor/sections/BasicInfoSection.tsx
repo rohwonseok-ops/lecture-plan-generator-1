@@ -146,7 +146,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
           {errorMsg}
         </div>
       )}
-      <div className="grid grid-cols-12 gap-2.5">
+      <div className="grid grid-cols-12 gap-3.5">
         {/* Row 1: 수강대상 20%, 홍보문구 및 특이사항 80% */}
         <div className="col-span-2">
           <div className="flex items-center justify-between mb-1">
@@ -167,7 +167,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                   )}
                 </div>
               </label>
-              <label className="block text-xs font-bold text-blue-600 uppercase cursor-pointer" onClick={() => onChange({ showTargetStudent: !classPlan.showTargetStudent })}>수강대상</label>
+              <label className="block text-[13px] font-bold text-blue-600 uppercase cursor-pointer" onClick={() => onChange({ showTargetStudent: !classPlan.showTargetStudent })}>수강대상</label>
             </div>
             <FontSizeControl
               value={getFontSize('targetStudent')}
@@ -203,7 +203,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                   )}
                 </div>
               </label>
-              <label className="text-xs font-bold text-blue-600 uppercase cursor-pointer" onClick={() => onChange({ showEtc: !classPlan.showEtc })}>홍보문구 및 특이사항 (필요한 경우에만 입력)</label>
+              <label className="text-[13px] font-bold text-blue-600 uppercase cursor-pointer" onClick={() => onChange({ showEtc: !classPlan.showEtc })}>홍보문구 및 특이사항 (필요한 경우에만 입력)</label>
               {classPlan.showEtc && (
                 <select
                   value={classPlan.etcPosition || 'bottom'}
@@ -277,14 +277,14 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         <div className="col-span-12">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
-                <label className="text-[10px] font-bold text-zinc-600 uppercase">학부모 안내글 (인트로)</label>
+                <label className="text-[13px] font-bold text-zinc-600 uppercase">학부모 안내글 (인트로)</label>
                 <FontSizeControl
                   value={getFontSize('parentIntro')}
                   onChange={(size) => handleFieldFontSizeChange('parentIntro', size)}
                 />
               </div>
-              <div className="flex items-center gap-1">
-                <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
+            <div className="flex items-center gap-1 ml-auto justify-end">
+              <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1 justify-end">
                   {contextOptions.parentIntro.map((c) => (
                     <button
                       key={c}
@@ -338,13 +338,13 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
 
         {/* Row 3: 반명/강좌명, 강사명, 수업요일, 수업시간 */}
-        <div className="col-span-3">
+        <div className="col-span-3 flex flex-col">
           <div className="flex items-center justify-between mb-1">
             <div className="flex bg-zinc-100 rounded-md p-0.5 gap-0.5">
               <button
                 type="button"
                 onClick={() => onChange({ titleType: 'class' })}
-                className={`flex-1 px-2 py-1 text-[10px] rounded font-medium transition-all ${
+                className={`flex-1 px-3 py-1.5 text-[13px] rounded font-medium transition-all whitespace-nowrap ${
                   classPlan.titleType === 'class' || !classPlan.titleType
                     ? 'bg-white text-blue-600 shadow-sm' 
                     : 'text-zinc-700 hover:text-zinc-900'
@@ -355,7 +355,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               <button
                 type="button"
                 onClick={() => onChange({ titleType: 'name' })}
-                className={`flex-1 px-2 py-1 text-[10px] rounded font-medium transition-all ${
+                className={`flex-1 px-3 py-1.5 text-[13px] rounded font-medium transition-all whitespace-nowrap ${
                   classPlan.titleType === 'name'
                     ? 'bg-white text-blue-600 shadow-sm' 
                     : 'text-zinc-700 hover:text-zinc-900'
@@ -367,27 +367,29 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             <FontSizeControl
               value={getFontSize('title')}
               onChange={(size) => handleFieldFontSizeChange('title', size)}
+              max={36}
+              label="폰트 13" // 표시용 주석: 실 폰트는 입력 필드에서 조정
             />
           </div>
           <input
             type="text"
-            className="w-full h-9 text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
+            className="w-full text-[13px] px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500 whitespace-nowrap overflow-x-auto flex-1 min-h-[48px]"
             value={classPlan.title || ''}
             onChange={handleChange('title')}
             placeholder={classPlan.titleType === 'name' ? "예: 수학 몰입특강" : "예: A반"}
             aria-label={classPlan.titleType === 'name' ? "강좌명" : "반명"}
           />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-blue-600 uppercase">강사명</label>
+            <label className="text-[13px] font-bold text-blue-600 uppercase">강사명</label>
             <FontSizeControl
               value={getFontSize('teacherName')}
               onChange={(size) => handleFieldFontSizeChange('teacherName', size)}
             />
           </div>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[44px] text-zinc-800 placeholder:text-zinc-500"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[44px] text-zinc-800 placeholder:text-zinc-500 flex-1"
             value={classPlan.teacherName || ''}
             onChange={handleChange('teacherName')}
             onKeyDown={(e) => {
@@ -400,67 +402,135 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 e.preventDefault();
               }
             }}
-            placeholder="홍길동 (필요 시 두 줄 입력, Shift+Enter 줄바꿈)"
+            placeholder="홍길동"
             rows={2}
             style={twoLineDividerStyle}
             aria-label="강사명"
           />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-4 flex flex-col">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-blue-600 uppercase">수업요일</label>
+            <label className="text-[13px] font-bold text-blue-600 uppercase">수업요일</label>
             <FontSizeControl
               value={getFontSize('classDay')}
               onChange={(size) => handleFieldFontSizeChange('classDay', size)}
             />
           </div>
-          <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[36px] text-zinc-800 placeholder:text-zinc-500"
-            value={classPlan.classDay || ''}
-            onChange={handleChange('classDay')}
-            onKeyDown={(e) => {
-              // Shift+Enter: 줄바꿈 허용
-              if (e.key === 'Enter' && e.shiftKey) {
-                return; // 기본 동작(줄바꿈) 허용
-              }
-              // Enter만: 기본 동작 막기 (폼 제출 방지)
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-              }
-            }}
-            placeholder="월수금 (Shift+Enter로 줄바꿈)"
-            rows={2}
-            style={twoLineDividerStyle}
-            aria-label="수업요일"
-          />
+          <div className="flex flex-col gap-1 flex-1">
+            {/* 첫 번째 줄: 기간 | 요일 */}
+            <div className="flex gap-1">
+              <input
+                type="text"
+                className="w-14 text-xs px-1.5 py-1.5 bg-amber-50 border border-amber-200 rounded-md focus:border-amber-400 focus:ring-1 focus:ring-amber-300 outline-none transition text-amber-700 placeholder:text-amber-400 text-center font-medium"
+                value={(() => {
+                  const line = (classPlan.classDay || '').split('\n')[0] || '';
+                  return line.includes('|') ? line.split('|')[0] : '';
+                })()}
+                onChange={(e) => {
+                  const lines = (classPlan.classDay || '').split('\n');
+                  const currentLine = lines[0] || '';
+                  const dayPart = currentLine.includes('|') ? currentLine.split('|')[1] : currentLine;
+                  lines[0] = e.target.value ? `${e.target.value}|${dayPart}` : dayPart;
+                  onChange({ classDay: lines.filter((l, i) => i === 0 || l).join('\n') });
+                }}
+                placeholder="12월"
+                aria-label="수업요일 1 기간"
+              />
+              <input
+                type="text"
+                className="flex-1 text-xs px-2.5 py-1.5 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
+                value={(() => {
+                  const line = (classPlan.classDay || '').split('\n')[0] || '';
+                  return line.includes('|') ? line.split('|')[1] : line;
+                })()}
+                onChange={(e) => {
+                  const lines = (classPlan.classDay || '').split('\n');
+                  const currentLine = lines[0] || '';
+                  const periodPart = currentLine.includes('|') ? currentLine.split('|')[0] : '';
+                  lines[0] = periodPart ? `${periodPart}|${e.target.value}` : e.target.value;
+                  onChange({ classDay: lines.filter((l, i) => i === 0 || l).join('\n') });
+                }}
+                placeholder="월수금"
+                aria-label="수업요일 1"
+              />
+            </div>
+            {/* 두 번째 줄: 기간 | 요일 */}
+            <div className="flex gap-1">
+              <input
+                type="text"
+                className="w-14 text-xs px-1.5 py-1.5 bg-amber-50/50 border border-amber-100 rounded-md focus:border-amber-400 focus:ring-1 focus:ring-amber-300 focus:bg-amber-50 outline-none transition text-amber-600 placeholder:text-amber-300 text-center font-medium"
+                value={(() => {
+                  const line = (classPlan.classDay || '').split('\n')[1] || '';
+                  return line.includes('|') ? line.split('|')[0] : '';
+                })()}
+                onChange={(e) => {
+                  const lines = (classPlan.classDay || '').split('\n');
+                  const currentLine = lines[1] || '';
+                  const dayPart = currentLine.includes('|') ? currentLine.split('|')[1] : currentLine;
+                  const newLine = e.target.value ? `${e.target.value}|${dayPart}` : dayPart;
+                  onChange({ classDay: newLine ? `${lines[0] || ''}\n${newLine}` : (lines[0] || '') });
+                }}
+                placeholder="1월"
+                aria-label="수업요일 2 기간"
+              />
+              <input
+                type="text"
+                className="flex-1 text-xs px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white outline-none transition text-zinc-800 placeholder:text-zinc-400"
+                value={(() => {
+                  const line = (classPlan.classDay || '').split('\n')[1] || '';
+                  return line.includes('|') ? line.split('|')[1] : line;
+                })()}
+                onChange={(e) => {
+                  const lines = (classPlan.classDay || '').split('\n');
+                  const currentLine = lines[1] || '';
+                  const periodPart = currentLine.includes('|') ? currentLine.split('|')[0] : '';
+                  const newLine = periodPart ? `${periodPart}|${e.target.value}` : e.target.value;
+                  onChange({ classDay: newLine ? `${lines[0] || ''}\n${newLine}` : (lines[0] || '') });
+                }}
+                placeholder="(추가 요일)"
+                aria-label="수업요일 2"
+              />
+            </div>
+          </div>
         </div>
-        <div className="col-span-3">
-          <label className="block text-[10px] font-bold text-blue-600 uppercase mb-1">수업시간</label>
-          <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[36px] text-zinc-800 placeholder:text-zinc-500"
-            value={classPlan.classTime || ''}
-            onChange={handleChange('classTime')}
-            onKeyDown={(e) => {
-              // Shift+Enter: 줄바꿈 허용
-              if (e.key === 'Enter' && e.shiftKey) {
-                return; // 기본 동작(줄바꿈) 허용
-              }
-              // Enter만: 기본 동작 막기 (폼 제출 방지)
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-              }
-            }}
-            placeholder="13:00-17:00 (Shift+Enter로 줄바꿈)"
-            rows={2}
-            style={twoLineDividerStyle}
-            aria-label="수업시간"
-          />
+        <div className="col-span-3 flex flex-col">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-[13px] font-bold text-blue-600 uppercase">수업시간</label>
+          </div>
+          <div className="flex flex-col gap-1 flex-1">
+            {/* 첫 번째 줄 */}
+            <input
+              type="text"
+              className="w-full text-xs px-2.5 py-1.5 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
+              value={(classPlan.classTime || '').split('\n')[0] || ''}
+              onChange={(e) => {
+                const lines = (classPlan.classTime || '').split('\n');
+                lines[0] = e.target.value;
+                onChange({ classTime: lines.filter((_, i) => i === 0 || lines[i]).join('\n') });
+              }}
+              placeholder="13:00-17:00"
+              aria-label="수업시간 1"
+            />
+            {/* 두 번째 줄 */}
+            <input
+              type="text"
+              className="w-full text-xs px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white outline-none transition text-zinc-800 placeholder:text-zinc-400"
+              value={(classPlan.classTime || '').split('\n')[1] || ''}
+              onChange={(e) => {
+                const lines = (classPlan.classTime || '').split('\n');
+                lines[1] = e.target.value;
+                onChange({ classTime: e.target.value ? `${lines[0] || ''}\n${e.target.value}` : (lines[0] || '') });
+              }}
+              placeholder="(추가 시간)"
+              aria-label="수업시간 2"
+            />
+          </div>
         </div>
         
         {/* Row 4: 학습과정1, 교재1, 학습과정2, 교재2 (각각 25%) */}
         <div className="col-span-3">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-blue-600 uppercase">학습과정1</label>
+            <label className="text-[13px] font-bold text-blue-600 uppercase">학습과정1</label>
             <FontSizeControl
               value={getFontSize('course1')}
               onChange={(size) => handleFieldFontSizeChange('course1', size)}
@@ -477,7 +547,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
         <div className="col-span-3">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-blue-600 uppercase">교재1</label>
+            <label className="text-[13px] font-bold text-blue-600 uppercase">교재1</label>
             <FontSizeControl
               value={getFontSize('material1')}
               onChange={(size) => handleFieldFontSizeChange('material1', size)}
@@ -494,7 +564,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
         <div className="col-span-3">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-blue-600 uppercase">학습과정2</label>
+            <label className="text-[13px] font-bold text-blue-600 uppercase">학습과정2</label>
             <FontSizeControl
               value={getFontSize('course2')}
               onChange={(size) => handleFieldFontSizeChange('course2', size)}
@@ -511,7 +581,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
         <div className="col-span-3">
           <div className="flex items-center justify-between mb-1">
-            <label className="text-[10px] font-bold text-blue-600 uppercase">교재2</label>
+            <label className="text-[13px] font-bold text-blue-600 uppercase">교재2</label>
             <FontSizeControl
               value={getFontSize('material2')}
               onChange={(size) => handleFieldFontSizeChange('material2', size)}
@@ -530,15 +600,16 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         {/* Row 5: 학습목표와 학습관리 (각각 50%), 폰트 파란색 */}
         <div className="col-span-6">
           <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] font-bold text-blue-600 uppercase">학습목표</label>
-              <FontSizeControl
-                value={getFontSize('learningGoal')}
-                onChange={(size) => handleFieldFontSizeChange('learningGoal', size)}
-              />
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <label className="text-[13px] font-bold text-blue-600 uppercase">학습목표</label>
+                <FontSizeControl
+                  value={getFontSize('learningGoal')}
+                  onChange={(size) => handleFieldFontSizeChange('learningGoal', size)}
+                />
+              </div>
+            <div className="flex items-center gap-1 ml-auto justify-end">
+              <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1 justify-end">
                 {contextOptions.learningGoal.map((c) => (
                   <button
                     key={c}
@@ -580,9 +651,11 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 {generatingField === 'learningGoal' ? '생성중' : 'AI'}
               </button>
             </div>
+            </div>
           </div>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-14 text-zinc-800 placeholder:text-zinc-500"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none text-zinc-800 placeholder:text-zinc-500"
+            style={{ height: '7.875rem' }}
             value={classPlan.learningGoal || ''}
             onChange={handleChange('learningGoal')}
             placeholder="학습 목표"
@@ -592,14 +665,15 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
         <div className="col-span-6">
           <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] font-bold text-blue-600 uppercase">학습관리</label>
-              <FontSizeControl
-                value={getFontSize('management')}
-                onChange={(size) => handleFieldFontSizeChange('management', size)}
-              />
-            </div>
-            <div className="flex items-center gap-1">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <label className="text-[13px] font-bold text-blue-600 uppercase">학습관리</label>
+                <FontSizeControl
+                  value={getFontSize('management')}
+                  onChange={(size) => handleFieldFontSizeChange('management', size)}
+                />
+              </div>
+              <div className="flex items-center gap-1">
               <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap pr-1">
                 {contextOptions.management.map((c) => (
                   <button
@@ -642,9 +716,11 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 {generatingField === 'management' ? '생성중' : 'AI'}
               </button>
             </div>
+            </div>
           </div>
           <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-14 text-zinc-800 placeholder:text-zinc-500"
+            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none text-zinc-800 placeholder:text-zinc-500"
+            style={{ height: '7.875rem' }}
             value={classPlan.management || ''}
             onChange={handleChange('management')}
             placeholder="테스트/클리닉/피드백"

@@ -88,7 +88,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     const displayLabel = week.weekLabel || '';
     
     return (
-      <div key={globalIndex} className="flex items-start gap-2 px-2 py-1">
+      <div key={globalIndex} className="flex items-center gap-2 px-1.5 py-0.5">
         <div className="flex-shrink-0 w-12 h-8 bg-white border border-zinc-300 rounded flex items-center justify-center transition">
           <input
             type="text"
@@ -101,7 +101,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
         <div className="flex-1 min-w-0 flex items-center gap-1">
           <input
             type="text"
-            className="w-full text-xs font-medium px-2 py-1 bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
+            className="w-full text-xs font-medium px-2 py-1 min-h-[32px] bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={week.topic}
             onChange={(e) => handleWeekChange(globalIndex, 'topic', e.target.value)}
             placeholder=""
@@ -125,7 +125,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     <div className="flex flex-col p-1.5 bg-white">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <h3 className="text-xs font-bold text-blue-600">📅 주차별 수업 계획 ({weekCount}주)</h3>
+          <h3 className="text-[14px] font-bold text-blue-600">📅 주차별 학습계획 ({weekCount}주)</h3>
           <div className="flex items-center gap-1">
             <span className="text-[9px] text-zinc-500">주차</span>
             <FontSizeControl
@@ -138,6 +138,13 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
             <FontSizeControl
               value={getFontSize('weeklyPlanTopic')}
               onChange={(size) => handleFieldFontSizeChange('weeklyPlanTopic', size)}
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-zinc-500">월간계획</span>
+            <FontSizeControl
+              value={getFontSize('monthlyCalendar')}
+              onChange={(size) => handleFieldFontSizeChange('monthlyCalendar', size)}
             />
           </div>
         </div>

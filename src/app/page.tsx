@@ -199,7 +199,7 @@ export default function HomePage() {
       teacherName: '',
       classDay: '',
       classTime: '',
-      templateId: 'style1-blue',
+      templateId: currentTemplateId,
       sizePreset: 'A4',
       weeklyPlan: Array.from({ length: 8 }, () => ({
         weekLabel: '',
@@ -295,23 +295,31 @@ export default function HomePage() {
   };
 
   // 레이아웃 저장 핸들러
-  const handleLayoutSave = (config: TemplateLayoutConfig, applyToCategory: boolean) => {
+  const handleLayoutSave = async (config: TemplateLayoutConfig, applyToCategory: boolean) => {
     if (!selectedId) return;
     
-    // 현재 강의에 레이아웃 설정 저장
-    updateClassPlan(selectedId, { layoutConfig: config });
+    // applyToCategory 파라미터를 config에 반영
+    const finalConfig = { ...config, applyToCategory };
     
-    // 카테고리 전체 적용 시
+    // 현재 강의에 레이아웃 설정 저장
+    updateClassPlan(selectedId, { layoutConfig: finalConfig });
+    
+    const targets: string[] = [selectedId];
+    // 카테고리 전체 적용 시에만 다른 강의에도 적용
     if (applyToCategory) {
       const currentCategory = parseTemplateId(selectedPlan?.templateId).category;
       classPlans.forEach(plan => {
-        if (plan.id !== selectedId) {
-          const planCategory = parseTemplateId(plan.templateId).category;
-          if (planCategory === currentCategory) {
-            updateClassPlan(plan.id, { layoutConfig: config });
-          }
+        const planCategory = parseTemplateId(plan.templateId).category;
+        if (plan.id !== selectedId && planCategory === currentCategory) {
+          updateClassPlan(plan.id, { layoutConfig: finalConfig });
+          targets.push(plan.id);
         }
       });
+    }
+    
+    // 즉시 영속화하여 새로고침/재접속 시에도 유지
+    for (const planId of Array.from(new Set(targets))) {
+      await savePlan(planId);
     }
     
     recordActivity('template.layout', `레이아웃 저장${applyToCategory ? ' (카테고리 전체 적용)' : ''}`);

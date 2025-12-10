@@ -144,7 +144,7 @@ const FeeTableSection: React.FC<Props> = ({ classPlan, onChange }) => {
     <div className="p-2 bg-white">
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2">
-          <h3 className="text-xs font-bold text-blue-600">💰 수강료 안내</h3>
+          <h3 className="text-[13px] font-bold text-blue-600">수강료 안내</h3>
           <FontSizeControl
             value={getFontSize('feeTable')}
             onChange={(size) => handleFieldFontSizeChange('feeTable', size)}

@@ -7,7 +7,7 @@ import { TemplateCategory, TemplateLayoutConfig } from '@/lib/types';
 
 interface EditModeToolbarProps {
   currentCategory: TemplateCategory;
-  onSave: (config: TemplateLayoutConfig, applyToCategory: boolean) => void;
+  onSave: (config: TemplateLayoutConfig, applyToCategory: boolean) => Promise<void> | void;
 }
 
 const EditModeToolbar: React.FC<EditModeToolbarProps> = ({
@@ -21,17 +21,24 @@ const EditModeToolbar: React.FC<EditModeToolbarProps> = ({
     setApplyToCategory,
     getPendingChanges,
     clearPendingChanges,
+    setIsSaving,
   } = useTemplateEditStore();
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const changes = getPendingChanges();
-    onSave(changes, applyToCategory);
+    // 저장 플래그 설정 (DOM 복구 방지)
+    setIsSaving(true);
+    await onSave(changes, applyToCategory);
     clearPendingChanges();
+    setApplyToCategory(false);
     setEditMode(false);
   };
 
   const handleCancel = () => {
+    // 저장 플래그 false 유지 (DOM 복구 수행)
+    setIsSaving(false);
     clearPendingChanges();
+    setApplyToCategory(false);
     setEditMode(false);
   };
 

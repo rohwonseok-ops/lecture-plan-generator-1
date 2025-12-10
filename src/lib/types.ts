@@ -56,6 +56,8 @@ export interface FieldFontSizes {
   weeklyPlanTopic?: number;    // 주차별 주제
   // 수강료
   feeTable?: number;           // 수강료 테이블
+  // 월간계획
+  monthlyCalendar?: number;    // 월간계획 캘린더
 }
 
 // 타이포그래피 설정
@@ -68,6 +70,8 @@ export interface TypographySettings {
   bodyWeight?: number;    // 본문 폰트 굵기 (400: 보통, 600: 세미볼드, 700: 볼드)
   enableFontSizeChange?: boolean;  // 폰트 크기 변경 허용 여부
   fieldFontSizes?: FieldFontSizes; // 필드별 개별 폰트 크기
+  // 레이아웃 메타(typography JSON에 함께 저장해 불러오기 위함)
+  _layoutConfig?: TemplateLayoutConfig;
 }
 
 // 템플릿 카테고리 (레이아웃 스타일)

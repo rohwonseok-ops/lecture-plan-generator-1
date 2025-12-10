@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ClassPlan, FeeRow, WeeklyItem, SizePreset, TypographySettings } from '@/lib/types';
+import { ClassPlan, FeeRow, WeeklyItem, SizePreset, TemplateLayoutConfig, TypographySettings } from '@/lib/types';
 import { supabase } from '@/lib/supabaseClient';
 import type { Tables, TablesInsert } from '@/lib/supabase.types';
 
@@ -36,6 +36,31 @@ const defaultFeeInfo = {
     { month: '1월', total: 589000 },
     { month: '2월', total: 726000 }
   ]
+};
+
+// typography JSON 컬럼에 함께 저장된 레이아웃 정보를 추출/삽입
+const extractLayoutFromTypography = (
+  typography?: TypographySettings | null
+): { typography?: TypographySettings; layoutConfig?: TemplateLayoutConfig } => {
+  if (!typography || typeof typography !== 'object') {
+    return { typography: typography || undefined };
+  }
+  const { layoutConfig: legacyLayoutConfig, _layoutConfig, ...rest } = typography as TypographySettings & Record<string, unknown>;
+  return {
+    typography: rest,
+    layoutConfig: (legacyLayoutConfig as TemplateLayoutConfig | undefined) || (_layoutConfig as TemplateLayoutConfig | undefined),
+  };
+};
+
+const attachLayoutToTypography = (
+  typography?: TypographySettings,
+  layoutConfig?: TemplateLayoutConfig
+): TypographySettings | undefined => {
+  if (!layoutConfig) return typography;
+  return {
+    ...(typography || {}),
+    _layoutConfig: layoutConfig,
+  } as TypographySettings & { _layoutConfig: TemplateLayoutConfig };
 };
 
 // 로드/저장 시 필수 필드 강제 세팅
@@ -133,10 +158,13 @@ const dbToClassPlan = (row: ClassPlanRow): ClassPlan => {
   const templateId = typeof row.template_id === 'string' ? (row.template_id as ClassPlan['templateId']) : 'style1-blue';
   const sizePreset: SizePreset =
     row.size_preset === '4x5' || row.size_preset === '1x1' ? row.size_preset : 'A4';
-  const typography =
+  const typographyRaw =
     row.typography && typeof row.typography === 'object' && !Array.isArray(row.typography)
       ? (row.typography as unknown as TypographySettings)
       : undefined;
+  const { typography, layoutConfig: layoutFromTypography } = extractLayoutFromTypography(typographyRaw);
+  const layoutFromColumn = (row as { layout_config?: TemplateLayoutConfig }).layout_config;
+  const layoutConfig = layoutFromColumn || layoutFromTypography;
 
   return normalizePlan({
     id: row.id,
@@ -163,13 +191,16 @@ const dbToClassPlan = (row: ClassPlanRow): ClassPlan => {
     templateId,
     sizePreset,
     typography,
+    layoutConfig,
     weeklyPlan,
     feeInfo,
     lastSaved: row.last_saved ?? undefined,
   });
 };
 
-const toDbPlan = (plan: ClassPlan) => ({
+const toDbPlan = (plan: ClassPlan) => {
+  const typographyPayload = attachLayoutToTypography(plan.typography, plan.layoutConfig);
+  return {
   title: plan.title,
   title_type: plan.titleType,
   subject: plan.subject,
@@ -192,10 +223,11 @@ const toDbPlan = (plan: ClassPlan) => ({
   etc_position: plan.etcPosition,
   template_id: plan.templateId,
   size_preset: plan.sizePreset,
-  typography: plan.typography,
+    typography: typographyPayload,
   fee_info_title: plan.feeInfo?.title ?? '수강료 안내',
   last_saved: new Date().toISOString(),
-});
+  };
+};
 
 export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
   classPlans: [],

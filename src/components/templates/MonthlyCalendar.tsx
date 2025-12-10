@@ -3,10 +3,12 @@
 import React from 'react';
 import { ClassPlan, ColorTheme } from '@/lib/types';
 import { colorThemes, ColorPalette } from '@/lib/colorThemes';
+import { parseScheduleWithPeriod } from '@/lib/utils';
 
 interface Props {
   classPlan: ClassPlan;
   colorTheme?: ColorTheme;
+  fontSize?: number;
 }
 
 interface CalendarDay {
@@ -19,12 +21,27 @@ interface CalendarDay {
   classType?: 'regular' | 'special'; // 정규수업 또는 특강수업
 }
 
-const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) => {
+// 기간 문자열을 파싱하여 종료 날짜 추출 (예: "~1/10" -> { month: 1, day: 10 })
+interface PeriodEndDate {
+  month: number;
+  day: number;
+}
+
+const parsePeriodEndDate = (period: string): PeriodEndDate | null => {
+  // "~1/10", "~1월10일", "1/10까지", "1월10일까지" 등의 형식 지원
+  const match = period.match(/~?(\d{1,2})[\/월](\d{1,2})/);
+  if (match) {
+    return { month: parseInt(match[1]), day: parseInt(match[2]) };
+  }
+  return null;
+};
+
+const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue', fontSize = 11 }) => {
   // 색상 테마 가져오기
   const colors: ColorPalette = colorThemes[colorTheme] || colorThemes.blue;
 
   // 수업 요일 파싱 (예: "월수금" -> [1, 3, 5])
-  const parseClassDays = (classDay: string): number[] => {
+  const parseClassDaysString = (classDay: string): number[] => {
     const dayMap: Record<string, number> = {
       '일': 0, '월': 1, '화': 2, '수': 3, '목': 4, '금': 5, '토': 6
     };
@@ -37,7 +54,17 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) =>
     return days;
   };
 
-  const classDays = parseClassDays(classPlan.classDay || '');
+  // 기간별 수업 요일 파싱
+  const scheduleItems = parseScheduleWithPeriod(classPlan.classDay);
+  
+  // 첫 번째 줄: 정규수업 요일 (기간이 있으면 해당 기간까지만, 없으면 1월 10일까지)
+  const regularSchedule = scheduleItems[0];
+  const regularDays = regularSchedule ? parseClassDaysString(regularSchedule.value) : [];
+  const regularEndDate = regularSchedule?.period ? parsePeriodEndDate(regularSchedule.period) : { month: 1, day: 10 };
+  
+  // 두 번째 줄: 특강수업 요일 (첫 번째 줄 기간 종료 이후부터 적용)
+  const specialSchedule = scheduleItems[1];
+  const specialDays = specialSchedule ? parseClassDaysString(specialSchedule.value) : regularDays;
 
   // 2026년 1월과 2월 달력 생성
   const generateCalendar = (year: number, month: number): CalendarDay[] => {
@@ -83,15 +110,25 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) =>
         }
       }
       
-      const isClassDay = classDays.includes(dayOfWeek);
+      // 기간에 따라 정규수업/특강수업 요일 적용
+      // regularEndDate 이전: 정규수업 요일 적용
+      // regularEndDate 이후: 특강수업 요일 적용
+      const endMonth = regularEndDate?.month || 1;
+      const endDay = regularEndDate?.day || 10;
+      
+      const isBeforeEndDate = month < endMonth || (month === endMonth && date <= endDay);
+      const isAfterEndDate = month > endMonth || (month === endMonth && date > endDay);
+      
+      // 해당 기간의 수업 요일인지 확인
+      const applicableDays = isBeforeEndDate ? regularDays : specialDays;
+      const isClassDay = applicableDays.includes(dayOfWeek);
       
       // 정규수업/특강수업 구분
-      // 1월 10일까지: 정규수업, 1월 12일부터 2월 말까지: 특강수업
       let classType: 'regular' | 'special' | undefined;
       if (isClassDay && !isHoliday) {
-        if (month === 1 && date <= 10) {
+        if (isBeforeEndDate) {
           classType = 'regular';
-        } else if ((month === 1 && date >= 12) || month === 2) {
+        } else if (isAfterEndDate) {
           classType = 'special';
         }
       }
@@ -123,7 +160,7 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) =>
 
     return (
       <div className="flex-1">
-        <div className="mb-1 text-center" style={{ fontSize: '11pt', fontWeight: 600 }}>2026년 {monthName}</div>
+        <div className="mb-1 text-center" style={{ fontSize: `${fontSize}pt`, fontWeight: 600 }}>2026년 {monthName}</div>
         <div className="border border-zinc-300 rounded">
           {/* 요일 헤더 */}
           <div className="grid grid-cols-7 border-b border-zinc-300">
@@ -133,7 +170,7 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) =>
                 className={`font-bold py-0.5 text-center border-r border-zinc-300 last:border-r-0 ${
                   idx === 0 ? 'text-red-600' : 'text-zinc-700'
                 }`}
-                style={{ fontSize: '11pt' }}
+                style={{ fontSize: `${fontSize}pt` }}
               >
                 {day}
               </div>
@@ -187,18 +224,18 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) =>
                     style={
                       isRegularClass
                         ? {
-                            fontSize: '11pt',
+                            fontSize: `${fontSize}pt`,
                             backgroundColor: regularBgColor,
                             color: regularTextColor,
                           }
                         : isSpecialClass
                         ? {
-                            fontSize: '11pt',
+                            fontSize: `${fontSize}pt`,
                             backgroundColor: specialBgColor,
                             color: specialTextColor,
                             borderColor: specialBorderColor,
                           }
-                        : { fontSize: '11pt' }
+                        : { fontSize: `${fontSize}pt` }
                     }
                   >
                     <div className="text-center leading-tight">
@@ -207,7 +244,7 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) =>
                         {day.holidayLabel && (
                           <span
                             style={{
-                              fontSize: day.date === 1 ? '8pt' : '8pt',
+                              fontSize: `${fontSize * 0.73}pt`,
                               letterSpacing: '-0.1px',
                             }}
                           >
@@ -237,7 +274,7 @@ const MonthlyCalendar: React.FC<Props> = ({ classPlan, colorTheme = 'blue' }) =>
             <CalendarGrid calendar={february} monthName="2월" />
           </div>
           {/* 범례 */}
-          <div className="mt-1 flex gap-2 text-[11pt]">
+          <div className="mt-1 flex gap-2" style={{ fontSize: `${fontSize}pt` }}>
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#F7E9D8] text-[#6B5B4F] border border-[#E2D3C4] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">정규수업</span>
             <span
               className="inline-flex items-center gap-1 px-2 py-1 rounded-full"
