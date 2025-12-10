@@ -167,7 +167,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
             </svg>
           </div>
           <div>
-            <h1 className={`text-2xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${(typography.titleSize + 4) * 1.3}pt`, fontWeight: titleWeight, color: '#0f172a' }}>
+            <h1 className={`text-2xl tracking-tight ${titleFontClass}`} style={{ fontSize: `${(typography.titleSize + 4) * 1.2}pt`, fontWeight: titleWeight, color: '#0f172a' }}>
               {classPlan.showTitle && classPlan.title && (
                 <span className="mr-2" style={{ fontSize: `${getSize('title')}pt`, color: getAccent(0) }}>[{classPlan.title}]</span>
               )}

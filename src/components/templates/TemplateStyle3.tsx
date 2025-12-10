@@ -167,7 +167,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 2026 WINTER
               </span>
             </div>
-            <h1 className={`text-2xl text-white ${titleFontClass}`} style={{ fontSize: `${(typography.titleSize + 4) * 1.3}pt`, fontWeight: titleWeight }}>
+            <h1 className={`text-2xl text-white ${titleFontClass}`} style={{ fontSize: `${(typography.titleSize + 4) * 1.2}pt`, fontWeight: titleWeight }}>
               {classPlan.showTitle && classPlan.title && (
                 <span className="mr-2" style={{ fontSize: `${getSize('title')}pt` }}>[{classPlan.title}]</span>
               )}
