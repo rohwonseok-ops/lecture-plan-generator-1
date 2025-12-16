@@ -461,7 +461,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                           border: `1px solid ${colors.lighter}`,
                           background: '#ffffff',
                           minWidth: 120,
-                          flex: '0 0 35%',
+                          flex: '0 0 25%',
                         }}
                       >
                         {item.course}
