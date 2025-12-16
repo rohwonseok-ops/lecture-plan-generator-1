@@ -402,7 +402,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 e.preventDefault();
               }
             }}
-            placeholder="홍길동"
+            placeholder="홍길동 (Shift+Enter로 줄바꿈)"
             rows={2}
             style={twoLineDividerStyle}
             aria-label="강사명"

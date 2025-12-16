@@ -36,14 +36,15 @@ const DEFAULT_FIELD_FONT_SIZES: Partial<Record<keyof FieldFontSizes, number>> = 
   title: 28,              // 반명/강좌명
   parentIntro: 18,        // 학부모 안내글
   teacherName: 16,        // 강사명
-  classDay: 16,           // 수업요일
-  classTime: 16,          // 수업시간
+  classDay: 15,           // 수업요일
+  classTime: 15,          // 수업시간
   course1: 15,            // 학습과정1
   material1: 15,           // 교재1
   course2: 15,            // 학습과정2
   material2: 15,           // 교재2
   learningGoal: 16,       // 학습목표
   management: 16,          // 학습관리
+  feeTable: 15,           // 수강료 안내
 };
 
 // 필드별 폰트 크기 가져오기 (개별 설정이 없으면 필드별 기본값 또는 bodySize 사용)
@@ -72,8 +73,8 @@ export function getDefaultFieldFontSizes(bodySize: number): FieldFontSizes {
     parentIntro: 18,        // 학부모 안내글
     title: 28,
     teacherName: 16,        // 강사명
-    classDay: 16,           // 수업요일
-    classTime: 16,          // 수업시간
+    classDay: 15,           // 수업요일
+    classTime: 15,          // 수업시간
     course1: 15,            // 학습과정1
     material1: 15,          // 교재1
     course2: 15,            // 학습과정2
@@ -82,7 +83,7 @@ export function getDefaultFieldFontSizes(bodySize: number): FieldFontSizes {
     management: 16,         // 학습관리
     weeklyPlanWeek: bodySize,
     weeklyPlanTopic: bodySize,
-    feeTable: bodySize,
+    feeTable: 15,           // 수강료 안내
     monthlyCalendar: bodySize,
   };
 }

@@ -205,6 +205,16 @@ const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
           className="block w-full rounded-lg border-zinc-300 bg-white text-zinc-900 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-sm p-2.5 border transition-all placeholder:text-zinc-300 min-h-[80px]"
           value={String(classPlan[field] || '')}
           onChange={(e) => onChange({ [field]: e.target.value })}
+          onKeyDown={(e) => {
+            // Shift+Enter: 줄바꿈 허용
+            if (e.key === 'Enter' && e.shiftKey) {
+              return; // 기본 동작(줄바꿈) 허용
+            }
+            // Enter만: 기본 동작 막기 (폼 제출 방지)
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+            }
+          }}
           placeholder={placeholder}
         />
       ) : (
@@ -273,7 +283,7 @@ const ClassDetailPanel: React.FC<Props> = ({ classPlan, onChange }) => {
           <SectionTitle icon={User} title="기본 정보" color="text-blue-600" />
           <div className="grid grid-cols-2 gap-3">
             <InputField label="강좌명 (과목)" field="title" className="col-span-2" placeholder="예: 수학, 영어" />
-            <InputField label="강사명" field="teacherName" />
+            <InputField label="강사명" field="teacherName" multiline={true} />
             <InputField label="수업 일정" field="schedule" placeholder="요일 및 시간" />
             <InputField label="수강 대상" field="targetStudent" placeholder="예: 초등 5-6" />
             <InputField label="대상 상세 (학생명)" field="targetStudentDetail" placeholder="김철수 외 2명" />
