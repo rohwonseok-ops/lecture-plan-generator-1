@@ -233,11 +233,17 @@ export default function HomePage() {
     adjustToA4({ force: true, maxWidthMultiplier: 1.5 });
     
     if (selectedPlan) {
-      await savePlan(selectedPlan.id);
-      const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-      setLastSaveTime(now);
-      setTimeout(() => setIsSaving(false), 500);
-      recordActivity('class.save', `${selectedPlan.title || '강좌'} 저장`);
+      try {
+        await savePlan(selectedPlan.id);
+        const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        setLastSaveTime(now);
+        recordActivity('class.save', `${selectedPlan.title || '강좌'} 저장`);
+      } catch (error) {
+        console.error('저장 실패:', error);
+        // 에러는 store에 이미 설정되어 있음
+      } finally {
+        setTimeout(() => setIsSaving(false), 500);
+      }
     } else {
       setIsSaving(false);
     }

@@ -31,16 +31,36 @@ export function getDefaultTypography(): TypographySettings {
   };
 }
 
-// 필드별 폰트 크기 가져오기 (개별 설정이 없으면 기본 bodySize 사용)
+// 필드별 기본 폰트 크기 맵 (fieldFontSizes가 없을 때 사용)
+const DEFAULT_FIELD_FONT_SIZES: Partial<Record<keyof FieldFontSizes, number>> = {
+  parentIntro: 18,        // 학부모 안내글
+  teacherName: 16,        // 강사명
+  classDay: 16,           // 수업요일
+  classTime: 16,          // 수업시간
+  course1: 15,            // 학습과정1
+  material1: 15,           // 교재1
+  course2: 15,            // 학습과정2
+  material2: 15,           // 교재2
+  learningGoal: 16,       // 학습목표
+  management: 16,          // 학습관리
+};
+
+// 필드별 폰트 크기 가져오기 (개별 설정이 없으면 필드별 기본값 또는 bodySize 사용)
 export function getFieldFontSize(
   fieldFontSizes: FieldFontSizes | undefined,
   field: keyof FieldFontSizes,
   defaultSize: number
 ): number {
-  if (!fieldFontSizes || fieldFontSizes[field] === undefined) {
-    return defaultSize;
+  // fieldFontSizes에 명시적으로 설정된 값이 있으면 사용
+  if (fieldFontSizes && fieldFontSizes[field] !== undefined) {
+    return fieldFontSizes[field] as number;
   }
-  return fieldFontSizes[field] as number;
+  // 필드별 기본값이 있으면 사용
+  if (DEFAULT_FIELD_FONT_SIZES[field] !== undefined) {
+    return DEFAULT_FIELD_FONT_SIZES[field] as number;
+  }
+  // 그 외에는 defaultSize (bodySize) 사용
+  return defaultSize;
 }
 
 // 기본 필드 폰트 크기 목록
@@ -48,17 +68,17 @@ export function getDefaultFieldFontSizes(bodySize: number): FieldFontSizes {
   return {
     targetStudent: bodySize,
     etc: bodySize,
-    parentIntro: bodySize,
+    parentIntro: 18,        // 학부모 안내글
     title: 28,
-    teacherName: bodySize,
-    classDay: bodySize,
-    classTime: bodySize,
-    course1: bodySize,
-    material1: bodySize,
-    course2: bodySize,
-    material2: bodySize,
-    learningGoal: bodySize,
-    management: bodySize,
+    teacherName: 16,        // 강사명
+    classDay: 16,           // 수업요일
+    classTime: 16,          // 수업시간
+    course1: 15,            // 학습과정1
+    material1: 15,          // 교재1
+    course2: 15,            // 학습과정2
+    material2: 15,          // 교재2
+    learningGoal: 16,       // 학습목표
+    management: 16,         // 학습관리
     weeklyPlanWeek: bodySize,
     weeklyPlanTopic: bodySize,
     feeTable: bodySize,

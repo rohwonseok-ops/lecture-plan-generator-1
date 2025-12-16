@@ -279,12 +279,15 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
 
   savePlan: async (id) => {
     const plan = get().classPlans.find((p) => p.id === id);
-    if (!plan) return;
+    if (!plan) {
+      throw new Error('저장할 강의를 찾을 수 없습니다.');
+    }
     const { data: session } = await supabase.auth.getSession();
     const token = session.session?.access_token;
     if (!token) {
-      set({ error: '로그인이 필요합니다.' });
-      return;
+      const error = new Error('로그인이 필요합니다.');
+      set({ error: error.message });
+      throw error;
     }
     const isLocalOnly = get().localOnlyIds.includes(id);
 
@@ -306,8 +309,9 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
     });
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
-      set({ error: json.error || '저장 실패' });
-      return;
+      const errorMsg = json.error || '저장 실패';
+      set({ error: errorMsg });
+      throw new Error(errorMsg);
     }
     const json = await res.json();
     const saved = dbToClassPlan(json.data);

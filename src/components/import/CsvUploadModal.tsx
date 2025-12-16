@@ -14,7 +14,7 @@ interface Props {
 
 const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addClassPlan } = useClassPlanStore();
+  const { addClassPlan, savePlan } = useClassPlanStore();
   const [isUploading, setIsUploading] = useState(false);
   const [result, setResult] = useState<{
     total: number;
@@ -243,8 +243,18 @@ const CsvUploadModal: React.FC<Props> = ({ isOpen, onClose }) => {
             lastSaved: getFieldValue('lastSaved') || undefined
           };
 
+          // 로컬 상태에 추가
           await addClassPlan(newPlan);
-          success += 1;
+          
+          // 데이터베이스에 저장
+          try {
+            await savePlan(newPlan.id);
+            success += 1;
+          } catch (saveErr) {
+            console.error('행 저장 실패', saveErr);
+            const saveErrorMsg = saveErr instanceof Error ? saveErr.message : '데이터베이스 저장 실패';
+            errors.push(`${idx + 2}행: ${saveErrorMsg} (헤더 행 제외)`);
+          }
         } catch (err) {
           console.error('행 업로드 실패', err);
           const errorMsg = err instanceof Error ? err.message : '알 수 없는 오류';
