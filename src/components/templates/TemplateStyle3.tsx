@@ -453,7 +453,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         {item.label}
                       </div>
                       <div
-                        className={`${bodyFontClass} flex items-center flex-1 justify-start`}
+                        className={`${bodyFontClass} flex items-center justify-start`}
                         style={{
                           padding: '0.35rem 0.6rem',
                           color: primaryText,
@@ -464,6 +464,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
                           border: `1px solid ${colors.lighter}`,
                           background: '#ffffff',
                           minWidth: 120,
+                          flex: '0 0 35%',
                         }}
                       >
                         {item.course}
