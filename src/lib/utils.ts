@@ -49,7 +49,7 @@ export function getDefaultFieldFontSizes(bodySize: number): FieldFontSizes {
     targetStudent: bodySize,
     etc: bodySize,
     parentIntro: bodySize,
-    title: bodySize,
+    title: 28,
     teacherName: bodySize,
     classDay: bodySize,
     classTime: bodySize,

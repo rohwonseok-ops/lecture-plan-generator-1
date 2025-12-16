@@ -338,24 +338,26 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                           boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.02)',
                         }}
                       >
-                        <div
-                          className={`${bodyFontClass} flex items-center justify-center`}
-                          style={{
-                            padding: '0.3rem 0.55rem',
-                            minWidth: 70,
-                            background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`,
-                            color: strongText,
-                            fontSize: `${getSize('classDay') * 0.9}pt`,
-                            fontWeight: titleWeight + 100,
-                            letterSpacing: '-0.01em',
-                            borderRadius: 8,
-                            boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)',
-                            border: `1px solid ${colors.lighter}`,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {row.period || '-'}
-                        </div>
+                        {row.period && (
+                          <div
+                            className={`${bodyFontClass} flex items-center justify-center`}
+                            style={{
+                              padding: '0.3rem 0.55rem',
+                              minWidth: 70,
+                              background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`,
+                              color: strongText,
+                              fontSize: `${getSize('classDay') * 0.9}pt`,
+                              fontWeight: titleWeight + 100,
+                              letterSpacing: '-0.01em',
+                              borderRadius: 8,
+                              boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)',
+                              border: `1px solid ${colors.lighter}`,
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {row.period}
+                          </div>
+                        )}
                         <div
                           className={`${bodyFontClass} flex items-center justify-center`}
                           style={{
