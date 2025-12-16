@@ -529,7 +529,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
               className="border-zinc-200 bg-zinc-50/50 h-full flex flex-col"
               style={{ ...getLayoutStyle('management'), borderColor: colors.border }}
             >
-              <CardContent className="p-2.5 relative flex-1" style={{ backgroundColor: `${colors.light}45` }}>
+              <CardContent className="p-2.5 relative flex-1 flex items-center" style={{ backgroundColor: `${colors.light}45` }}>
                 <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: `${getSize('management')}pt`, fontWeight: bodyWeight, lineHeight: 1.45, paddingLeft: '4px' }}>
                   {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
                 </p>

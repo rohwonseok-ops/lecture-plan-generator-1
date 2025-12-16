@@ -528,7 +528,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
               className="overflow-hidden h-full flex flex-col" 
               style={{ borderColor: colors.border, backgroundColor: getAccentLight(5), ...getLayoutStyle('management') }}
             >
-              <CardContent className="p-2.5 relative flex-1">
+              <CardContent className="p-2.5 relative flex-1 flex items-center">
                 <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: `${getSize('management')}pt`, fontWeight: bodyWeight, lineHeight: 1.45, paddingLeft: '4px' }}>
                   {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
                 </p>

@@ -652,7 +652,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
                 학습관리
               </CardTitle>
           </CardHeader>
-          <CardContent className="p-3 relative flex-1">
+          <CardContent className="p-3 relative flex-1 flex items-center">
             <p
               className={`leading-4 whitespace-pre-wrap ${bodyFontClass}`}
               style={{ fontSize: `${getSize('management')}pt`, fontWeight: bodyWeight, color: primaryText, lineHeight: 1.45, paddingLeft: '4px' }}
