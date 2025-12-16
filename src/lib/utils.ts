@@ -33,6 +33,7 @@ export function getDefaultTypography(): TypographySettings {
 
 // 필드별 기본 폰트 크기 맵 (fieldFontSizes가 없을 때 사용)
 const DEFAULT_FIELD_FONT_SIZES: Partial<Record<keyof FieldFontSizes, number>> = {
+  title: 28,              // 반명/강좌명
   parentIntro: 18,        // 학부모 안내글
   teacherName: 16,        // 강사명
   classDay: 16,           // 수업요일
