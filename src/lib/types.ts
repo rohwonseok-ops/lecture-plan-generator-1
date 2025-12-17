@@ -106,7 +106,7 @@ export interface TemplateLayoutConfig {
 }
 
 // 색상 테마
-export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green' | 'dancheong';
+export type ColorTheme = 'green' | 'blue' | 'purple' | 'orange' | 'teal' | 'dancheong';
 
 // 템플릿 에디터용 타입 (커스텀 템플릿)
 export type TemplateStatus = 'draft' | 'official';
@@ -221,7 +221,7 @@ export const parseTemplateId = (templateId?: string | TemplateId): { category: T
     
     // 유효성 검사
     const validCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
-    const validColors: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong'];
+    const validColors: ColorTheme[] = ['green', 'blue', 'purple', 'orange', 'teal', 'dancheong'];
     
     const categoryValid = validCategories.includes(category);
     const colorValid = validColors.includes(color);

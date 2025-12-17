@@ -27,7 +27,7 @@ import { TemplateLayoutConfig } from '@/lib/types';
 const templateCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
 
 // 색상 테마 목록
-const colorThemeList: ColorTheme[] = ['blue', 'purple', 'orange', 'teal', 'green', 'dancheong'];
+const colorThemeList: ColorTheme[] = ['green', 'blue', 'purple', 'orange', 'teal', 'dancheong'];
 
 // A4 비율 상수
 const A4_RATIO = 297 / 210; // ≈ 1.414 (세로/가로)

@@ -12,7 +12,7 @@
  * - blackOrange: 블랙/오렌지 하이컨트라스트 포스터
  */
 
-export type ColorTheme = 'blue' | 'purple' | 'orange' | 'teal' | 'green' | 'dancheong';
+export type ColorTheme = 'green' | 'blue' | 'purple' | 'orange' | 'teal' | 'dancheong';
 
 export interface ColorPalette {
   primary: string;      // 메인 강조색 (헤더, 버튼 등)
@@ -24,6 +24,14 @@ export interface ColorPalette {
 }
 
 export const colorThemes: Record<ColorTheme, ColorPalette> = {
+  green: {
+    primary: '#0E6A5B',
+    dark: '#0A4E43',
+    light: '#ECFDF5',
+    lighter: '#D1FAE5',
+    border: '#A7D3C7',
+    gradient: 'linear-gradient(135deg, #0E6A5B 0%, #0A4E43 100%)'
+  },
   blue: {
     primary: '#6A9FB8',
     dark: '#4A7F98',
@@ -56,14 +64,6 @@ export const colorThemes: Record<ColorTheme, ColorPalette> = {
     border: '#5EEAD4',
     gradient: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)'
   },
-  green: {
-    primary: '#0E6A5B',
-    dark: '#0A4E43',
-    light: '#ECFDF5',
-    lighter: '#D1FAE5',
-    border: '#A7D3C7',
-    gradient: 'linear-gradient(135deg, #0E6A5B 0%, #0A4E43 100%)'
-  },
   dancheong: {
     primary: '#FF4FD2',
     dark: '#0F1A5B',
@@ -77,11 +77,11 @@ export const colorThemes: Record<ColorTheme, ColorPalette> = {
 
 // 색상 테마 한글 이름
 export const colorThemeNames: Record<ColorTheme, string> = {
+  green: '에메랄드',
   blue: '블루',
   purple: '퍼플',
   orange: '오렌지',
   teal: '틸',
-  green: '에메랄드',
   dancheong: '단청 멀티'
 };
 
