@@ -890,7 +890,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               <div className="px-3 pt-4 pb-3 border-t border-zinc-200">
                 <div className="space-y-1">
                   <p className={`text-xs ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable') * 0.95}pt`, fontWeight: bodyWeight, color: '#6b7280', lineHeight: 1.4 }}>
-                    * 형제 할인 등이 적용되지 않은 기준 수강료 안내입니다.
+                    * 형제 할인 등이 적용되지 않은 기준 수강료 안내입니다. (수납 문자는 할인 반영된 금액으로 전송됩니다)
                   </p>
                   <p className={`text-xs ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable') * 0.95}pt`, fontWeight: bodyWeight, color: '#6b7280', lineHeight: 1.4 }}>
                     * 방학 중 늘어난 특강수업 시간에 대해서는 할인이 적용되지 않는 점 양해 부탁드립니다.
