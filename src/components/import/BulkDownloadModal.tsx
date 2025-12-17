@@ -1,0 +1,352 @@
+'use client';
+
+import React, { useState, useMemo } from 'react';
+import { createRoot } from 'react-dom/client';
+import { X, Download } from 'lucide-react';
+import { ClassPlan, TemplateCategory, ColorTheme } from '@/lib/types';
+import TemplateStyle1 from '@/components/templates/TemplateStyle1';
+import TemplateStyle2 from '@/components/templates/TemplateStyle2';
+import TemplateStyle3 from '@/components/templates/TemplateStyle3';
+import { templateCategoryNames, colorThemeNames } from '@/lib/colorThemes';
+
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+  classPlans: ClassPlan[];
+}
+
+type TeacherTemplateConfig = {
+  category: TemplateCategory;
+  color: ColorTheme;
+};
+
+const templateCategories: TemplateCategory[] = ['style1', 'style2', 'style3'];
+const colorThemeList: ColorTheme[] = ['green', 'blue', 'purple', 'orange', 'teal', 'dancheong'];
+
+const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => {
+  // 모든 강사 목록 추출
+  const allTeachers = useMemo(() => {
+    const teachers = Array.from(new Set(classPlans.map(p => p.teacherName).filter(Boolean)));
+    return teachers.sort();
+  }, [classPlans]);
+
+  // 선택된 강사 목록
+  const [selectedTeachers, setSelectedTeachers] = useState<Set<string>>(new Set());
+
+  // 각 강사별 템플릿 설정
+  const [teacherTemplates, setTeacherTemplates] = useState<Record<string, TeacherTemplateConfig>>({});
+
+  // 다운로드 진행 상태
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<{
+    current: number;
+    total: number;
+    currentPlan: string | null;
+  }>({ current: 0, total: 0, currentPlan: null });
+
+  // 전체 선택/해제
+  const handleSelectAll = () => {
+    if (selectedTeachers.size === allTeachers.length) {
+      setSelectedTeachers(new Set());
+    } else {
+      setSelectedTeachers(new Set(allTeachers));
+    }
+  };
+
+  // 강사 선택 토글
+  const handleToggleTeacher = (teacher: string) => {
+    const newSelected = new Set(selectedTeachers);
+    if (newSelected.has(teacher)) {
+      newSelected.delete(teacher);
+    } else {
+      newSelected.add(teacher);
+      // 기본 템플릿 설정 (style1-green)
+      if (!teacherTemplates[teacher]) {
+        setTeacherTemplates(prev => ({
+          ...prev,
+          [teacher]: { category: 'style1', color: 'green' }
+        }));
+      }
+    }
+    setSelectedTeachers(newSelected);
+  };
+
+  // 템플릿 카테고리 변경
+  const handleCategoryChange = (teacher: string, category: TemplateCategory) => {
+    setTeacherTemplates(prev => ({
+      ...prev,
+      [teacher]: { ...prev[teacher], category }
+    }));
+  };
+
+  // 테마색 변경
+  const handleColorChange = (teacher: string, color: ColorTheme) => {
+    setTeacherTemplates(prev => ({
+      ...prev,
+      [teacher]: { ...prev[teacher], color }
+    }));
+  };
+
+  // 일괄 다운로드 실행
+  const handleBulkDownload = async () => {
+    if (selectedTeachers.size === 0) {
+      alert('다운로드할 강사를 선택해주세요.');
+      return;
+    }
+
+    // 선택된 강사들의 강좌 수집
+    const plansToDownload: Array<{ plan: ClassPlan; templateConfig: TeacherTemplateConfig }> = [];
+    
+    selectedTeachers.forEach(teacher => {
+      const config = teacherTemplates[teacher] || { category: 'style1', color: 'green' };
+      const teacherPlans = classPlans.filter(p => p.teacherName === teacher);
+      teacherPlans.forEach(plan => {
+        plansToDownload.push({ plan, templateConfig: config });
+      });
+    });
+
+    if (plansToDownload.length === 0) {
+      alert('다운로드할 강좌가 없습니다.');
+      return;
+    }
+
+    setIsDownloading(true);
+    setDownloadProgress({ current: 0, total: plansToDownload.length, currentPlan: null });
+
+    // 순차적으로 다운로드
+    for (let i = 0; i < plansToDownload.length; i++) {
+      const { plan, templateConfig } = plansToDownload[i];
+      setDownloadProgress({ 
+        current: i + 1, 
+        total: plansToDownload.length, 
+        currentPlan: `${plan.title || '강좌명'} (${plan.teacherName})` 
+      });
+
+      try {
+        await downloadPlanWithTemplate(plan, templateConfig);
+        // 다운로드 간 딜레이 (브라우저 다운로드 충돌 방지)
+        if (i < plansToDownload.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        console.error(`다운로드 실패: ${plan.title}`, error);
+      }
+    }
+
+    setIsDownloading(false);
+    setDownloadProgress({ current: 0, total: 0, currentPlan: null });
+    alert(`다운로드 완료: ${plansToDownload.length}개 파일`);
+  };
+
+  // 개별 강좌 다운로드 (템플릿 적용)
+  const downloadPlanWithTemplate = async (
+    plan: ClassPlan, 
+    templateConfig: TeacherTemplateConfig
+  ): Promise<void> => {
+    // 임시 컨테이너 생성
+    const container = document.createElement('div');
+    container.id = 'bulk-download-container';
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '794px';
+    container.style.backgroundColor = '#ffffff';
+    container.style.zIndex = '-1';
+    document.body.appendChild(container);
+
+    try {
+      const { downloadAsPng } = await import('@/lib/download');
+
+      const props = { classPlan: plan, colorTheme: templateConfig.color };
+      let TemplateComponent: React.ComponentType<{ classPlan: ClassPlan; colorTheme: ColorTheme }>;
+      
+      switch (templateConfig.category) {
+        case 'style1':
+          TemplateComponent = TemplateStyle1;
+          break;
+        case 'style2':
+          TemplateComponent = TemplateStyle2;
+          break;
+        case 'style3':
+          TemplateComponent = TemplateStyle3;
+          break;
+        default:
+          TemplateComponent = TemplateStyle1;
+      }
+
+      // React 컴포넌트 렌더링
+      const root = createRoot(container);
+      root.render(React.createElement(TemplateComponent, props));
+
+      // 렌더링 대기 (이미지 로딩 등 고려)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // 다운로드
+      const year = new Date().getFullYear().toString().slice(-2);
+      const templateName = `${templateCategoryNames[templateConfig.category]} ${colorThemeNames[templateConfig.color]}`;
+      const fileName = `${year}년_겨울특강_${plan.title || '강좌명'}_${plan.teacherName || '강사명'}_${templateName}`;
+      
+      const ref: React.RefObject<HTMLDivElement> = { current: container };
+      await downloadAsPng(ref, fileName.replace(/\s+/g, '_'));
+
+      // 정리
+      await new Promise(resolve => setTimeout(resolve, 200));
+      root.unmount();
+    } catch (error) {
+      console.error('다운로드 중 오류:', error);
+      throw error;
+    } finally {
+      if (container.parentNode) {
+        document.body.removeChild(container);
+      }
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div 
+        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] p-6 relative flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 transition"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <h2 className="text-2xl font-bold text-zinc-800 mb-6">일괄 다운로드</h2>
+
+        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+          {/* 강사 선택 영역 */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-zinc-800">강사 선택</h3>
+              <button
+                onClick={handleSelectAll}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {selectedTeachers.size === allTeachers.length ? '전체 해제' : '전체 선택'}
+              </button>
+            </div>
+            <div className="border border-zinc-200 rounded-lg p-3 max-h-48 overflow-y-auto">
+              {allTeachers.length === 0 ? (
+                <div className="text-sm text-zinc-500 text-center py-4">등록된 강사가 없습니다</div>
+              ) : (
+                <div className="space-y-2">
+                  {allTeachers.map(teacher => (
+                    <label
+                      key={teacher}
+                      className="flex items-center space-x-2 cursor-pointer hover:bg-zinc-50 p-2 rounded"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedTeachers.has(teacher)}
+                        onChange={() => handleToggleTeacher(teacher)}
+                        className="w-4 h-4 text-blue-600 rounded border-zinc-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-zinc-800 flex-1">{teacher}</span>
+                      <span className="text-xs text-zinc-500">
+                        ({classPlans.filter(p => p.teacherName === teacher).length}개 강좌)
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 템플릿 설정 영역 */}
+          {selectedTeachers.size > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-zinc-800 mb-3">템플릿 설정</h3>
+              <div className="space-y-4">
+                {Array.from(selectedTeachers).map(teacher => {
+                  const config = teacherTemplates[teacher] || { category: 'style1', color: 'green' };
+                  return (
+                    <div key={teacher} className="border border-zinc-200 rounded-lg p-4">
+                      <div className="font-medium text-zinc-800 mb-3">{teacher}</div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 mb-1.5">스타일</label>
+                          <select
+                            value={config.category}
+                            onChange={(e) => handleCategoryChange(teacher, e.target.value as TemplateCategory)}
+                            className="w-full px-3 py-1.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            {templateCategories.map(cat => (
+                              <option key={cat} value={cat}>{templateCategoryNames[cat]}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-600 mb-1.5">테마색</label>
+                          <select
+                            value={config.color}
+                            onChange={(e) => handleColorChange(teacher, e.target.value as ColorTheme)}
+                            className="w-full px-3 py-1.5 text-sm border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            {colorThemeList.map(color => (
+                              <option key={color} value={color}>{colorThemeNames[color]}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 진행 상태 */}
+          {isDownloading && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-blue-900">다운로드 중...</span>
+                <span className="text-xs text-blue-700">
+                  {downloadProgress.current} / {downloadProgress.total}
+                </span>
+              </div>
+              {downloadProgress.currentPlan && (
+                <div className="text-xs text-blue-700 mt-1">
+                  현재: {downloadProgress.currentPlan}
+                </div>
+              )}
+              <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(downloadProgress.current / downloadProgress.total) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 하단 버튼 */}
+        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-zinc-200">
+          <button
+            onClick={onClose}
+            disabled={isDownloading}
+            className="px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-lg hover:bg-zinc-50 transition disabled:opacity-50"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleBulkDownload}
+            disabled={isDownloading || selectedTeachers.size === 0}
+            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-4 h-4" />
+            <span>{isDownloading ? '다운로드 중...' : '일괄 다운로드'}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BulkDownloadModal;
+

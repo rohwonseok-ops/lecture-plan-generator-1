@@ -395,25 +395,34 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               onChange={(size) => handleFieldFontSizeChange('teacherName', size)}
             />
           </div>
-          <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none min-h-[44px] text-zinc-800 placeholder:text-zinc-500 flex-1"
-            value={classPlan.teacherName || ''}
-            onChange={handleChange('teacherName')}
-            onKeyDown={(e) => {
-              // Shift+Enter: 줄바꿈 허용
-              if (e.key === 'Enter' && e.shiftKey) {
-                return; // 기본 동작(줄바꿈) 허용
-              }
-              // Enter만: 기본 동작 막기 (폼 제출 방지)
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-              }
-            }}
-            placeholder="홍길동 (Shift+Enter로 줄바꿈)"
-            rows={2}
-            style={twoLineDividerStyle}
-            aria-label="강사명"
-          />
+          <div className="flex flex-col gap-1 flex-1">
+            {/* 첫 번째 줄 */}
+            <input
+              type="text"
+              className="w-full text-xs px-2.5 py-1.5 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
+              value={(classPlan.teacherName || '').split('\n')[0] || ''}
+              onChange={(e) => {
+                const lines = (classPlan.teacherName || '').split('\n');
+                lines[0] = e.target.value;
+                onChange({ teacherName: lines.filter((_, i) => i === 0 || lines[i]).join('\n') });
+              }}
+              placeholder="홍길동"
+              aria-label="강사명 1"
+            />
+            {/* 두 번째 줄 */}
+            <input
+              type="text"
+              className="w-full text-xs px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white outline-none transition text-zinc-800 placeholder:text-zinc-400"
+              value={(classPlan.teacherName || '').split('\n')[1] || ''}
+              onChange={(e) => {
+                const lines = (classPlan.teacherName || '').split('\n');
+                lines[1] = e.target.value;
+                onChange({ teacherName: e.target.value ? `${lines[0] || ''}\n${e.target.value}` : (lines[0] || '') });
+              }}
+              placeholder="(추가 강사명)"
+              aria-label="강사명 2"
+            />
+          </div>
         </div>
         <div className="col-span-4 flex flex-col">
           <div className="flex items-center justify-between mb-1">

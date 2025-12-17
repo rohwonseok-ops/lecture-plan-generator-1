@@ -36,6 +36,11 @@ const TeacherDropdown: React.FC<Props> = ({ plans, selectedTeacher, onSelect }) 
         aria-haspopup="listbox"
       >
         <span>담당강사</span>
+        {selectedTeacher ? (
+          <span className="text-zinc-300">· {selectedTeacher}</span>
+        ) : (
+          <span className="text-zinc-300">· 전체</span>
+        )}
         <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 

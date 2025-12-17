@@ -17,6 +17,7 @@ import { downloadAsPng } from '@/lib/download';
 import ClassListDropdown from '@/components/editor/ClassListDropdown';
 import EditorPanel from '@/components/editor/EditorPanel';
 import CsvUploadModal from '@/components/import/CsvUploadModal';
+import BulkDownloadModal from '@/components/import/BulkDownloadModal';
 import TeacherDropdown from '@/components/editor/TeacherDropdown';
 import EditModeToolbar from '@/components/templates/EditModeToolbar';
 import TemplateEditOverlay from '@/components/templates/TemplateEditOverlay';
@@ -48,6 +49,7 @@ export default function HomePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
+  const [isBulkDownloadModalOpen, setIsBulkDownloadModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
   const { isEditMode } = useTemplateEditStore();
 
@@ -394,6 +396,13 @@ export default function HomePage() {
             <Upload className="w-3.5 h-3.5" />
             <span>일괄 등록 (CSV)</span>
           </button>
+          <button
+            onClick={() => setIsBulkDownloadModalOpen(true)}
+            className="flex items-center space-x-2 px-4 py-1.5 rounded-lg text-xs font-medium transition-all text-zinc-400 hover:text-white hover:bg-white/10"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>일괄 다운로드</span>
+          </button>
         </div>
         <div className="flex items-center space-x-2">
           {session.role === 'admin' && (
@@ -685,6 +694,11 @@ export default function HomePage() {
       </div>
       
       <CsvUploadModal isOpen={isCsvModalOpen} onClose={() => setIsCsvModalOpen(false)} />
+      <BulkDownloadModal 
+        isOpen={isBulkDownloadModalOpen} 
+        onClose={() => setIsBulkDownloadModalOpen(false)}
+        classPlans={classPlans}
+      />
     </div>
   );
 }

@@ -35,12 +35,12 @@ const ClassListDropdown: React.FC<Props> = ({ plans, selectedId, onSelect }) => 
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <div className="flex-1 text-left min-w-0">
-          <span className="text-xs font-medium text-zinc-800 truncate block">
+        <div className="flex-1 text-left min-w-0 flex items-center gap-1.5">
+          <span className="text-xs font-medium text-zinc-800 truncate">
             {selectedPlan?.title || '강의 선택'}
           </span>
           {selectedPlan?.status && (
-            <span className={`text-[9px] inline-block mt-0.5 px-1.5 py-0.5 rounded ${
+            <span className={`text-[9px] px-1.5 py-0.5 rounded flex-shrink-0 ${
               selectedPlan.status === 'draft' 
                 ? 'bg-zinc-100 text-zinc-600'
                 : selectedPlan.status === 'teacher-reviewed'
