@@ -338,24 +338,26 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                           boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.02)',
                         }}
                       >
-                        <div
-                          className={`${bodyFontClass} flex items-center justify-center`}
-                          style={{
-                            padding: '0.3rem 0.55rem',
-                            minWidth: 70,
-                            background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`,
-                            color: strongText,
-                            fontSize: `${getSize('classDay') * 0.9}pt`,
-                            fontWeight: titleWeight + 100,
-                            letterSpacing: '-0.01em',
-                            borderRadius: 8,
-                            boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)',
-                            border: `1px solid ${colors.lighter}`,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {row.period || '-'}
-                        </div>
+                        {row.period && (
+                          <div
+                            className={`${bodyFontClass} flex items-center justify-center`}
+                            style={{
+                              padding: '0.3rem 0.55rem',
+                              minWidth: 70,
+                              background: `linear-gradient(180deg, ${colors.light} 0%, ${colors.lighter} 100%)`,
+                              color: strongText,
+                              fontSize: `${getSize('classDay') * 0.9}pt`,
+                              fontWeight: titleWeight + 100,
+                              letterSpacing: '-0.01em',
+                              borderRadius: 8,
+                              boxShadow: 'inset 0 -1px 0 rgba(0,0,0,0.03)',
+                              border: `1px solid ${colors.lighter}`,
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {row.period}
+                          </div>
+                        )}
                         <div
                           className={`${bodyFontClass} flex items-center justify-center`}
                           style={{
@@ -448,7 +450,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                         {item.label}
                       </div>
                       <div
-                        className={`${bodyFontClass} flex items-center flex-1 justify-start`}
+                        className={`${bodyFontClass} flex items-center justify-start`}
                         style={{
                           padding: '0.35rem 0.6rem',
                           color: primaryText,
@@ -459,6 +461,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                           border: `1px solid ${colors.lighter}`,
                           background: '#ffffff',
                           minWidth: 120,
+                          flex: '0 0 25%',
                         }}
                       >
                         {item.course}
@@ -525,7 +528,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
               className="overflow-hidden h-full flex flex-col" 
               style={{ borderColor: colors.border, backgroundColor: getAccentLight(5), ...getLayoutStyle('management') }}
             >
-              <CardContent className="p-2.5 relative flex-1">
+              <CardContent className="p-2.5 relative flex-1 flex items-center">
                 <p className={`leading-4 whitespace-pre-wrap text-zinc-700 ${bodyFontClass}`} style={{ fontSize: `${getSize('management')}pt`, fontWeight: bodyWeight, lineHeight: 1.45, paddingLeft: '4px' }}>
                   {classPlan.management || "학습 관리 계획이 입력되지 않았습니다."}
                 </p>
