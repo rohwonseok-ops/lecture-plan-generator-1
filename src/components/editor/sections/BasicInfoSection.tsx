@@ -20,7 +20,14 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
     text: string;
     type?: AiGenerateOptions['type'];
   } | null>(null);
-  const [useExisting, setUseExisting] = useState<Record<string, boolean>>({});
+  const [useExisting, setUseExisting] = useState<Record<string, boolean>>({
+    parentIntro: true,
+    learningGoal: true,
+    management: true,
+    etc: true,
+    promoCopy: true,
+    keywords: true,
+  });
   const [contexts, setContexts] = useState<Record<string, string[]>>({});
 
   const contextOptions: Record<AiGenerateOptions['type'], string[]> = {
@@ -730,40 +737,6 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
 
       </div>
-
-      {preview && (
-        <div className="mt-3 border border-zinc-200 rounded-lg bg-white p-2.5 shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-zinc-700">AI 미리보기</span>
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => handleAiGenerate(preview.field!, preview.type!)}
-                disabled={generatingField === preview.field}
-                className="px-2 py-0.5 text-[10px] bg-zinc-100 text-zinc-700 rounded hover:bg-zinc-200 disabled:opacity-60"
-              >
-                다시 생성
-              </button>
-              <button
-                onClick={handleApplyPreview}
-                className="px-2 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                적용
-              </button>
-              <button
-                onClick={() => setPreview(null)}
-                className="px-2 py-0.5 text-[10px] bg-white border border-zinc-200 text-zinc-600 rounded hover:bg-zinc-100"
-              >
-                닫기
-              </button>
-            </div>
-          </div>
-          <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-20 text-zinc-800 placeholder:text-zinc-500"
-            value={preview.text}
-            onChange={(e) => setPreview(prev => prev ? { ...prev, text: e.target.value } : prev)}
-          />
-        </div>
-      )}
     </div>
   );
 };
