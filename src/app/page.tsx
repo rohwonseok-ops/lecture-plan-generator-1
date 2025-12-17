@@ -13,7 +13,7 @@ import { getDefaultTypography } from '@/lib/utils';
 import TemplateStyle1 from '@/components/templates/TemplateStyle1';
 import TemplateStyle2 from '@/components/templates/TemplateStyle2';
 import TemplateStyle3 from '@/components/templates/TemplateStyle3';
-import { downloadAsPng } from '@/lib/download';
+import { downloadAsJpg } from '@/lib/download';
 import ClassListDropdown from '@/components/editor/ClassListDropdown';
 import EditorPanel from '@/components/editor/EditorPanel';
 import CsvUploadModal from '@/components/import/CsvUploadModal';
@@ -223,8 +223,8 @@ export default function HomePage() {
       const year = new Date().getFullYear().toString().slice(-2);
       const templateName = getTemplateNameKorean(selectedPlan.templateId);
       const fileName = `${year}년_겨울특강_${selectedPlan.title || '강좌명'}_${selectedPlan.teacherName || '강사명'}_${templateName}`;
-      downloadAsPng(canvasRef, fileName.replace(/\s+/g, '_'));
-      recordActivity('class.download', `${selectedPlan.title || '강좌'} PNG 다운로드`);
+      downloadAsJpg(canvasRef, fileName.replace(/\s+/g, '_'));
+      recordActivity('class.download', `${selectedPlan.title || '강좌'} JPG 다운로드`);
     }
   };
 
@@ -647,10 +647,10 @@ export default function HomePage() {
                   onClick={handleDownload}
                   disabled={!selectedPlan}
                   className="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-60"
-                  aria-label="PNG 다운로드"
+                  aria-label="JPG 다운로드"
                 >
                   <Download className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>PNG 다운로드</span>
+                  <span>JPG 다운로드</span>
                 </button>
               </div>
             </div>

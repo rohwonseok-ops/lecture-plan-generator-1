@@ -289,16 +289,11 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                     fontSize: `${getSize('teacherName')}pt`,
                     fontWeight: bodyWeight,
                     color: '#3f3f46',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    whiteSpace: 'pre-line',
                     width: '100%',
                     textAlign: 'center',
                     lineHeight: 1.15,
                     margin: 0,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
                   }}
                 >
                   {classPlan.teacherName}
@@ -716,6 +711,17 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
                     })}
                   </TableBody>
                 </Table>
+                {/* 수강료 안내 멘트 */}
+                <div className="px-3 pt-4 pb-3 border-t border-zinc-200">
+                  <div className="space-y-1">
+                    <p className={`text-xs ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable') * 0.95}pt`, fontWeight: bodyWeight, color: '#6b7280', lineHeight: 1.4 }}>
+                      * 형제 할인 등이 적용되지 않은 기준 수강료 안내입니다.
+                    </p>
+                    <p className={`text-xs ${bodyFontClass}`} style={{ fontSize: `${getSize('feeTable') * 0.95}pt`, fontWeight: bodyWeight, color: '#6b7280', lineHeight: 1.4 }}>
+                      * 방학 중 늘어난 특강수업 시간에 대해서는 할인이 적용되지 않는 점 양해 부탁드립니다.
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>

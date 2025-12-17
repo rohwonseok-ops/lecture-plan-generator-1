@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { X, Download } from 'lucide-react';
+import JSZip from 'jszip';
 import { ClassPlan, TemplateCategory, ColorTheme } from '@/lib/types';
 import TemplateStyle1 from '@/components/templates/TemplateStyle1';
 import TemplateStyle2 from '@/components/templates/TemplateStyle2';
@@ -87,7 +88,7 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
     }));
   };
 
-  // 일괄 다운로드 실행
+  // 일괄 다운로드 실행 (ZIP 압축)
   const handleBulkDownload = async () => {
     if (selectedTeachers.size === 0) {
       alert('다운로드할 강사를 선택해주세요.');
@@ -113,36 +114,62 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
     setIsDownloading(true);
     setDownloadProgress({ current: 0, total: plansToDownload.length, currentPlan: null });
 
-    // 순차적으로 다운로드
-    for (let i = 0; i < plansToDownload.length; i++) {
-      const { plan, templateConfig } = plansToDownload[i];
+    const zip = new JSZip();
+    const year = new Date().getFullYear().toString().slice(-2);
+
+    try {
+      // 모든 이미지를 생성하여 ZIP에 추가
+      for (let i = 0; i < plansToDownload.length; i++) {
+        const { plan, templateConfig } = plansToDownload[i];
+        setDownloadProgress({ 
+          current: i + 1, 
+          total: plansToDownload.length, 
+          currentPlan: `${plan.title || '강좌명'} (${plan.teacherName})` 
+        });
+
+        try {
+          const blob = await getPngBlobFromPlan(plan, templateConfig);
+          if (blob) {
+            const templateName = `${templateCategoryNames[templateConfig.category]} ${colorThemeNames[templateConfig.color]}`;
+            const fileName = `${year}년_겨울특강_${plan.title || '강좌명'}_${plan.teacherName || '강사명'}_${templateName}`.replace(/\s+/g, '_');
+            zip.file(`${fileName}.jpg`, blob);
+          }
+        } catch (error) {
+          console.error(`이미지 생성 실패: ${plan.title}`, error);
+        }
+      }
+
+      // ZIP 파일 생성 및 다운로드
       setDownloadProgress({ 
-        current: i + 1, 
+        current: plansToDownload.length, 
         total: plansToDownload.length, 
-        currentPlan: `${plan.title || '강좌명'} (${plan.teacherName})` 
+        currentPlan: 'ZIP 파일 생성 중...' 
       });
 
-      try {
-        await downloadPlanWithTemplate(plan, templateConfig);
-        // 다운로드 간 딜레이 (브라우저 다운로드 충돌 방지)
-        if (i < plansToDownload.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      } catch (error) {
-        console.error(`다운로드 실패: ${plan.title}`, error);
-      }
-    }
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.download = `${year}년_겨울특강_일괄다운로드.zip`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
 
-    setIsDownloading(false);
-    setDownloadProgress({ current: 0, total: 0, currentPlan: null });
-    alert(`다운로드 완료: ${plansToDownload.length}개 파일`);
+      setIsDownloading(false);
+      setDownloadProgress({ current: 0, total: 0, currentPlan: null });
+      alert(`다운로드 완료: ${plansToDownload.length}개 파일이 ZIP으로 압축되었습니다.`);
+    } catch (error) {
+      console.error('ZIP 다운로드 실패:', error);
+      setIsDownloading(false);
+      setDownloadProgress({ current: 0, total: 0, currentPlan: null });
+      alert('다운로드에 실패했습니다: ' + (error as Error).message);
+    }
   };
 
-  // 개별 강좌 다운로드 (템플릿 적용)
-  const downloadPlanWithTemplate = async (
+  // 개별 강좌 JPG를 Blob으로 반환 (템플릿 적용)
+  const getPngBlobFromPlan = async (
     plan: ClassPlan, 
     templateConfig: TeacherTemplateConfig
-  ): Promise<void> => {
+  ): Promise<Blob | null> => {
     // 임시 컨테이너 생성
     const container = document.createElement('div');
     container.id = 'bulk-download-container';
@@ -155,7 +182,7 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
     document.body.appendChild(container);
 
     try {
-      const { downloadAsPng } = await import('@/lib/download');
+      const { getJpgAsBlob } = await import('@/lib/download');
 
       const props = { classPlan: plan, colorTheme: templateConfig.color };
       let TemplateComponent: React.ComponentType<{ classPlan: ClassPlan; colorTheme: ColorTheme }>;
@@ -181,20 +208,18 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
       // 렌더링 대기 (이미지 로딩 등 고려)
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // 다운로드
-      const year = new Date().getFullYear().toString().slice(-2);
-      const templateName = `${templateCategoryNames[templateConfig.category]} ${colorThemeNames[templateConfig.color]}`;
-      const fileName = `${year}년_겨울특강_${plan.title || '강좌명'}_${plan.teacherName || '강사명'}_${templateName}`;
-      
+      // JPG Blob 생성
       const ref: React.RefObject<HTMLDivElement> = { current: container };
-      await downloadAsPng(ref, fileName.replace(/\s+/g, '_'));
+      const blob = await getJpgAsBlob(ref);
 
       // 정리
       await new Promise(resolve => setTimeout(resolve, 200));
       root.unmount();
+      
+      return blob;
     } catch (error) {
-      console.error('다운로드 중 오류:', error);
-      throw error;
+      console.error('JPG 생성 중 오류:', error);
+      return null;
     } finally {
       if (container.parentNode) {
         document.body.removeChild(container);

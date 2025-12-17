@@ -8,7 +8,7 @@ import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
 import TemplateStyle1 from '@/components/templates/TemplateStyle1';
 import TemplateStyle2 from '@/components/templates/TemplateStyle2';
 import TemplateStyle3 from '@/components/templates/TemplateStyle3';
-import { downloadAsPng } from '@/lib/download';
+import { downloadAsJpg } from '@/lib/download';
 import { ArrowLeft, Download } from 'lucide-react';
 
 export default function PreviewPage() {
@@ -88,7 +88,7 @@ export default function PreviewPage() {
     const year = new Date().getFullYear().toString().slice(-2); // 26
     const templateName = getTemplateNameKorean(templateId);
     const fileName = `${year}년_겨울특강_${classPlan.title || '강좌명'}_${classPlan.teacherName || '강사명'}_${templateName}`;
-    downloadAsPng(canvasRef, fileName.replace(/\s+/g, '_'));
+    downloadAsJpg(canvasRef, fileName.replace(/\s+/g, '_'));
   };
 
   const { category, color } = parseTemplateId(templateId);
@@ -135,7 +135,7 @@ export default function PreviewPage() {
             className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium shadow transition"
           >
             <Download className="w-4 h-4" />
-            <span>Download PNG</span>
+            <span>Download JPG</span>
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import html2canvas from 'html2canvas';
-import { toPng } from 'html-to-image';
+import { toJpeg } from 'html-to-image';
 import React from 'react';
 
 // A4 비율 상수 (210mm x 297mm)
@@ -83,17 +83,17 @@ const restoreStyles = (originalStyles: Map<HTMLElement, string>) => {
 };
 
 /**
- * 고해상도 PNG 다운로드 함수 (인쇄 품질)
+ * 고해상도 JPG를 Blob으로 반환하는 함수 (인쇄 품질)
  * - pixelRatio 4로 고해상도 출력 (약 300dpi)
  * - A4 비율 유지
- * - 압축 없이 최대 품질
+ * - 고품질 JPG (품질 0.95)
  * - 인쇄용으로 스크롤바 제거
+ * - ZIP 압축 다운로드를 위한 내부 함수
  */
-export const downloadAsPng = async (
-  targetRef: React.RefObject<HTMLDivElement | null>,
-  fileName: string
-) => {
-  if (!targetRef.current) return;
+export const getJpgAsBlob = async (
+  targetRef: React.RefObject<HTMLDivElement | null>
+): Promise<Blob | null> => {
+  if (!targetRef.current) return null;
 
   const element = targetRef.current;
 
@@ -121,10 +121,10 @@ export const downloadAsPng = async (
     // 고해상도 출력을 위한 pixelRatio (4 = 약 384dpi, 인쇄 품질)
     const highResRatio = 4;
     
-    const dataUrl = await toPng(element, {
+    const dataUrl = await toJpeg(element, {
       cacheBust: true,
       pixelRatio: highResRatio,
-      quality: 1.0, // 최대 품질
+      quality: 0.95, // JPG 고품질 (0.95)
       width: width,
       height: height,
       style: {
@@ -141,11 +141,10 @@ export const downloadAsPng = async (
     // 스타일 복원
     restoreStyles(originalStyles);
 
-    const link = document.createElement('a');
-    link.download = `${fileName}.png`;
-    link.href = dataUrl;
-    link.click();
-    return;
+    // Data URL을 Blob으로 변환
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+    return blob;
   } catch (err) {
     console.warn('html-to-image failed, fallback to html2canvas:', err);
   }
@@ -173,15 +172,48 @@ export const downloadAsPng = async (
     // 스타일 복원
     restoreStyles(originalStyles);
 
-    // PNG 최대 품질로 내보내기
-    const link = document.createElement('a');
-    link.download = `${fileName}.png`;
-    link.href = canvas.toDataURL('image/png', 1.0);
-    link.click();
+    // Canvas를 JPG Blob으로 변환
+    return new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error('Canvas to Blob conversion failed'));
+        }
+      }, 'image/jpeg', 0.95); // JPG 고품질 (0.95)
+    });
   } catch (err) {
     // 스타일 복원 (에러 발생 시에도)
     restoreStyles(originalStyles);
-    console.error('Download failed:', err);
-    alert('다운로드에 실패했습니다: ' + (err as Error).message);
+    console.error('JPG generation failed:', err);
+    return null;
   }
 };
+
+/**
+ * 고해상도 JPG 다운로드 함수 (인쇄 품질)
+ * - pixelRatio 4로 고해상도 출력 (약 300dpi)
+ * - A4 비율 유지
+ * - 고품질 JPG (품질 0.95)
+ * - 인쇄용으로 스크롤바 제거
+ */
+export const downloadAsJpg = async (
+  targetRef: React.RefObject<HTMLDivElement | null>,
+  fileName: string
+) => {
+  const blob = await getJpgAsBlob(targetRef);
+  if (!blob) {
+    alert('다운로드에 실패했습니다.');
+    return;
+  }
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = `${fileName}.jpg`;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+// 하위 호환성을 위한 별칭 (기존 코드 호환)
+export const downloadAsPng = downloadAsJpg;
