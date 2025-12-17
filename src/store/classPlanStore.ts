@@ -81,6 +81,7 @@ const normalizePlan = (plan: ClassPlan): ClassPlan => {
   const classTime = plan.classTime || '';
   const templateId = plan.templateId || 'style1-blue';
   const sizePreset = plan.sizePreset || 'A4';
+  const status = plan.status || 'draft';
 
   return {
     ...plan,
@@ -94,6 +95,7 @@ const normalizePlan = (plan: ClassPlan): ClassPlan => {
     sizePreset,
     weeklyPlan,
     feeInfo,
+    status,
   };
 };
 
@@ -166,6 +168,11 @@ const dbToClassPlan = (row: ClassPlanRow): ClassPlan => {
   const layoutFromColumn = (row as { layout_config?: TemplateLayoutConfig }).layout_config;
   const layoutConfig = layoutFromColumn || layoutFromTypography;
 
+  const status = (row as { status?: string }).status;
+  const validStatus = status === 'draft' || status === 'teacher-reviewed' || status === 'admin-reviewed' 
+    ? status as ClassPlan['status'] 
+    : undefined;
+
   return normalizePlan({
     id: row.id,
     title: row.title,
@@ -195,6 +202,7 @@ const dbToClassPlan = (row: ClassPlanRow): ClassPlan => {
     weeklyPlan,
     feeInfo,
     lastSaved: row.last_saved ?? undefined,
+    status: validStatus,
   });
 };
 
@@ -226,6 +234,7 @@ const toDbPlan = (plan: ClassPlan) => {
     typography: typographyPayload,
   fee_info_title: plan.feeInfo?.title ?? '수강료 안내',
   last_saved: new Date().toISOString(),
+  status: plan.status || 'draft',
   };
 };
 

@@ -7,7 +7,7 @@ import { useClassPlanStore } from '@/store/classPlanStore';
 import { useAuthStore } from '@/store/authStore';
 import { recordActivity } from '@/lib/activityLogger';
 import { Plus, Download, ZoomIn, ZoomOut, Save, Upload, Layout, Trash2, Settings, History, LayoutTemplate } from 'lucide-react';
-import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings } from '@/lib/types';
+import { ClassPlan, TemplateId, TemplateCategory, ColorTheme, parseTemplateId, FontFamily, TypographySettings, ClassPlanStatus, classPlanStatusNames } from '@/lib/types';
 import { colorThemeNames, templateCategoryNames } from '@/lib/colorThemes';
 import { getDefaultTypography } from '@/lib/utils';
 import TemplateStyle1 from '@/components/templates/TemplateStyle1';
@@ -249,6 +249,24 @@ export default function HomePage() {
     }
   };
 
+  const handleStatusChange = async (status: ClassPlanStatus) => {
+    if (!selectedId || !selectedPlan) return;
+    
+    updateClassPlan(selectedId, { status });
+    
+    // 로그인 상태 확인 후 자동 저장
+    if (session) {
+      try {
+        await savePlan(selectedId);
+        recordActivity('class.status', `${selectedPlan.title || '강좌'} 단계 변경: ${classPlanStatusNames[status]}`);
+      } catch (error) {
+        console.error('단계 저장 실패:', error);
+        // 저장 실패해도 로컬 상태는 유지됨
+      }
+    }
+    // 로그인이 안 되어 있으면 로컬 상태만 업데이트 (저장은 나중에 임시저장 버튼으로)
+  };
+
   const handleDeleteCurrent = async () => {
     if (!selectedId) return;
     if (!window.confirm('현재 선택된 강의를 삭제할까요?')) return;
@@ -463,6 +481,24 @@ export default function HomePage() {
                 <Save className={`w-3.5 h-3.5 ${isSaving ? 'animate-pulse' : ''}`} />
                 <span>{isSaving ? '저장 중...' : '임시저장'}</span>
               </button>
+              {selectedPlan && (
+                <div className="flex items-center space-x-1 border-l border-zinc-300 pl-2">
+                  {(['draft', 'teacher-reviewed', 'admin-reviewed'] as ClassPlanStatus[]).map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => handleStatusChange(status)}
+                      className={`px-2 py-1 text-[10px] rounded transition-all ${
+                        selectedPlan.status === status || (!selectedPlan.status && status === 'draft')
+                          ? 'bg-blue-600 text-white font-semibold'
+                          : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                      }`}
+                      title={classPlanStatusNames[status]}
+                    >
+                      {classPlanStatusNames[status]}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

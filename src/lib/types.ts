@@ -282,4 +282,15 @@ export interface ClassPlan {
   
   // Meta
   lastSaved?: string;     // 마지막 저장 시간
+  status?: ClassPlanStatus; // 강좌 단계 상태
 }
+
+// 강좌 단계 상태 타입
+export type ClassPlanStatus = 'draft' | 'teacher-reviewed' | 'admin-reviewed';
+
+// 강좌 단계 한글 이름
+export const classPlanStatusNames: Record<ClassPlanStatus, string> = {
+  'draft': '담임 작성중',
+  'teacher-reviewed': '담임 검수완료',
+  'admin-reviewed': '운영진 검토완료',
+};
