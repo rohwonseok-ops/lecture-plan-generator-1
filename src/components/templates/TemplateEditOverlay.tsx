@@ -804,7 +804,7 @@ const TemplateEditOverlay: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isEditMode, selectedSections, detectedSections, getTransformValues, updateElementLayout, detectSections, getOriginalDOMStyle]);
 
-  // 원본 스타일로 DOM 복구
+  // 원본 스타일로 DOM 복구 (취소 시)
   const restoreOriginalDOMStyles = useCallback(() => {
     sectionElementsRef.current.forEach((element, id) => {
       const originalStyle = getOriginalDOMStyle(id);
@@ -815,6 +815,15 @@ const TemplateEditOverlay: React.FC = () => {
       }
     });
   }, [getOriginalDOMStyle]);
+
+  // DOM 스타일 초기화 (저장 시 - React가 layoutConfig 기반으로 렌더링하도록)
+  const clearDOMStyles = useCallback(() => {
+    sectionElementsRef.current.forEach((element) => {
+      element.style.transform = '';
+      element.style.width = '';
+      element.style.height = '';
+    });
+  }, []);
 
   // 초기화 (현재 편집 내용 리셋)
   const handleReset = useCallback(() => {
@@ -829,8 +838,11 @@ const TemplateEditOverlay: React.FC = () => {
   useEffect(() => {
     // 편집 모드가 종료될 때
     if (!isEditMode && prevEditModeRef.current) {
-      // 저장이 아니면 (취소 시) 원래 상태로 복원
-      if (!isSaving) {
+      if (isSaving) {
+        // 저장 시: DOM 스타일 초기화하여 React가 layoutConfig 기반으로 깨끗하게 렌더링
+        clearDOMStyles();
+      } else {
+        // 취소 시: 원본 스타일로 복구
         restoreOriginalDOMStyles();
       }
       // 저장 플래그 및 원본 스타일 정리
@@ -839,7 +851,7 @@ const TemplateEditOverlay: React.FC = () => {
       sectionElementsRef.current.clear();
     }
     prevEditModeRef.current = isEditMode;
-  }, [isEditMode, isSaving, setIsSaving, restoreOriginalDOMStyles, clearOriginalDOMStyles]);
+  }, [isEditMode, isSaving, setIsSaving, restoreOriginalDOMStyles, clearOriginalDOMStyles, clearDOMStyles]);
 
   if (!isEditMode) return null;
 

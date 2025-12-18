@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React from 'react';
-import { ClassPlan, ColorTheme, FeeRow, FieldFontSizes } from '@/lib/types';
+import { ClassPlan, ColorTheme, FeeRow, FieldFontSizes, TemplateLayoutConfig } from '@/lib/types';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
 import { getFontClassName, getDefaultTypography, getFieldFontSize, buildScheduleRows } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
@@ -40,7 +40,7 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const layoutConfig = classPlan.layoutConfig;
   const getLayoutStyle = (sectionId: string): React.CSSProperties => {
     if (!layoutConfig) return {};
-    const idToKeyMap: Record<string, keyof typeof layoutConfig> = {
+    const idToKeyMap: Record<string, keyof TemplateLayoutConfig> = {
       'header': 'header',
       'parent-intro': 'parentIntro',
       'teacher-info': 'teacherInfo',
@@ -60,10 +60,10 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
     if (layout.x !== undefined || layout.y !== undefined) {
       style.transform = `translate(${layout.x || 0}px, ${layout.y || 0}px)`;
     }
-    if (layout.width !== undefined) {
+    if (layout.width !== undefined && layout.width !== 0) {
       style.width = `calc(100% + ${layout.width}px)`;
     }
-    if (layout.height !== undefined) {
+    if (layout.height !== undefined && layout.height !== 0) {
       style.height = `calc(100% + ${layout.height}px)`;
     }
     return style;
