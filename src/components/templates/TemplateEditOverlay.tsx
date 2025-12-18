@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { useTemplateEditStore } from '@/store/templateEditStore';
+import { useTemplateEditStore, clampPosition, clampSize } from '@/store/templateEditStore';
 import { useClassPlanStore } from '@/store/classPlanStore';
 import { AlignLeft, AlignCenter, AlignRight, AlignVerticalJustifyCenter, Maximize2, RotateCcw, AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween, Ruler, ArrowDownUp, ArrowLeftRight } from 'lucide-react';
 
@@ -432,14 +432,18 @@ const TemplateEditOverlay: React.FC = () => {
         // 스냅 위치 계산
         const snapped = calculateSnapPosition(newX, newY, currentWidth, currentHeight, dragState.sectionId);
         
+        // 값 범위 제한 적용 (위치: -50px ~ 50px)
+        const clampedX = clampPosition(snapped.x);
+        const clampedY = clampPosition(snapped.y);
+        
         // pendingLayoutChanges에 저장하고 편집 모드에서는 실시간으로 DOM에 반영
         updateElementLayout(dragState.sectionId, {
-          x: snapped.x,
-          y: snapped.y,
+          x: clampedX,
+          y: clampedY,
         });
         
         // 편집 모드에서는 실시간으로 DOM에 반영 (미리보기)
-        section.element.style.transform = `translate(${snapped.x}px, ${snapped.y}px)`;
+        section.element.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
       } else if (dragState.type === 'resize' && dragState.handle) {
         // 크기 조절
         const section = detectedSections.find(s => s.id === dragState.sectionId);
@@ -499,21 +503,27 @@ const TemplateEditOverlay: React.FC = () => {
           }
         });
 
+        // 값 범위 제한 적용
+        const clampedX = clampPosition(snappedX);
+        const clampedY = clampPosition(snappedY);
+        const clampedWidth = clampSize(snappedWidth);
+        const clampedHeight = clampSize(snappedHeight);
+        
         // pendingLayoutChanges에 저장하고 편집 모드에서는 실시간으로 DOM에 반영
         updateElementLayout(dragState.sectionId, {
-          x: snappedX,
-          y: snappedY,
-          width: snappedWidth,
-          height: snappedHeight,
+          x: clampedX,
+          y: clampedY,
+          width: clampedWidth,
+          height: clampedHeight,
         });
         
         // 편집 모드에서는 실시간으로 DOM에 반영 (미리보기)
-        section.element.style.transform = `translate(${snappedX}px, ${snappedY}px)`;
-        if (snappedWidth !== 0) {
-          section.element.style.width = `calc(100% + ${snappedWidth}px)`;
+        section.element.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
+        if (clampedWidth !== 0) {
+          section.element.style.width = `calc(100% + ${clampedWidth}px)`;
         }
-        if (snappedHeight !== 0) {
-          section.element.style.height = `calc(100% + ${snappedHeight}px)`;
+        if (clampedHeight !== 0) {
+          section.element.style.height = `calc(100% + ${clampedHeight}px)`;
         }
       }
     };
@@ -554,60 +564,66 @@ const TemplateEditOverlay: React.FC = () => {
       case 'left': {
         const minLeft = Math.min(...selectedData.map(d => d.rect.left + d.transform.x));
         selectedData.forEach(({ id, rect, transform }) => {
-          const newX = minLeft - rect.left;
-          updateElementLayout(id, { x: newX, y: transform.y });
+          const newX = clampPosition(minLeft - rect.left);
+          const newY = clampPosition(transform.y);
+          updateElementLayout(id, { x: newX, y: newY });
           const section = detectedSections.find(s => s.id === id);
-          if (section) section.element.style.transform = `translate(${newX}px, ${transform.y}px)`;
+          if (section) section.element.style.transform = `translate(${newX}px, ${newY}px)`;
         });
         break;
       }
       case 'center': {
         const centerX = selectedData.reduce((sum, d) => sum + d.rect.left + d.transform.x + d.rect.width / 2, 0) / selectedData.length;
         selectedData.forEach(({ id, rect, transform }) => {
-          const newX = centerX - rect.left - rect.width / 2;
-          updateElementLayout(id, { x: newX, y: transform.y });
+          const newX = clampPosition(centerX - rect.left - rect.width / 2);
+          const newY = clampPosition(transform.y);
+          updateElementLayout(id, { x: newX, y: newY });
           const section = detectedSections.find(s => s.id === id);
-          if (section) section.element.style.transform = `translate(${newX}px, ${transform.y}px)`;
+          if (section) section.element.style.transform = `translate(${newX}px, ${newY}px)`;
         });
         break;
       }
       case 'right': {
         const maxRight = Math.max(...selectedData.map(d => d.rect.left + d.transform.x + d.rect.width));
         selectedData.forEach(({ id, rect, transform }) => {
-          const newX = maxRight - rect.left - rect.width;
-          updateElementLayout(id, { x: newX, y: transform.y });
+          const newX = clampPosition(maxRight - rect.left - rect.width);
+          const newY = clampPosition(transform.y);
+          updateElementLayout(id, { x: newX, y: newY });
           const section = detectedSections.find(s => s.id === id);
-          if (section) section.element.style.transform = `translate(${newX}px, ${transform.y}px)`;
+          if (section) section.element.style.transform = `translate(${newX}px, ${newY}px)`;
         });
         break;
       }
       case 'top': {
         const minTop = Math.min(...selectedData.map(d => d.rect.top + d.transform.y));
         selectedData.forEach(({ id, rect, transform }) => {
-          const newY = minTop - rect.top;
-          updateElementLayout(id, { x: transform.x, y: newY });
+          const newX = clampPosition(transform.x);
+          const newY = clampPosition(minTop - rect.top);
+          updateElementLayout(id, { x: newX, y: newY });
           const section = detectedSections.find(s => s.id === id);
-          if (section) section.element.style.transform = `translate(${transform.x}px, ${newY}px)`;
+          if (section) section.element.style.transform = `translate(${newX}px, ${newY}px)`;
         });
         break;
       }
       case 'middle': {
         const centerY = selectedData.reduce((sum, d) => sum + d.rect.top + d.transform.y + d.rect.height / 2, 0) / selectedData.length;
         selectedData.forEach(({ id, rect, transform }) => {
-          const newY = centerY - rect.top - rect.height / 2;
-          updateElementLayout(id, { x: transform.x, y: newY });
+          const newX = clampPosition(transform.x);
+          const newY = clampPosition(centerY - rect.top - rect.height / 2);
+          updateElementLayout(id, { x: newX, y: newY });
           const section = detectedSections.find(s => s.id === id);
-          if (section) section.element.style.transform = `translate(${transform.x}px, ${newY}px)`;
+          if (section) section.element.style.transform = `translate(${newX}px, ${newY}px)`;
         });
         break;
       }
       case 'bottom': {
         const maxBottom = Math.max(...selectedData.map(d => d.rect.top + d.transform.y + d.rect.height));
         selectedData.forEach(({ id, rect, transform }) => {
-          const newY = maxBottom - rect.top - rect.height;
-          updateElementLayout(id, { x: transform.x, y: newY });
+          const newX = clampPosition(transform.x);
+          const newY = clampPosition(maxBottom - rect.top - rect.height);
+          updateElementLayout(id, { x: newX, y: newY });
           const section = detectedSections.find(s => s.id === id);
-          if (section) section.element.style.transform = `translate(${transform.x}px, ${newY}px)`;
+          if (section) section.element.style.transform = `translate(${newX}px, ${newY}px)`;
         });
         break;
       }
@@ -636,12 +652,14 @@ const TemplateEditOverlay: React.FC = () => {
     selectedData.forEach(({ id, section, transform }) => {
       const update: { width?: number; height?: number } = {};
       if (dimension === 'width' || dimension === 'both') {
-        update.width = targetWidth - section.rect.width;
-        section.element.style.width = `${targetWidth}px`;
+        update.width = clampSize(targetWidth - section.rect.width);
+        const finalWidth = section.rect.width + update.width;
+        section.element.style.width = `${finalWidth}px`;
       }
       if (dimension === 'height' || dimension === 'both') {
-        update.height = targetHeight - section.rect.height;
-        section.element.style.height = `${targetHeight}px`;
+        update.height = clampSize(targetHeight - section.rect.height);
+        const finalHeight = section.rect.height + update.height;
+        section.element.style.height = `${finalHeight}px`;
       }
       updateElementLayout(id, { ...transform, ...update });
     });
@@ -687,9 +705,10 @@ const TemplateEditOverlay: React.FC = () => {
         return;
       }
       
-      const newX = currentX - section.rect.left;
-      updateElementLayout(id, { ...transform, x: newX });
-      section.element.style.transform = `translate(${newX}px, ${transform.y}px)`;
+      const newX = clampPosition(currentX - section.rect.left);
+      const newY = clampPosition(transform.y);
+      updateElementLayout(id, { ...transform, x: newX, y: newY });
+      section.element.style.transform = `translate(${newX}px, ${newY}px)`;
       currentX += section.rect.width + transform.width + gap;
     });
 
@@ -734,9 +753,10 @@ const TemplateEditOverlay: React.FC = () => {
         return;
       }
       
-      const newY = currentY - section.rect.top;
-      updateElementLayout(id, { ...transform, y: newY });
-      section.element.style.transform = `translate(${transform.x}px, ${newY}px)`;
+      const newX = clampPosition(transform.x);
+      const newY = clampPosition(currentY - section.rect.top);
+      updateElementLayout(id, { ...transform, x: newX, y: newY });
+      section.element.style.transform = `translate(${newX}px, ${newY}px)`;
       currentY += section.rect.height + transform.height + gap;
     });
 
@@ -773,8 +793,8 @@ const TemplateEditOverlay: React.FC = () => {
           if (!section) return;
 
           const transform = getTransformValues(sectionId);
-          const newX = transform.x + deltaX;
-          const newY = transform.y + deltaY;
+          const newX = clampPosition(transform.x + deltaX);
+          const newY = clampPosition(transform.y + deltaY);
 
           updateElementLayout(sectionId, { x: newX, y: newY });
           section.element.style.transform = `translate(${newX}px, ${newY}px)`;

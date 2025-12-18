@@ -3,7 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React from 'react';
-import { ClassPlan, ColorTheme, FieldFontSizes } from '@/lib/types';
+import { ClassPlan, ColorTheme, FieldFontSizes, TemplateLayoutConfig } from '@/lib/types';
+import { sectionIdToConfigKey, isValidPosition, isValidSize } from '@/store/templateEditStore';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
 import { getFontClassName, getDefaultTypography, getFieldFontSize, buildScheduleRows } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
@@ -37,36 +38,20 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const colors: ColorPalette = colorThemes[colorTheme] || colorThemes.blue;
   const feeInfo = classPlan.feeInfo;
   const layoutConfig = classPlan.layoutConfig;
-  // 레이아웃 스타일 헬퍼 함수 (강화된 값 검증 적용)
+  // 레이아웃 스타일 헬퍼 함수 (중앙화된 키 매핑 및 값 검증 사용)
   const getLayoutStyle = (sectionId: string): React.CSSProperties => {
     if (!layoutConfig) return {};
-    const idToKeyMap: Record<string, keyof typeof layoutConfig> = {
-      'header': 'header',
-      'parent-intro': 'parentIntro',
-      'teacher-info': 'teacherInfo',
-      'schedule-info': 'scheduleInfo',
-      'course-info': 'courseInfo',
-      'learning-goal': 'learningGoal',
-      'management': 'management',
-      'weekly-plan': 'weeklyPlan',
-      'monthly-calendar': 'monthlyCalendar',
-      'fee-table': 'feeTable',
-    };
-    const configKey = idToKeyMap[sectionId];
+    
+    // 중앙화된 키 매핑 사용
+    const configKey = sectionIdToConfigKey[sectionId] as keyof TemplateLayoutConfig;
     if (!configKey) return {};
+    
     const layout = layoutConfig[configKey];
     if (!layout || typeof layout === 'boolean') return {};
     
     const style: React.CSSProperties = {};
     
-    // 값 검증: 합리적인 범위 내에서만 적용
-    // 위치 이동: -50px ~ 50px 범위만 허용 (비정상적인 큰 값 차단)
-    const isValidPosition = (val: unknown): val is number => 
-      typeof val === 'number' && !isNaN(val) && Math.abs(val) <= 50;
-    // 크기 조정: -30px ~ 30px 범위만 허용
-    const isValidSize = (val: unknown): val is number => 
-      typeof val === 'number' && !isNaN(val) && Math.abs(val) <= 30;
-    
+    // 중앙화된 값 검증 함수 사용
     const x = isValidPosition(layout.x) ? layout.x : 0;
     const y = isValidPosition(layout.y) ? layout.y : 0;
     

@@ -134,6 +134,9 @@ export default function HomePage() {
     let lastObservedHeight = 0;
     
     const adjustA4Ratio = () => {
+      // 편집 모드에서는 자동 조정 비활성화 (DOM 직접 조작과의 충돌 방지)
+      if (isEditMode) return;
+      
       if (isAdjusting) return;
       
       const el = canvasRef.current;
@@ -172,7 +175,7 @@ export default function HomePage() {
       resizeObserver.disconnect();
       clearTimeout(adjustTimeout);
     };
-  }, [selectedId, classPlans, adjustToA4]);
+  }, [selectedId, classPlans, adjustToA4, isEditMode]);
 
   if (!authHydrated || !session || session.mustChangePassword) {
     return (

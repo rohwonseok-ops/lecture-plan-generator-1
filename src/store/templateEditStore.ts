@@ -1,6 +1,70 @@
 import { create } from 'zustand';
 import { ElementLayout, TemplateLayoutConfig, TemplateCategory } from '@/lib/types';
 
+// ========================================
+// 레이아웃 값 범위 제한 상수
+// ========================================
+
+/** 위치 이동(x, y)의 최대 절대값 (px) */
+export const LAYOUT_POSITION_LIMIT = 50;
+
+/** 크기 조정(width, height)의 최대 절대값 (px) */
+export const LAYOUT_SIZE_LIMIT = 30;
+
+// ========================================
+// 값 범위 제한 함수
+// ========================================
+
+/**
+ * 위치 값을 허용 범위 내로 클램핑
+ * @param value 원본 값
+ * @returns 제한된 값 (-50 ~ 50)
+ */
+export const clampPosition = (value: number): number => {
+  if (typeof value !== 'number' || isNaN(value)) return 0;
+  return Math.max(-LAYOUT_POSITION_LIMIT, Math.min(LAYOUT_POSITION_LIMIT, value));
+};
+
+/**
+ * 크기 값을 허용 범위 내로 클램핑
+ * @param value 원본 값
+ * @returns 제한된 값 (-30 ~ 30)
+ */
+export const clampSize = (value: number): number => {
+  if (typeof value !== 'number' || isNaN(value)) return 0;
+  return Math.max(-LAYOUT_SIZE_LIMIT, Math.min(LAYOUT_SIZE_LIMIT, value));
+};
+
+/**
+ * ElementLayout 객체의 모든 값을 정규화
+ * @param layout 원본 레이아웃
+ * @returns 정규화된 레이아웃
+ */
+export const normalizeElementLayout = (layout: Partial<ElementLayout>): Partial<ElementLayout> => {
+  const normalized: Partial<ElementLayout> = {};
+  
+  if (layout.x !== undefined) normalized.x = clampPosition(layout.x);
+  if (layout.y !== undefined) normalized.y = clampPosition(layout.y);
+  if (layout.width !== undefined) normalized.width = clampSize(layout.width);
+  if (layout.height !== undefined) normalized.height = clampSize(layout.height);
+  
+  return normalized;
+};
+
+/**
+ * 위치 값이 유효한 범위 내인지 확인
+ */
+export const isValidPosition = (val: unknown): val is number =>
+  typeof val === 'number' && !isNaN(val) && Math.abs(val) <= LAYOUT_POSITION_LIMIT;
+
+/**
+ * 크기 값이 유효한 범위 내인지 확인
+ */
+export const isValidSize = (val: unknown): val is number =>
+  typeof val === 'number' && !isNaN(val) && Math.abs(val) <= LAYOUT_SIZE_LIMIT;
+
+// ========================================
+
 // 원본 DOM 스타일 저장용 인터페이스
 interface OriginalDOMStyle {
   transform: string;
@@ -100,7 +164,9 @@ export const useTemplateEditStore = create<TemplateEditState>()((set, get) => ({
     Object.entries(pendingLayoutChanges).forEach(([elementId, layout]) => {
       const configKey = sectionIdToConfigKey[elementId];
       if (configKey && configKey !== 'applyToCategory') {
-        (config as Record<string, ElementLayout | undefined>)[configKey] = layout as ElementLayout;
+        // 저장 시 값 정규화 - 범위를 벗어난 값 클램핑
+        const normalizedLayout = normalizeElementLayout(layout);
+        (config as Record<string, ElementLayout | undefined>)[configKey] = normalizedLayout as ElementLayout;
       }
     });
     
