@@ -39,13 +39,13 @@ const TemplateStyle3: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const colors: ColorPalette = colorThemes[colorTheme] || colorThemes.blue;
   const feeInfo = classPlan.feeInfo;
   const layoutConfig = classPlan.layoutConfig;
-  // 레이아웃 스타일 헬퍼 함수 (중앙화된 키 매핑 및 값 검증 사용)
+  // 레이아웃 스타일 헬퍼 함수 (중앙화된 값 검증 사용)
+  // sectionId: camelCase 형식 (예: 'scheduleInfo') 또는 하이픈 형식 (예: 'schedule-info')
   const getLayoutStyle = (sectionId: string): React.CSSProperties => {
     if (!layoutConfig) return {};
     
-    // 중앙화된 키 매핑 사용
-    const configKey = sectionIdToConfigKey[sectionId] as keyof TemplateLayoutConfig;
-    if (!configKey) return {};
+    // 하이픈 형식이면 sectionIdToConfigKey로 변환, 아니면 직접 사용
+    const configKey = (sectionIdToConfigKey[sectionId] || sectionId) as keyof TemplateLayoutConfig;
     
     const layout = layoutConfig[configKey];
     if (!layout || typeof layout === 'boolean') return {};
