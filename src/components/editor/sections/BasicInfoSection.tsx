@@ -37,12 +37,6 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
     promoCopy: ['가치 제안', '신뢰 강조', '혜택/이벤트', '기간 한정'],
     keywords: ['수학', '성적향상', '자기주도', '시험대비'],
   };
-  const twoLineDividerStyle: React.CSSProperties = {
-    backgroundImage: 'linear-gradient(to right, #e5e7eb, #e5e7eb)',
-    backgroundSize: '100% 1px',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-  };
 
   const handleAiGenerate = async (field: keyof ClassPlan, type: AiGenerateOptions['type']) => {
     setGeneratingField(field as string);

@@ -30,9 +30,15 @@ export const POST = async (req: NextRequest) => {
   const { client, userId } = pair;
   console.log('[POST /api/class-plans] 인증 성공:', { userId });
 
-  let body: any = {};
+  type PostRequestBody = {
+    plan?: TablesInsert<'class_plans'>;
+    weeklyItems?: TablesInsert<'weekly_plan_items'>[];
+    feeRows?: TablesInsert<'fee_rows'>[];
+  };
+
+  let body: PostRequestBody = {};
   try {
-    body = await req.json();
+    body = await req.json() as PostRequestBody;
   } catch (parseError) {
     console.error('[POST /api/class-plans] 요청 본문 파싱 실패:', parseError);
     return badRequest('Invalid JSON in request body');
@@ -42,10 +48,6 @@ export const POST = async (req: NextRequest) => {
     plan,
     weeklyItems = [],
     feeRows = [],
-  }: {
-    plan?: TablesInsert<'class_plans'>;
-    weeklyItems?: TablesInsert<'weekly_plan_items'>[];
-    feeRows?: TablesInsert<'fee_rows'>[];
   } = body;
 
   if (!plan?.title) {
@@ -55,6 +57,10 @@ export const POST = async (req: NextRequest) => {
 
   console.log('[POST /api/class-plans] 강의 생성 시도:', {
     title: plan.title,
+    teacher_name: plan.teacher_name,
+    teacher_name_type: typeof plan.teacher_name,
+    teacher_name_hasNewline: plan.teacher_name?.includes('\n'),
+    teacher_name_length: plan.teacher_name?.length,
     weeklyItemsCount: weeklyItems.length,
     feeRowsCount: feeRows.length,
   });
@@ -130,6 +136,16 @@ export const POST = async (req: NextRequest) => {
     });
     return serverError(fullError.message);
   }
+  
+  // 디버깅: 저장 후 teacher_name 값 확인
+  console.log('[POST /api/class-plans] 저장 후 teacher_name 확인:', {
+    id: full.id,
+    teacher_name: full.teacher_name,
+    teacher_name_type: typeof full.teacher_name,
+    teacher_name_hasNewline: full.teacher_name?.includes('\n'),
+    teacher_name_length: full.teacher_name?.length,
+    rawValue: JSON.stringify(full.teacher_name),
+  });
   
   console.log('[POST /api/class-plans] 요청 완료:', { id: full.id });
   return NextResponse.json({ data: full });

@@ -31,9 +31,15 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
   const { client, userId } = pair;
   console.log('[PUT /api/class-plans/:id] 인증 성공:', { id, userId });
 
-  let body: any = {};
+  type PutRequestBody = {
+    patch?: Partial<TablesInsert<'class_plans'>>;
+    weeklyItems?: TablesInsert<'weekly_plan_items'>[];
+    feeRows?: TablesInsert<'fee_rows'>[];
+  };
+
+  let body: PutRequestBody = {};
   try {
-    body = await req.json();
+    body = await req.json() as PutRequestBody;
   } catch (parseError) {
     console.error('[PUT /api/class-plans/:id] 요청 본문 파싱 실패:', {
       id,
@@ -46,15 +52,15 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     patch = {},
     weeklyItems,
     feeRows,
-  }: {
-    patch?: Partial<TablesInsert<'class_plans'>>;
-    weeklyItems?: TablesInsert<'weekly_plan_items'>[];
-    feeRows?: TablesInsert<'fee_rows'>[];
   } = body;
 
   console.log('[PUT /api/class-plans/:id] 업데이트 시도:', {
     id,
     patchKeys: Object.keys(patch),
+    teacher_name: patch.teacher_name,
+    teacher_name_type: typeof patch.teacher_name,
+    teacher_name_hasNewline: patch.teacher_name?.includes('\n'),
+    teacher_name_length: patch.teacher_name?.length,
     hasWeeklyItems: !!weeklyItems,
     weeklyItemsCount: weeklyItems?.length ?? 0,
     hasFeeRows: !!feeRows,
@@ -169,6 +175,16 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     });
     return serverError(fullError.message);
   }
+  
+  // 디버깅: 저장 후 teacher_name 값 확인
+  console.log('[PUT /api/class-plans/:id] 저장 후 teacher_name 확인:', {
+    id: full.id,
+    teacher_name: full.teacher_name,
+    teacher_name_type: typeof full.teacher_name,
+    teacher_name_hasNewline: full.teacher_name?.includes('\n'),
+    teacher_name_length: full.teacher_name?.length,
+    rawValue: JSON.stringify(full.teacher_name),
+  });
   
   console.log('[PUT /api/class-plans/:id] 요청 완료:', { id });
   return NextResponse.json({ data: full });

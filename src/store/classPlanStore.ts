@@ -76,12 +76,22 @@ const normalizePlan = (plan: ClassPlan): ClassPlan => {
   const title = plan.title || '강좌명';
   const showTitle = plan.showTitle !== false;
   const targetStudent = plan.targetStudent || '';
-  const teacherName = plan.teacherName || '';
+  // teacherName은 undefined나 null일 때만 빈 문자열로 변환, 줄바꿈 포함 문자열은 유지
+  const teacherName = plan.teacherName ?? '';
   const classDay = plan.classDay || '';
   const classTime = plan.classTime || '';
   const templateId = plan.templateId || 'style1-blue';
   const sizePreset = plan.sizePreset || 'A4';
   const status = plan.status || 'draft';
+
+  // 디버깅: teacherName 정규화 전후 값 비교
+  if (plan.teacherName !== teacherName) {
+    console.log('[normalizePlan] teacherName 정규화:', {
+      before: plan.teacherName,
+      after: teacherName,
+      hasNewline: teacherName.includes('\n'),
+    });
+  }
 
   return {
     ...plan,
@@ -173,6 +183,16 @@ const dbToClassPlan = (row: ClassPlanRow): ClassPlan => {
     ? status as ClassPlan['status'] 
     : undefined;
 
+  // 디버깅: 데이터베이스에서 읽어온 teacher_name 값 확인
+  const rawTeacherName = row.teacher_name ?? '';
+  console.log('[dbToClassPlan] teacher_name 로드 후:', {
+    value: rawTeacherName,
+    type: typeof rawTeacherName,
+    hasNewline: rawTeacherName.includes('\n'),
+    length: rawTeacherName.length,
+    rawValue: JSON.stringify(rawTeacherName),
+  });
+
   return normalizePlan({
     id: row.id,
     title: row.title,
@@ -180,7 +200,7 @@ const dbToClassPlan = (row: ClassPlanRow): ClassPlan => {
     subject: row.subject ?? '',
     targetStudent: row.target_student ?? '',
     targetStudentDetail: row.target_student_detail ?? '',
-    teacherName: row.teacher_name ?? '',
+    teacherName: rawTeacherName,
     classDay: row.class_day ?? '',
     classTime: row.class_time ?? '',
     schedule: row.schedule ?? '',
@@ -208,13 +228,22 @@ const dbToClassPlan = (row: ClassPlanRow): ClassPlan => {
 
 const toDbPlan = (plan: ClassPlan) => {
   const typographyPayload = attachLayoutToTypography(plan.typography, plan.layoutConfig);
+  
+  // 디버깅: teacherName 값 확인
+  console.log('[toDbPlan] teacherName 저장 전:', {
+    value: plan.teacherName,
+    type: typeof plan.teacherName,
+    hasNewline: plan.teacherName?.includes('\n'),
+    length: plan.teacherName?.length,
+  });
+  
   return {
   title: plan.title,
   title_type: plan.titleType,
   subject: plan.subject,
   target_student: plan.targetStudent,
   target_student_detail: plan.targetStudentDetail,
-  teacher_name: plan.teacherName,
+  teacher_name: plan.teacherName ?? '',
   class_day: plan.classDay,
   class_time: plan.classTime,
   schedule: plan.schedule,
