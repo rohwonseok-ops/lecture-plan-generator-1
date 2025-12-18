@@ -253,23 +253,31 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
       set({ loading: false, error: '로그인이 필요합니다.' });
       return;
     }
-    const res = await fetch('/api/class-plans', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      set({ loading: false, error: json.error || '강의 목록을 불러오지 못했습니다.' });
-      return;
+    try {
+      const res = await fetch('/api/class-plans', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        const errorMsg = json.error || `강의 목록을 불러오지 못했습니다. (${res.status})`;
+        console.error('강의 목록 로드 실패:', errorMsg, json);
+        set({ loading: false, error: errorMsg });
+        return;
+      }
+      const json = await res.json();
+      const plans: ClassPlan[] = (json.data || []).map(dbToClassPlan);
+      set({
+        classPlans: plans,
+        selectedId: plans[0]?.id,
+        loading: false,
+        error: null,
+        localOnlyIds: [],
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : '강의 목록을 불러오는 중 오류가 발생했습니다.';
+      console.error('강의 목록 로드 중 예외:', err);
+      set({ loading: false, error: errorMsg });
     }
-    const json = await res.json();
-    const plans: ClassPlan[] = (json.data || []).map(dbToClassPlan);
-    set({
-      classPlans: plans,
-      selectedId: plans[0]?.id,
-      loading: false,
-      error: null,
-      localOnlyIds: [],
-    });
   },
 
   addClassPlan: async (plan) => {
@@ -302,33 +310,59 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
 
     const endpoint = isLocalOnly ? '/api/class-plans' : `/api/class-plans/${id}`;
     const method = isLocalOnly ? 'POST' : 'PUT';
+    const dbPlan = toDbPlan(plan);
 
-    const res = await fetch(endpoint, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        plan: toDbPlan(plan),
-        patch: toDbPlan(plan),
-        weeklyItems: toDbWeekly(plan.weeklyPlan),
-        feeRows: toDbFeeRows(plan.feeInfo?.rows),
-      }),
-    });
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      const errorMsg = json.error || '저장 실패';
+    // POST는 plan만, PUT은 patch만 전송
+    const requestBody = isLocalOnly
+      ? {
+          plan: dbPlan,
+          weeklyItems: toDbWeekly(plan.weeklyPlan),
+          feeRows: toDbFeeRows(plan.feeInfo?.rows),
+        }
+      : {
+          patch: dbPlan,
+          weeklyItems: toDbWeekly(plan.weeklyPlan),
+          feeRows: toDbFeeRows(plan.feeInfo?.rows),
+        };
+
+    try {
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        const errorMsg = json.error || `저장 실패 (${res.status})`;
+        console.error('강의 저장 실패:', errorMsg, json);
+        set({ error: errorMsg });
+        throw new Error(errorMsg);
+      }
+      const json = await res.json();
+      if (!json.data) {
+        const errorMsg = '저장 응답에 데이터가 없습니다.';
+        console.error('저장 응답 오류:', json);
+        set({ error: errorMsg });
+        throw new Error(errorMsg);
+      }
+      const saved = dbToClassPlan(json.data);
+      set((state) => ({
+        classPlans: state.classPlans.map((p) => (p.id === id ? saved : p)),
+        error: null,
+        localOnlyIds: state.localOnlyIds.filter((localId) => localId !== id),
+      }));
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('저장')) {
+        throw err;
+      }
+      const errorMsg = err instanceof Error ? err.message : '저장 중 오류가 발생했습니다.';
+      console.error('강의 저장 중 예외:', err);
       set({ error: errorMsg });
       throw new Error(errorMsg);
     }
-    const json = await res.json();
-    const saved = dbToClassPlan(json.data);
-    set((state) => ({
-      classPlans: state.classPlans.map((p) => (p.id === id ? saved : p)),
-      error: null,
-      localOnlyIds: state.localOnlyIds.filter((localId) => localId !== id),
-    }));
   },
 
   removeClassPlan: async (id) => {

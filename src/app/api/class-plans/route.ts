@@ -12,8 +12,11 @@ export const GET = async (req: NextRequest) => {
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .order('created_at', { ascending: false });
 
-  if (error) return serverError(error.message);
-  return NextResponse.json({ data });
+  if (error) {
+    console.error('강의 목록 조회 실패:', error);
+    return serverError(error.message);
+  }
+  return NextResponse.json({ data: data || [] });
 };
 
 export const POST = async (req: NextRequest) => {

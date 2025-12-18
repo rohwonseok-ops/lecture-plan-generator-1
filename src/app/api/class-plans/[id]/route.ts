@@ -40,7 +40,10 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     .from('class_plans')
     .update(patch)
     .eq('id', id);
-  if (error) return serverError(error.message);
+  if (error) {
+    console.error('강의 수정 실패:', error, { id, patch });
+    return serverError(error.message);
+  }
 
   if (weeklyItems) {
     await client.from('weekly_plan_items').delete().eq('class_plan_id', id);
