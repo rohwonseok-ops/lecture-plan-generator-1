@@ -263,7 +263,6 @@ const toDbPlan = (plan: ClassPlan) => {
     typography: typographyPayload,
   fee_info_title: plan.feeInfo?.title ?? '수강료 안내',
   last_saved: new Date().toISOString(),
-  status: plan.status || 'draft',
   };
 };
 

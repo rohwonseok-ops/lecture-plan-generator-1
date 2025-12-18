@@ -65,9 +65,15 @@ export const POST = async (req: NextRequest) => {
     feeRowsCount: feeRows.length,
   });
 
+  // NOTE: class_plans 테이블에 없는 컬럼이 payload에 섞여 들어오면
+  // PostgREST가 "Could not find the 'X' column ... in the schema cache" 에러를 냅니다.
+  // 현재 앱에서 local state로만 쓰는 status는 DB 컬럼이 아니므로 제거합니다.
+  const planWithoutStatus = { ...(plan || {}) } as Record<string, unknown>;
+  delete planWithoutStatus.status;
+
   const { data, error } = await client
     .from('class_plans')
-    .insert({ ...(plan || {}), owner_id: userId })
+    .insert({ ...(planWithoutStatus as TablesInsert<'class_plans'>), owner_id: userId })
     .select()
     .single();
     

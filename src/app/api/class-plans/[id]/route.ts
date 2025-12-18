@@ -67,9 +67,13 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     feeRowsCount: feeRows?.length ?? 0,
   });
 
+  // class_plans에 없는 컬럼(status 등)이 들어오면 PostgREST schema cache 에러가 발생하므로 제거
+  const patchWithoutStatus = { ...(patch || {}) } as Record<string, unknown>;
+  delete patchWithoutStatus.status;
+
   const { error } = await client
     .from('class_plans')
-    .update(patch)
+    .update(patchWithoutStatus as Partial<TablesInsert<'class_plans'>>)
     .eq('id', id);
     
   if (error) {
