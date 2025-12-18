@@ -4,7 +4,8 @@
       "Bash(powershell -Command \"Get-NetTCPConnection -State Listen | Where-Object {$_LocalPort -in 3000,3001,3002} | Select-Object LocalPort\")",
       "Bash(powershell -Command:*)",
       "Bash(npm run dev:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

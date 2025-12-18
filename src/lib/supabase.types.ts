@@ -62,6 +62,7 @@ export type Database = {
           course1: string | null
           course2: string | null
           created_at: string
+          deleted_at: string | null
           etc: string | null
           etc_position: string | null
           fee_info_title: string | null
@@ -95,6 +96,7 @@ export type Database = {
           course1?: string | null
           course2?: string | null
           created_at?: string
+          deleted_at?: string | null
           etc?: string | null
           etc_position?: string | null
           fee_info_title?: string | null
@@ -128,6 +130,7 @@ export type Database = {
           course1?: string | null
           course2?: string | null
           created_at?: string
+          deleted_at?: string | null
           etc?: string | null
           etc_position?: string | null
           fee_info_title?: string | null
