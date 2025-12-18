@@ -202,6 +202,15 @@
     animation: fadeInUp 0.4s ease-out forwards;
   }
 
+  /* 주차별 학습계획 DnD 핸들 전용: 흰 배경에서도 보이는(테두리 있는) Grab 커서 */
+  .cursor-grab-outline {
+    cursor: url('/cursors/grab-outline.svg') 10 10, grab;
+  }
+
+  .cursor-grab-outline:active {
+    cursor: url('/cursors/grabbing-outline.svg') 10 10, grabbing;
+  }
+
   @keyframes fadeInUp {
     from {
       opacity: 0;

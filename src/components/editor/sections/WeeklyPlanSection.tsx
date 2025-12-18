@@ -101,7 +101,7 @@ const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
       <div
         {...attributes}
         {...listeners}
-        className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-600 transition"
+        className="flex-shrink-0 cursor-grab-outline p-1 rounded text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 active:bg-zinc-200 transition"
       >
         <GripVertical size={14} />
       </div>
@@ -138,7 +138,7 @@ const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
 };
 
 // DragOverlay에서 사용할 정적 컴포넌트 (드래그 핸들 없음)
-const DragOverlayWeekRow: React.FC<{ week: WeeklyItem; index: number }> = ({ week, index }) => {
+const DragOverlayWeekRow: React.FC<{ week: WeeklyItem }> = ({ week }) => {
   return (
     <div className="flex items-center gap-2 px-1.5 py-0.5 bg-white shadow-xl border-2 border-blue-400 rounded-lg scale-[1.02]">
       <div className="flex-shrink-0 p-1 text-blue-500">
@@ -171,7 +171,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     }));
     
     // 모든 항목에 ID가 있는지 확인하고, 없으면 생성
-    return plan.map((item, idx) => ({
+    return plan.map((item) => ({
       ...item,
       id: item.id || crypto.randomUUID(),
     }));
@@ -401,7 +401,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
         {/* DragOverlay: 드래그 중인 항목의 복제본 표시 */}
         <DragOverlay>
           {activeItem && activeIndex !== -1 ? (
-            <DragOverlayWeekRow week={activeItem} index={activeIndex} />
+            <DragOverlayWeekRow week={activeItem} />
           ) : null}
         </DragOverlay>
       </DndContext>
