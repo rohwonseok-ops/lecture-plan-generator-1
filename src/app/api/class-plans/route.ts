@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientAndUser, unauthorized, badRequest, serverError } from '@/lib/apiHelpers';
+import { supabaseAdmin } from '@/lib/supabaseServer';
 import type { TablesInsert } from '@/lib/supabase.types';
 
 export const GET = async (req: NextRequest) => {
   const pair = await getClientAndUser(req);
   if (!pair) return unauthorized();
-  const { client } = pair;
+  // class_plans는 "관리자/일반유저 모두 전체 CRUD" 요구사항을 만족하기 위해
+  // DB RLS 설정과 무관하게(=RLS가 owner 기준으로 꼬여있어도) 서버에서 서비스키로 조회합니다.
+  const admin = supabaseAdmin();
 
-  const { data, error } = await client
+  const { data, error } = await admin
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .order('created_at', { ascending: false });
@@ -27,7 +30,8 @@ export const POST = async (req: NextRequest) => {
     console.warn('[POST /api/class-plans] 인증 실패');
     return unauthorized();
   }
-  const { client, userId } = pair;
+  const { userId } = pair;
+  const admin = supabaseAdmin();
   console.log('[POST /api/class-plans] 인증 성공:', { userId });
 
   type PostRequestBody = {
@@ -71,7 +75,7 @@ export const POST = async (req: NextRequest) => {
   const planWithoutStatus = { ...(plan || {}) } as Record<string, unknown>;
   delete planWithoutStatus.status;
 
-  const { data, error } = await client
+  const { data, error } = await admin
     .from('class_plans')
     .insert({ ...(planWithoutStatus as TablesInsert<'class_plans'>), owner_id: userId })
     .select()
@@ -90,7 +94,7 @@ export const POST = async (req: NextRequest) => {
   console.log('[POST /api/class-plans] 강의 생성 성공:', { id: data.id });
 
   if (weeklyItems.length) {
-    const { error: weeklyError } = await client.from('weekly_plan_items').insert(
+    const { error: weeklyError } = await admin.from('weekly_plan_items').insert(
       weeklyItems.map((w, idx) => ({
         ...w,
         class_plan_id: data.id,
@@ -110,7 +114,7 @@ export const POST = async (req: NextRequest) => {
   }
   
   if (feeRows.length) {
-    const { error: feeError } = await client.from('fee_rows').insert(
+    const { error: feeError } = await admin.from('fee_rows').insert(
       feeRows.map((f) => ({
         ...f,
         class_plan_id: data.id,
@@ -128,7 +132,7 @@ export const POST = async (req: NextRequest) => {
     }
   }
 
-  const { data: full, error: fullError } = await client
+  const { data: full, error: fullError } = await admin
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .eq('id', data.id)

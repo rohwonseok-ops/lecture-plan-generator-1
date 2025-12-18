@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { supabase } from '@/lib/supabaseClient';
 import Image from 'next/image';
 import { Upload, Sparkles, ArrowLeft, CheckCircle2, Save, Info } from 'lucide-react';
 import { emptyTemplate, createDefaultLayout, saveTemplate } from '@/lib/repositories/templates';
@@ -74,6 +75,11 @@ export default function DesignAnalysisPage() {
     if (!hydrated) return;
     if (!session) {
       router.replace('/login');
+      return;
+    }
+    // 디자인/템플릿 설계는 관리자 전용
+    if (session.role !== 'admin') {
+      router.replace('/');
     }
   }, [hydrated, session, router]);
 
@@ -117,7 +123,19 @@ export default function DesignAnalysisPage() {
       form.append('file', file);
       form.append('prompt', prompt);
 
-      const res = await fetch('/api/ai/design', { method: 'POST', body: form });
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        throw new Error('로그인이 필요합니다.');
+      }
+
+      const res = await fetch('/api/ai/design', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: form,
+      });
       let json: DesignApiResponse | null = null;
       try {
         json = await res.json();

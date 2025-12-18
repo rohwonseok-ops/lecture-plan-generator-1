@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { recordServerActivity } from '@/lib/serverLogger';
+import { supabaseAdmin } from '@/lib/supabaseServer';
+import { forbidden, unauthorized } from '@/lib/apiHelpers';
 
 export const runtime = 'nodejs';
 
@@ -109,9 +111,38 @@ const detectProvider = (env: { baseUrl: string; model: string; provider?: string
   return 'openai';
 };
 
+const requireAdmin = async (req: Request) => {
+  const authHeader = req.headers.get('authorization') || '';
+  const token = authHeader.toLowerCase().startsWith('bearer ')
+    ? authHeader.slice(7).trim()
+    : undefined;
+  if (!token) return { ok: false as const, res: unauthorized() };
+
+  const admin = supabaseAdmin();
+  const { data: userData, error: userError } = await admin.auth.getUser(token);
+  if (userError || !userData?.user) return { ok: false as const, res: unauthorized() };
+
+  const { data: profile, error: profileError } = await admin
+    .from('profiles')
+    .select('id, role, active')
+    .eq('id', userData.user.id)
+    .single();
+
+  if (profileError || !profile) return { ok: false as const, res: forbidden() };
+  if (profile.role !== 'admin' || !profile.active) return { ok: false as const, res: forbidden() };
+
+  return { ok: true as const, userId: profile.id };
+};
+
 export async function POST(req: Request) {
   const requestId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+  let actorId: string | null = null;
   try {
+    // 템플릿/디자인 분석은 강의계획서 관리 외 영역으로 분류 → 관리자만 허용
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.res;
+    actorId = auth.userId;
+
     const form = await req.formData();
     const file = form.get('file') as File | null;
     const prompt =
@@ -144,6 +175,7 @@ export async function POST(req: Request) {
       await recordServerActivity({
         action: 'ai.design',
         detail: `${prefix} | ${detail}`.slice(0, 1000),
+        actorId,
       });
     };
 
@@ -323,6 +355,7 @@ export async function POST(req: Request) {
     await recordServerActivity({
       action: 'ai.design',
       detail: `status=500 | requestId=${requestId} | error=${truncateText(message, 300)}`,
+      actorId,
     });
     return NextResponse.json({ error: message, requestId }, { status: 500 });
   }

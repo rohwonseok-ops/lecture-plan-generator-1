@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseServer';
-import { unauthorized, forbidden, serverError } from '@/lib/apiHelpers';
+import { unauthorized, forbidden, serverError, getClientAndUser } from '@/lib/apiHelpers';
 
 const requireAdmin = async (req: NextRequest) => {
-  const authHeader = req.headers.get('authorization') || '';
-  const token = authHeader.toLowerCase().startsWith('bearer ')
-    ? authHeader.slice(7).trim()
-    : undefined;
-  if (!token) return { ok: false as const, res: unauthorized() };
+  const pair = await getClientAndUser(req);
+  if (!pair) return { ok: false as const, res: unauthorized() };
 
-  const admin = supabaseAdmin();
-  const { data: userData, error: userError } = await admin.auth.getUser(token);
-  if (userError || !userData?.user) return { ok: false as const, res: unauthorized() };
-
-  const { data: profile, error: profileError } = await admin
+  const { client, userId } = pair;
+  const { data: profile, error: profileError } = await client
     .from('profiles')
     .select('id, role, active')
-    .eq('id', userData.user.id)
+    .eq('id', userId)
     .single();
 
   if (profileError || !profile) return { ok: false as const, res: forbidden() };
@@ -33,8 +26,11 @@ export const GET = async (req: NextRequest) => {
   const limit = parseInt(searchParams.get('limit') || '200', 10);
   const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-  const admin = supabaseAdmin();
-  const { data, error } = await admin
+  const pair = await getClientAndUser(req);
+  if (!pair) return unauthorized();
+  const { client } = pair;
+
+  const { data, error } = await client
     .from('activity_logs')
     .select('*')
     .order('created_at', { ascending: false })

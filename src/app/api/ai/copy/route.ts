@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { createRequestSupabase } from '@/lib/supabaseRequestClient';
+import { unauthorized } from '@/lib/apiHelpers';
 
 export const runtime = 'nodejs';
 
@@ -46,6 +48,17 @@ const getCopyEnv = () => {
 
 export async function POST(req: Request) {
   try {
+    // 일반유저 권한 범위를 "강의계획서 관리"로 한정하기 위해, AI 문구 생성도 로그인 사용자만 허용합니다.
+    const authHeader = req.headers.get('authorization') || '';
+    const token = authHeader.toLowerCase().startsWith('bearer ')
+      ? authHeader.slice(7).trim()
+      : undefined;
+    if (!token) return unauthorized();
+
+    const client = createRequestSupabase(token);
+    const { data: userData, error: userError } = await client.auth.getUser();
+    if (userError || !userData?.user) return unauthorized();
+
     const { plan, options } = (await req.json()) as CopyRequestBody;
     const { apiKey, baseUrl, model } = getCopyEnv();
 

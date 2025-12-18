@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getClientAndUser, unauthorized, notFound, serverError, badRequest } from '@/lib/apiHelpers';
+import { supabaseAdmin } from '@/lib/supabaseServer';
 import type { TablesInsert } from '@/lib/supabase.types';
 
 export const GET = async (_req: NextRequest, context: { params: Promise<{ id: string }> }) => {
   const { id } = await context.params;
   const pair = await getClientAndUser(_req);
   if (!pair) return unauthorized();
-  const { client } = pair;
+  const admin = supabaseAdmin();
 
-  const { data, error } = await client
+  const { data, error } = await admin
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .eq('id', id)
@@ -28,7 +29,8 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     console.warn('[PUT /api/class-plans/:id] 인증 실패:', { id });
     return unauthorized();
   }
-  const { client, userId } = pair;
+  const { userId } = pair;
+  const admin = supabaseAdmin();
   console.log('[PUT /api/class-plans/:id] 인증 성공:', { id, userId });
 
   type PutRequestBody = {
@@ -70,8 +72,10 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
   // class_plans에 없는 컬럼(status 등)이 들어오면 PostgREST schema cache 에러가 발생하므로 제거
   const patchWithoutStatus = { ...(patch || {}) } as Record<string, unknown>;
   delete patchWithoutStatus.status;
+  // owner_id는 감사/추적용 컬럼으로 유지하되, 수정 API에서는 임의 변경을 막습니다.
+  delete patchWithoutStatus.owner_id;
 
-  const { error } = await client
+  const { error } = await admin
     .from('class_plans')
     .update(patchWithoutStatus as Partial<TablesInsert<'class_plans'>>)
     .eq('id', id);
@@ -91,7 +95,7 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
   console.log('[PUT /api/class-plans/:id] 강의 기본 정보 업데이트 성공:', { id });
 
   if (weeklyItems) {
-    const { error: deleteError } = await client.from('weekly_plan_items').delete().eq('class_plan_id', id);
+    const { error: deleteError } = await admin.from('weekly_plan_items').delete().eq('class_plan_id', id);
     if (deleteError) {
       console.error('[PUT /api/class-plans/:id] 주간 계획 항목 삭제 실패:', {
         id,
@@ -104,7 +108,7 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     }
     
     if (weeklyItems.length) {
-      const { error: insertError } = await client.from('weekly_plan_items').insert(
+      const { error: insertError } = await admin.from('weekly_plan_items').insert(
         weeklyItems.map((w, idx) => ({
           ...w,
           class_plan_id: id,
@@ -129,7 +133,7 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
   }
 
   if (feeRows) {
-    const { error: deleteError } = await client.from('fee_rows').delete().eq('class_plan_id', id);
+    const { error: deleteError } = await admin.from('fee_rows').delete().eq('class_plan_id', id);
     if (deleteError) {
       console.error('[PUT /api/class-plans/:id] 수강료 행 삭제 실패:', {
         id,
@@ -142,7 +146,7 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     }
     
     if (feeRows.length) {
-      const { error: insertError } = await client.from('fee_rows').insert(
+      const { error: insertError } = await admin.from('fee_rows').insert(
         feeRows.map((f) => ({
           ...f,
           class_plan_id: id,
@@ -165,7 +169,7 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     }
   }
 
-  const { data: full, error: fullError } = await client
+  const { data: full, error: fullError } = await admin
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .eq('id', id)
@@ -198,9 +202,9 @@ export const DELETE = async (req: NextRequest, context: { params: Promise<{ id: 
   const { id } = await context.params;
   const pair = await getClientAndUser(req);
   if (!pair) return unauthorized();
-  const { client } = pair;
+  const admin = supabaseAdmin();
 
-  const { error } = await client
+  const { error } = await admin
     .from('class_plans')
     .delete()
     .eq('id', id);

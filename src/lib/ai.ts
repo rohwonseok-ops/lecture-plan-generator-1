@@ -1,5 +1,6 @@
 'use client';
 
+import { supabase } from './supabaseClient';
 import { ClassPlan } from './types';
 
 export interface AiGenerateOptions {
@@ -11,9 +12,18 @@ export interface AiGenerateOptions {
 }
 
 export const generateTextForClassPlan = async (plan: ClassPlan, options: AiGenerateOptions): Promise<string> => {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) {
+    throw new Error('로그인이 필요합니다.');
+  }
+
   const res = await fetch('/api/ai/copy', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify({ plan, options }),
   });
 
