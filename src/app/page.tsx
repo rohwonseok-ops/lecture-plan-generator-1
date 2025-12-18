@@ -282,7 +282,7 @@ export default function HomePage() {
 
   const handleDeleteCurrent = async () => {
     if (!selectedId) return;
-    if (!window.confirm('현재 선택된 강의를 휴지통으로 이동할까요?\n\n휴지통에서 복원하거나 영구 삭제할 수 있습니다.')) return;
+    if (!window.confirm('정말 삭제하시겠습니까?\n휴지통으로 이동합니다.')) return;
     await removeClassPlan(selectedId);
     const next = classPlans.find((p) => p.id !== selectedId);
     setSelectedId(next?.id);
