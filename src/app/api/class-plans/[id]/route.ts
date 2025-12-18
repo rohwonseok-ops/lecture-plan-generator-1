@@ -6,13 +6,12 @@ export const GET = async (_req: NextRequest, context: { params: Promise<{ id: st
   const { id } = await context.params;
   const pair = await getClientAndUser(_req);
   if (!pair) return unauthorized();
-  const { client, userId } = pair;
+  const { client } = pair;
 
   const { data, error } = await client
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .eq('id', id)
-    .eq('owner_id', userId)
     .single();
 
   if (error && error.code === 'PGRST116') return notFound();
@@ -24,7 +23,7 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
   const { id } = await context.params;
   const pair = await getClientAndUser(req);
   if (!pair) return unauthorized();
-  const { client, userId } = pair;
+  const { client } = pair;
 
   const body = await req.json().catch(() => ({}));
   const {
@@ -40,8 +39,7 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
   const { error } = await client
     .from('class_plans')
     .update(patch)
-    .eq('id', id)
-    .eq('owner_id', userId);
+    .eq('id', id);
   if (error) return serverError(error.message);
 
   if (weeklyItems) {
@@ -73,7 +71,6 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
     .eq('id', id)
-    .eq('owner_id', userId)
     .single();
 
   if (fullError) return serverError(fullError.message);
@@ -84,13 +81,12 @@ export const DELETE = async (req: NextRequest, context: { params: Promise<{ id: 
   const { id } = await context.params;
   const pair = await getClientAndUser(req);
   if (!pair) return unauthorized();
-  const { client, userId } = pair;
+  const { client } = pair;
 
   const { error } = await client
     .from('class_plans')
     .delete()
-    .eq('id', id)
-    .eq('owner_id', userId);
+    .eq('id', id);
   if (error) return serverError(error.message);
   return NextResponse.json({ ok: true });
 };

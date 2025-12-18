@@ -18,7 +18,7 @@ export default function PreviewPage() {
   const { classPlans, loadFromRemote } = useClassPlanStore();
   const classPlan = classPlans.find(p => p.id === id);
   
-  const [templateId, setTemplateId] = useState<TemplateId>('style1-blue');
+  const [templateId, setTemplateId] = useState<TemplateId>('style1-green');
   const [scale, setScale] = useState(0.6);
 
   const canvasRef = useRef<HTMLDivElement>(null);

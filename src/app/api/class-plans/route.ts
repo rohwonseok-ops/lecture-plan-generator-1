@@ -5,12 +5,11 @@ import type { TablesInsert } from '@/lib/supabase.types';
 export const GET = async (req: NextRequest) => {
   const pair = await getClientAndUser(req);
   if (!pair) return unauthorized();
-  const { client, userId } = pair;
+  const { client } = pair;
 
   const { data, error } = await client
     .from('class_plans')
     .select('*, weekly_plan_items(*), fee_rows(*)')
-    .eq('owner_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) return serverError(error.message);
