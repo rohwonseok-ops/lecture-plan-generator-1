@@ -39,7 +39,7 @@ export default function HomePage() {
   const router = useRouter();
   const { session, logout } = useAuthStore();
   const [authHydrated, setAuthHydrated] = useState(false);
-  const { classPlans, selectedId, addClassPlan, updateClassPlan, setSelectedId, savePlan, loadFromRemote, removeClassPlan } = useClassPlanStore();
+  const { classPlans, selectedId, addClassPlan, updateClassPlan, setSelectedId, savePlan, loadFromRemote, removeClassPlan, error: storeError } = useClassPlanStore();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.70);
   const [templateWidth, setTemplateWidth] = useState(BASE_WIDTH_PX); // 동적 너비
@@ -48,6 +48,7 @@ export default function HomePage() {
   const adjustCountRef = useRef(0); // 연속 조정 횟수 제한
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaveTime, setLastSaveTime] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [isBulkDownloadModalOpen, setIsBulkDownloadModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<string | null>(null);
@@ -230,6 +231,7 @@ export default function HomePage() {
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSaveError(null);
     
     // A4 비율 재조정 (임시저장 시 강제 적용)
     adjustToA4({ force: true, maxWidthMultiplier: 1.5 });
@@ -239,10 +241,19 @@ export default function HomePage() {
         await savePlan(selectedPlan.id);
         const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
         setLastSaveTime(now);
+        setSaveError(null);
         recordActivity('class.save', `${selectedPlan.title || '강좌'} 저장`);
       } catch (error) {
         console.error('저장 실패:', error);
-        // 에러는 store에 이미 설정되어 있음
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : storeError || '저장 중 오류가 발생했습니다.';
+        setSaveError(errorMessage);
+        
+        // 사용자에게 알림 표시
+        if (typeof window !== 'undefined') {
+          alert(`저장 실패: ${errorMessage}`);
+        }
       } finally {
         setTimeout(() => setIsSaving(false), 500);
       }
@@ -481,6 +492,11 @@ export default function HomePage() {
             <div className="flex items-center space-x-2">
               {lastSaveTime && (
                 <span className="text-[10px] text-zinc-600">마지막 저장: {lastSaveTime}</span>
+              )}
+              {saveError && (
+                <div className="text-[10px] text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1 max-w-xs">
+                  {saveError}
+                </div>
               )}
               <button
                 onClick={handleSave}

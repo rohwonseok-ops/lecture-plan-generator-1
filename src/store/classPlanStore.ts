@@ -295,21 +295,54 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
     })),
 
   savePlan: async (id) => {
+    console.log('[savePlan] 저장 시작:', { id });
+    
     const plan = get().classPlans.find((p) => p.id === id);
     if (!plan) {
-      throw new Error('저장할 강의를 찾을 수 없습니다.');
+      const error = new Error('저장할 강의를 찾을 수 없습니다.');
+      console.error('[savePlan] 강의를 찾을 수 없음:', id);
+      set({ error: error.message });
+      throw error;
     }
-    const { data: session } = await supabase.auth.getSession();
+    
+    console.log('[savePlan] 강의 정보:', { 
+      id: plan.id, 
+      title: plan.title,
+      status: plan.status 
+    });
+    
+    const { data: session, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('[savePlan] 세션 조회 실패:', sessionError);
+      const error = new Error('인증 세션을 확인할 수 없습니다.');
+      set({ error: error.message });
+      throw error;
+    }
+    
     const token = session.session?.access_token;
     if (!token) {
+      console.warn('[savePlan] 액세스 토큰이 없습니다.');
       const error = new Error('로그인이 필요합니다.');
       set({ error: error.message });
       throw error;
     }
+    
+    console.log('[savePlan] 인증 토큰 확인 완료:', { 
+      tokenLength: token.length,
+      userId: session.session?.user?.id 
+    });
+    
     const isLocalOnly = get().localOnlyIds.includes(id);
-
     const endpoint = isLocalOnly ? '/api/class-plans' : `/api/class-plans/${id}`;
     const method = isLocalOnly ? 'POST' : 'PUT';
+    
+    console.log('[savePlan] 요청 정보:', { 
+      endpoint, 
+      method, 
+      isLocalOnly 
+    });
+    
     const dbPlan = toDbPlan(plan);
 
     // POST는 plan만, PUT은 patch만 전송
@@ -326,6 +359,12 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
         };
 
     try {
+      console.log('[savePlan] API 요청 전송:', { 
+        endpoint, 
+        method,
+        bodySize: JSON.stringify(requestBody).length 
+      });
+      
       const res = await fetch(endpoint, {
         method,
         headers: {
@@ -334,32 +373,102 @@ export const useClassPlanStore = create<ClassPlanState>()((set, get) => ({
         },
         body: JSON.stringify(requestBody),
       });
+      
+      console.log('[savePlan] API 응답:', { 
+        status: res.status, 
+        statusText: res.statusText,
+        ok: res.ok 
+      });
+      
       if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        const errorMsg = json.error || `저장 실패 (${res.status})`;
-        console.error('강의 저장 실패:', errorMsg, json);
+        // HTTP 상태 코드에 따른 에러 구분
+        let errorMsg = `저장 실패 (${res.status})`;
+        let errorType = 'unknown';
+        
+        if (res.status === 401) {
+          errorType = 'authentication';
+          errorMsg = '인증에 실패했습니다. 다시 로그인해주세요.';
+        } else if (res.status === 403) {
+          errorType = 'authorization';
+          errorMsg = '저장 권한이 없습니다.';
+        } else if (res.status === 404) {
+          errorType = 'not_found';
+          errorMsg = '저장할 강의를 찾을 수 없습니다.';
+        } else if (res.status >= 500) {
+          errorType = 'server_error';
+          errorMsg = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        }
+        
+        let json: { error?: string } = {};
+        try {
+          json = await res.json();
+          if (json.error) {
+            errorMsg = json.error;
+          }
+        } catch (parseError) {
+          console.warn('[savePlan] 응답 JSON 파싱 실패:', parseError);
+        }
+        
+        console.error('[savePlan] 저장 실패:', {
+          status: res.status,
+          errorType,
+          errorMsg,
+          response: json,
+        });
+        
         set({ error: errorMsg });
         throw new Error(errorMsg);
       }
+      
       const json = await res.json();
+      
       if (!json.data) {
         const errorMsg = '저장 응답에 데이터가 없습니다.';
-        console.error('저장 응답 오류:', json);
+        console.error('[savePlan] 저장 응답 오류:', { 
+          response: json,
+          hasData: !!json.data 
+        });
         set({ error: errorMsg });
         throw new Error(errorMsg);
       }
+      
+      console.log('[savePlan] 저장 성공:', { 
+        id: json.data.id,
+        title: json.data.title 
+      });
+      
       const saved = dbToClassPlan(json.data);
       set((state) => ({
         classPlans: state.classPlans.map((p) => (p.id === id ? saved : p)),
         error: null,
         localOnlyIds: state.localOnlyIds.filter((localId) => localId !== id),
       }));
+      
+      console.log('[savePlan] 저장 완료');
     } catch (err) {
+      // 이미 처리된 에러는 재던지기
       if (err instanceof Error && err.message.includes('저장')) {
         throw err;
       }
-      const errorMsg = err instanceof Error ? err.message : '저장 중 오류가 발생했습니다.';
-      console.error('강의 저장 중 예외:', err);
+      
+      // 네트워크 에러 구분
+      let errorMsg = '저장 중 오류가 발생했습니다.';
+      let errorType = 'unknown';
+      
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        errorType = 'network';
+        errorMsg = '네트워크 연결을 확인할 수 없습니다. 인터넷 연결을 확인해주세요.';
+      } else if (err instanceof Error) {
+        errorMsg = err.message;
+      }
+      
+      console.error('[savePlan] 저장 중 예외:', {
+        errorType,
+        error: err,
+        message: errorMsg,
+        stack: err instanceof Error ? err.stack : undefined,
+      });
+      
       set({ error: errorMsg });
       throw new Error(errorMsg);
     }
