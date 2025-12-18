@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React from 'react';
-import { ClassPlan, ColorTheme, FeeRow, FieldFontSizes, TemplateLayoutConfig } from '@/lib/types';
+import { ClassPlan, ColorTheme, FeeRow, FieldFontSizes } from '@/lib/types';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
 import { getFontClassName, getDefaultTypography, getFieldFontSize, buildScheduleRows } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
@@ -41,9 +41,9 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
   // 레이아웃 스타일 헬퍼 함수
   const getLayoutStyle = (sectionId: string): React.CSSProperties => {
     if (!layoutConfig) return {};
-
-    // sectionId(하이픈 형식)를 layoutConfig 키(camelCase)로 매핑
-    const idToKeyMap: Record<string, keyof TemplateLayoutConfig> = {
+    
+    // sectionId를 layoutConfig 키로 매핑
+    const idToKeyMap: Record<string, string> = {
       'header': 'header',
       'parent-intro': 'parentIntro',
       'teacher-info': 'teacherInfo',
@@ -55,30 +55,23 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
       'monthly-calendar': 'monthlyCalendar',
       'fee-table': 'feeTable',
     };
-
-    const configKey = idToKeyMap[sectionId];
+    
+    const configKey = idToKeyMap[sectionId] as keyof typeof layoutConfig;
     if (!configKey) return {};
-
+    
     const layout = layoutConfig[configKey];
     if (!layout || typeof layout === 'boolean') return {};
-
+    
     const style: React.CSSProperties = {};
-
-    // 위치 이동 (합리적인 범위 내에서만 적용: -200px ~ 200px)
-    const x = typeof layout.x === 'number' && Math.abs(layout.x) <= 200 ? layout.x : 0;
-    const y = typeof layout.y === 'number' && Math.abs(layout.y) <= 200 ? layout.y : 0;
-    if (x !== 0 || y !== 0) {
-      style.transform = `translate(${x}px, ${y}px)`;
+    if (layout.x !== undefined || layout.y !== undefined) {
+      style.transform = `translate(${layout.x || 0}px, ${layout.y || 0}px)`;
     }
-
-    // 크기 조정 (합리적인 범위 내에서만 적용: -100px ~ 100px)
-    if (typeof layout.width === 'number' && layout.width !== 0 && Math.abs(layout.width) <= 100) {
+    if (layout.width !== undefined) {
       style.width = `calc(100% + ${layout.width}px)`;
     }
-    if (typeof layout.height === 'number' && layout.height !== 0 && Math.abs(layout.height) <= 100) {
+    if (layout.height !== undefined) {
       style.height = `calc(100% + ${layout.height}px)`;
     }
-
     return style;
   };
   
@@ -350,7 +343,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             border: `1px solid ${colors.border}`, 
             fontSize: `${typography.bodySize}pt`,
             marginTop: 'calc(1rem + 5pt)',
-            ...getLayoutStyle('parent-intro'),
+            ...getLayoutStyle('parentIntro'),
           }}
         >
           <div className="relative">
@@ -374,7 +367,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               className="overflow-hidden h-full flex flex-col"
               style={{
                 ...infoCardStyle,
-                ...getLayoutStyle('teacher-info'),
+                ...getLayoutStyle('teacherInfo'),
               }}
             >
               <CardHeader className={`${getHeaderTextClass()} border-b border-white/20`} style={getInfoHeaderStyle(1)}>
@@ -401,7 +394,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
               className="overflow-hidden h-full flex flex-col"
               style={{
                 ...infoCardStyle,
-                ...getLayoutStyle('schedule-info'),
+                ...getLayoutStyle('scheduleInfo'),
               }}
             >
               <CardHeader className={`${getHeaderTextClass()} border-b border-white/20`} style={getInfoHeaderStyle(2)}>
@@ -503,7 +496,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             style={{
               ...infoCardStyle,
               background: 'linear-gradient(180deg, rgba(255,255,255,0.97), rgba(240,243,246,0.94))',
-              ...getLayoutStyle('course-info'),
+              ...getLayoutStyle('courseInfo'),
             }}
           >
             <CardHeader
@@ -600,7 +593,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             style={{
               borderColor: colors.border,
               background: 'linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,248,250,0.9))',
-              ...getLayoutStyle('learning-goal'),
+              ...getLayoutStyle('learningGoal'),
             }}
           >
             <CardHeader
@@ -689,7 +682,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           style={{
             borderColor: colors.border,
             background: 'linear-gradient(180deg, rgba(255,255,255,0.95), rgba(242,245,247,0.92))',
-            ...getLayoutStyle('weekly-plan'),
+            ...getLayoutStyle('weeklyPlan'),
           }}
         >
           <CardHeader
@@ -779,7 +772,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
           style={{ 
             borderColor: colors.border, 
             background: undefined,
-            ...getLayoutStyle('monthly-calendar'),
+            ...getLayoutStyle('monthlyCalendar'),
           }}
         >
           <CardHeader
@@ -813,7 +806,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
             style={{ 
               borderColor: colors.border, 
               background: undefined,
-              ...getLayoutStyle('fee-table'),
+              ...getLayoutStyle('feeTable'),
             }}
           >
             <CardHeader

@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React from 'react';
-import { ClassPlan, ColorTheme, FieldFontSizes, TemplateLayoutConfig } from '@/lib/types';
+import { ClassPlan, ColorTheme, FieldFontSizes } from '@/lib/types';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
 import { getFontClassName, getDefaultTypography, getFieldFontSize, buildScheduleRows } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
@@ -39,7 +39,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const layoutConfig = classPlan.layoutConfig;
   const getLayoutStyle = (sectionId: string): React.CSSProperties => {
     if (!layoutConfig) return {};
-    const idToKeyMap: Record<string, keyof TemplateLayoutConfig> = {
+    const idToKeyMap: Record<string, keyof typeof layoutConfig> = {
       'header': 'header',
       'parent-intro': 'parentIntro',
       'teacher-info': 'teacherInfo',
@@ -56,22 +56,15 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
     const layout = layoutConfig[configKey];
     if (!layout || typeof layout === 'boolean') return {};
     const style: React.CSSProperties = {};
-
-    // 위치 이동 (합리적인 범위 내에서만 적용: -200px ~ 200px)
-    const x = typeof layout.x === 'number' && Math.abs(layout.x) <= 200 ? layout.x : 0;
-    const y = typeof layout.y === 'number' && Math.abs(layout.y) <= 200 ? layout.y : 0;
-    if (x !== 0 || y !== 0) {
-      style.transform = `translate(${x}px, ${y}px)`;
+    if (layout.x !== undefined || layout.y !== undefined) {
+      style.transform = `translate(${layout.x || 0}px, ${layout.y || 0}px)`;
     }
-
-    // 크기 조정 (합리적인 범위 내에서만 적용: -100px ~ 100px)
-    if (typeof layout.width === 'number' && layout.width !== 0 && Math.abs(layout.width) <= 100) {
+    if (layout.width !== undefined) {
       style.width = `calc(100% + ${layout.width}px)`;
     }
-    if (typeof layout.height === 'number' && layout.height !== 0 && Math.abs(layout.height) <= 100) {
+    if (layout.height !== undefined) {
       style.height = `calc(100% + ${layout.height}px)`;
     }
-
     return style;
   };
   
