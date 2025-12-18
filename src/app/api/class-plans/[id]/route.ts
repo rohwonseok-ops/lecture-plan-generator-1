@@ -69,15 +69,13 @@ export const PUT = async (req: NextRequest, context: { params: Promise<{ id: str
     feeRowsCount: feeRows?.length ?? 0,
   });
 
-  // class_plans에 없는 컬럼(status 등)이 들어오면 PostgREST schema cache 에러가 발생하므로 제거
-  const patchWithoutStatus = { ...(patch || {}) } as Record<string, unknown>;
-  delete patchWithoutStatus.status;
+  const patchForDb = { ...(patch || {}) } as Record<string, unknown>;
   // owner_id는 감사/추적용 컬럼으로 유지하되, 수정 API에서는 임의 변경을 막습니다.
-  delete patchWithoutStatus.owner_id;
+  delete patchForDb.owner_id;
 
   const { error } = await admin
     .from('class_plans')
-    .update(patchWithoutStatus as Partial<TablesInsert<'class_plans'>>)
+    .update(patchForDb as Partial<TablesInsert<'class_plans'>>)
     .eq('id', id);
     
   if (error) {

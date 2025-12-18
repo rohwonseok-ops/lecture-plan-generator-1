@@ -78,6 +78,7 @@ export type Database = {
           show_etc: boolean | null
           show_title: boolean
           size_preset: string | null
+          status: string
           subject: string | null
           target_student: string
           target_student_detail: string | null
@@ -110,6 +111,7 @@ export type Database = {
           show_etc?: boolean | null
           show_title?: boolean
           size_preset?: string | null
+          status?: string
           subject?: string | null
           target_student?: string
           target_student_detail?: string | null
@@ -142,6 +144,7 @@ export type Database = {
           show_etc?: boolean | null
           show_title?: boolean
           size_preset?: string | null
+          status?: string
           subject?: string | null
           target_student?: string
           target_student_detail?: string | null
