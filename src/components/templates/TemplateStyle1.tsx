@@ -38,7 +38,7 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
   const feeInfo = classPlan.feeInfo;
   const layoutConfig = classPlan.layoutConfig;
   
-  // 레이아웃 스타일 헬퍼 함수
+  // 레이아웃 스타일 헬퍼 함수 (강화된 값 검증 적용)
   const getLayoutStyle = (sectionId: string): React.CSSProperties => {
     if (!layoutConfig) return {};
     
@@ -63,13 +63,25 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
     if (!layout || typeof layout === 'boolean') return {};
     
     const style: React.CSSProperties = {};
-    if (layout.x !== undefined || layout.y !== undefined) {
-      style.transform = `translate(${layout.x || 0}px, ${layout.y || 0}px)`;
+    
+    // 값 검증: 합리적인 범위 내에서만 적용
+    // 위치 이동: -50px ~ 50px 범위만 허용 (비정상적인 큰 값 차단)
+    const isValidPosition = (val: unknown): val is number => 
+      typeof val === 'number' && !isNaN(val) && Math.abs(val) <= 50;
+    // 크기 조정: -30px ~ 30px 범위만 허용
+    const isValidSize = (val: unknown): val is number => 
+      typeof val === 'number' && !isNaN(val) && Math.abs(val) <= 30;
+    
+    const x = isValidPosition(layout.x) ? layout.x : 0;
+    const y = isValidPosition(layout.y) ? layout.y : 0;
+    
+    if (x !== 0 || y !== 0) {
+      style.transform = `translate(${x}px, ${y}px)`;
     }
-    if (layout.width !== undefined) {
+    if (isValidSize(layout.width) && layout.width !== 0) {
       style.width = `calc(100% + ${layout.width}px)`;
     }
-    if (layout.height !== undefined) {
+    if (isValidSize(layout.height) && layout.height !== 0) {
       style.height = `calc(100% + ${layout.height}px)`;
     }
     return style;
