@@ -1,4 +1,5 @@
 export interface WeeklyItem {
+  id?: string; // 드래그 앤 드롭 식별자
   weekLabel: string; // e.g., "1주차"
   topic: string;
   detail?: string;

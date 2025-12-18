@@ -65,7 +65,10 @@ const attachLayoutToTypography = (
 
 // 로드/저장 시 필수 필드 강제 세팅
 const normalizePlan = (plan: ClassPlan): ClassPlan => {
-  const weeklyPlan = plan.weeklyPlan?.length ? plan.weeklyPlan : defaultWeeklyPlan;
+  const weeklyPlan = (plan.weeklyPlan?.length ? plan.weeklyPlan : defaultWeeklyPlan).map((item) => ({
+    ...item,
+    id: item.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11)),
+  }));
   const normalizedFeeTitle =
     !plan.feeInfo?.title || plan.feeInfo.title === '[수1/수2] 몰입특강 수강료'
       ? '수강료 안내'

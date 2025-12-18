@@ -1,20 +1,129 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ClassPlan, WeeklyItem, FieldFontSizes } from '@/lib/types';
 import { getFieldFontSize, getDefaultTypography } from '@/lib/utils';
 import FontSizeControl from '../FontSizeControl';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
 
 interface Props {
   classPlan: ClassPlan;
   onChange: (patch: Partial<ClassPlan>) => void;
 }
 
+interface SortableWeekRowProps {
+  week: WeeklyItem;
+  index: number;
+  weekCount: number;
+  onWeekChange: (index: number, field: keyof WeeklyItem, value: string) => void;
+  onRemoveWeek: (index: number) => void;
+}
+
+const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
+  week,
+  index,
+  weekCount,
+  onWeekChange,
+  onRemoveWeek,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: week.id || index.toString() });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 px-1.5 py-0.5 bg-white ${isDragging ? 'shadow-md border-blue-200' : ''}`}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-zinc-400 hover:text-zinc-600 transition"
+      >
+        <GripVertical size={14} />
+      </div>
+      <div className="flex-shrink-0 w-12 h-8 bg-white border border-zinc-300 rounded flex items-center justify-center transition">
+        <input
+          type="text"
+          className="w-full h-full text-zinc-700 font-medium text-[10px] bg-transparent border-none text-center focus:outline-none focus:ring-1 focus:ring-blue-500 rounded placeholder:text-zinc-500"
+          value={week.weekLabel || ''}
+          onChange={(e) => onWeekChange(index, 'weekLabel', e.target.value)}
+          aria-label={`${index + 1}주차 라벨`}
+        />
+      </div>
+      <div className="flex-1 min-w-0 flex items-center gap-1">
+        <input
+          type="text"
+          className="w-full text-xs font-medium px-2 py-1 min-h-[32px] bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
+          value={week.topic}
+          onChange={(e) => onWeekChange(index, 'topic', e.target.value)}
+          placeholder=""
+          aria-label={`${index + 1}주차 수업 주제`}
+        />
+        <button
+          type="button"
+          onClick={() => onRemoveWeek(index)}
+          className="w-8 h-8 flex items-center justify-center text-sm text-red-500 px-1 py-0.5 disabled:opacity-40"
+          aria-label={`${index + 1}주차 삭제`}
+          disabled={weekCount <= 1}
+        >
+          🗑
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
-  const weeklyPlan = classPlan.weeklyPlan || Array.from({ length: 8 }, () => ({
-    weekLabel: '',
-    topic: ''
-  }));
+  const weeklyPlan = useMemo(() => 
+    classPlan.weeklyPlan || Array.from({ length: 8 }, (_, i) => ({
+      id: `new-${i}`,
+      weekLabel: '',
+      topic: ''
+    })),
+    [classPlan.weeklyPlan]
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // 타이포그래피 설정
   const typography = classPlan.typography || getDefaultTypography();
@@ -49,6 +158,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
   const handleAddWeek = useCallback(() => {
     const nextIndex = weeklyPlan.length;
     const newWeek: WeeklyItem = {
+      id: crypto.randomUUID(),
       weekLabel: `${nextIndex + 1}주차`,
       topic: ''
     };
@@ -69,6 +179,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
 
     if (clamped > weeklyPlan.length) {
       const extra = Array.from({ length: clamped - weeklyPlan.length }, (_, i) => ({
+        id: crypto.randomUUID(),
         weekLabel: `${weeklyPlan.length + i + 1}주차`,
         topic: ''
       }));
@@ -79,47 +190,23 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     onChange({ weeklyPlan: weeklyPlan.slice(0, clamped) });
   }, [weeklyPlan, onChange]);
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = weeklyPlan.findIndex((item) => (item.id || weeklyPlan.indexOf(item).toString()) === active.id);
+      const newIndex = weeklyPlan.findIndex((item) => (item.id || weeklyPlan.indexOf(item).toString()) === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onChange({ weeklyPlan: arrayMove(weeklyPlan, oldIndex, newIndex) });
+      }
+    }
+  };
+
   const weekCount = weeklyPlan.length;
   const midPoint = Math.ceil(weekCount / 2);
   const leftWeeks = weeklyPlan.slice(0, midPoint);
   const rightWeeks = weeklyPlan.slice(midPoint);
-
-  const renderWeekRow = (week: WeeklyItem, globalIndex: number) => {
-    const displayLabel = week.weekLabel || '';
-    
-    return (
-      <div key={globalIndex} className="flex items-center gap-2 px-1.5 py-0.5">
-        <div className="flex-shrink-0 w-12 h-8 bg-white border border-zinc-300 rounded flex items-center justify-center transition">
-          <input
-            type="text"
-            className="w-full h-full text-zinc-700 font-medium text-[10px] bg-transparent border-none text-center focus:outline-none focus:ring-1 focus:ring-blue-500 rounded placeholder:text-zinc-500"
-            value={displayLabel}
-            onChange={(e) => handleWeekChange(globalIndex, 'weekLabel', e.target.value)}
-            aria-label={`${globalIndex + 1}주차 라벨`}
-          />
-        </div>
-        <div className="flex-1 min-w-0 flex items-center gap-1">
-          <input
-            type="text"
-            className="w-full text-xs font-medium px-2 py-1 min-h-[32px] bg-white border border-zinc-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
-            value={week.topic}
-            onChange={(e) => handleWeekChange(globalIndex, 'topic', e.target.value)}
-            placeholder=""
-            aria-label={`${globalIndex + 1}주차 수업 주제`}
-          />
-          <button
-            type="button"
-            onClick={() => handleRemoveWeek(globalIndex)}
-            className="w-8 h-8 flex items-center justify-center text-sm text-red-500 px-1 py-0.5 disabled:opacity-40"
-            aria-label={`${globalIndex + 1}주차 삭제`}
-            disabled={weekCount <= 1}
-          >
-            🗑
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col p-1.5 bg-white">
@@ -183,17 +270,46 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
       </div>
       
-      <div className="grid grid-cols-2 gap-1">
-        {/* 왼쪽: 앞 절반 */}
-        <div className="flex flex-col border border-zinc-300 rounded-lg overflow-hidden bg-white divide-y divide-zinc-200">
-          {leftWeeks.map((week, idx) => renderWeekRow(week, idx))}
-        </div>
-        
-        {/* 오른쪽: 뒤 절반 */}
-        <div className="flex flex-col border border-zinc-300 rounded-lg overflow-hidden bg-white divide-y divide-zinc-200">
-          {rightWeeks.map((week, idx) => renderWeekRow(week, midPoint + idx))}
-        </div>
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={weeklyPlan.map(item => item.id || weeklyPlan.indexOf(item).toString())}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="grid grid-cols-2 gap-1">
+            {/* 왼쪽: 앞 절반 */}
+            <div className="flex flex-col border border-zinc-300 rounded-lg overflow-hidden bg-white divide-y divide-zinc-200">
+              {leftWeeks.map((week, idx) => (
+                <SortableWeekRow
+                  key={week.id || idx}
+                  week={week}
+                  index={idx}
+                  weekCount={weekCount}
+                  onWeekChange={handleWeekChange}
+                  onRemoveWeek={handleRemoveWeek}
+                />
+              ))}
+            </div>
+            
+            {/* 오른쪽: 뒤 절반 */}
+            <div className="flex flex-col border border-zinc-300 rounded-lg overflow-hidden bg-white divide-y divide-zinc-200">
+              {rightWeeks.map((week, idx) => (
+                <SortableWeekRow
+                  key={week.id || (midPoint + idx)}
+                  week={week}
+                  index={midPoint + idx}
+                  weekCount={weekCount}
+                  onWeekChange={handleWeekChange}
+                  onRemoveWeek={handleRemoveWeek}
+                />
+              ))}
+            </div>
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 };
