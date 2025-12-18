@@ -19,7 +19,7 @@ interface ClassPlanState {
   getClassPlan: (id: string) => ClassPlan | undefined;
 }
 
-const defaultWeeklyPlan = Array.from({ length: 8 }, () => ({
+const defaultWeeklyPlan: WeeklyItem[] = Array.from({ length: 8 }, () => ({
   weekLabel: '',
   topic: ''
 }));
