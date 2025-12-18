@@ -63,15 +63,22 @@ const TemplateStyle1: React.FC<Props> = ({ classPlan, colorTheme }) => {
     if (!layout || typeof layout === 'boolean') return {};
 
     const style: React.CSSProperties = {};
-    if (layout.x !== undefined || layout.y !== undefined) {
-      style.transform = `translate(${layout.x || 0}px, ${layout.y || 0}px)`;
+
+    // 위치 이동 (합리적인 범위 내에서만 적용: -200px ~ 200px)
+    const x = typeof layout.x === 'number' && Math.abs(layout.x) <= 200 ? layout.x : 0;
+    const y = typeof layout.y === 'number' && Math.abs(layout.y) <= 200 ? layout.y : 0;
+    if (x !== 0 || y !== 0) {
+      style.transform = `translate(${x}px, ${y}px)`;
     }
-    if (layout.width !== undefined && layout.width !== 0) {
+
+    // 크기 조정 (합리적인 범위 내에서만 적용: -100px ~ 100px)
+    if (typeof layout.width === 'number' && layout.width !== 0 && Math.abs(layout.width) <= 100) {
       style.width = `calc(100% + ${layout.width}px)`;
     }
-    if (layout.height !== undefined && layout.height !== 0) {
+    if (typeof layout.height === 'number' && layout.height !== 0 && Math.abs(layout.height) <= 100) {
       style.height = `calc(100% + ${layout.height}px)`;
     }
+
     return style;
   };
   
