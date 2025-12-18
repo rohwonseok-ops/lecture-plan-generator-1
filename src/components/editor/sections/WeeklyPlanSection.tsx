@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ClassPlan, WeeklyItem, FieldFontSizes } from '@/lib/types';
 import { getFieldFontSize, getDefaultTypography } from '@/lib/utils';
 import FontSizeControl from '../FontSizeControl';
@@ -12,6 +12,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -34,7 +36,13 @@ interface SortableWeekRowProps {
   weekCount: number;
   onWeekChange: (index: number, field: keyof WeeklyItem, value: string) => void;
   onRemoveWeek: (index: number) => void;
+  isDragOverlay?: boolean;
 }
+
+// ID가 없는 항목에 대해 안정적인 ID 생성
+const ensureId = (item: WeeklyItem, index: number): string => {
+  return item.id || `fallback-${index}`;
+};
 
 const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
   week,
@@ -42,7 +50,10 @@ const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
   weekCount,
   onWeekChange,
   onRemoveWeek,
+  isDragOverlay = false,
 }) => {
+  const itemId = ensureId(week, index);
+  
   const {
     attributes,
     listeners,
@@ -50,20 +61,42 @@ const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: week.id || index.toString() });
+  } = useSortable({ id: itemId });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 10 : 1,
-    opacity: isDragging ? 0.5 : 1,
   };
+
+  // 드래그 중인 원본 항목 스타일 (플레이스홀더)
+  if (isDragging && !isDragOverlay) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="flex items-center gap-2 px-1.5 py-0.5 bg-blue-50 border-2 border-dashed border-blue-300 rounded opacity-60"
+      >
+        <div className="flex-shrink-0 p-1 text-transparent">
+          <GripVertical size={14} />
+        </div>
+        <div className="flex-shrink-0 w-12 h-8 bg-blue-100/50 border border-blue-200 rounded" />
+        <div className="flex-1 min-w-0 flex items-center gap-1">
+          <div className="w-full min-h-[32px] bg-blue-100/50 border border-blue-200 rounded" />
+          <div className="w-8 h-8" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-2 px-1.5 py-0.5 bg-white ${isDragging ? 'shadow-md border-blue-200' : ''}`}
+      className={`flex items-center gap-2 px-1.5 py-0.5 bg-white ${
+        isDragOverlay 
+          ? 'shadow-lg border border-blue-400 rounded-lg scale-[1.02]' 
+          : ''
+      }`}
     >
       <div
         {...attributes}
@@ -104,15 +137,56 @@ const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
   );
 };
 
+// DragOverlay에서 사용할 정적 컴포넌트 (드래그 핸들 없음)
+const DragOverlayWeekRow: React.FC<{ week: WeeklyItem; index: number }> = ({ week, index }) => {
+  return (
+    <div className="flex items-center gap-2 px-1.5 py-0.5 bg-white shadow-xl border-2 border-blue-400 rounded-lg scale-[1.02]">
+      <div className="flex-shrink-0 p-1 text-blue-500">
+        <GripVertical size={14} />
+      </div>
+      <div className="flex-shrink-0 w-12 h-8 bg-white border border-zinc-300 rounded flex items-center justify-center">
+        <span className="text-zinc-700 font-medium text-[10px]">{week.weekLabel || ''}</span>
+      </div>
+      <div className="flex-1 min-w-0 flex items-center gap-1">
+        <div className="w-full text-xs font-medium px-2 py-1 min-h-[32px] bg-white border border-zinc-300 rounded text-zinc-800">
+          {week.topic || ''}
+        </div>
+        <div className="w-8 h-8 flex items-center justify-center text-sm text-red-500/50">
+          🗑
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
-  const weeklyPlan = useMemo(() => 
-    classPlan.weeklyPlan || Array.from({ length: 8 }, (_, i) => ({
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  // weeklyPlan에 ID가 없는 항목이 있으면 ID를 부여
+  const weeklyPlan = useMemo(() => {
+    const plan = classPlan.weeklyPlan || Array.from({ length: 8 }, (_, i) => ({
       id: `new-${i}`,
       weekLabel: '',
       topic: ''
-    })),
-    [classPlan.weeklyPlan]
-  );
+    }));
+    
+    // 모든 항목에 ID가 있는지 확인하고, 없으면 생성
+    return plan.map((item, idx) => ({
+      ...item,
+      id: item.id || crypto.randomUUID(),
+    }));
+  }, [classPlan.weeklyPlan]);
+
+  // 현재 드래그 중인 항목 찾기
+  const activeItem = useMemo(() => {
+    if (!activeId) return null;
+    return weeklyPlan.find(item => item.id === activeId) || null;
+  }, [activeId, weeklyPlan]);
+
+  const activeIndex = useMemo(() => {
+    if (!activeId) return -1;
+    return weeklyPlan.findIndex(item => item.id === activeId);
+  }, [activeId, weeklyPlan]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -190,12 +264,17 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     onChange({ weeklyPlan: weeklyPlan.slice(0, clamped) });
   }, [weeklyPlan, onChange]);
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveId(null);
 
     if (over && active.id !== over.id) {
-      const oldIndex = weeklyPlan.findIndex((item) => (item.id || weeklyPlan.indexOf(item).toString()) === active.id);
-      const newIndex = weeklyPlan.findIndex((item) => (item.id || weeklyPlan.indexOf(item).toString()) === over.id);
+      const oldIndex = weeklyPlan.findIndex((item) => item.id === active.id);
+      const newIndex = weeklyPlan.findIndex((item) => item.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
         onChange({ weeklyPlan: arrayMove(weeklyPlan, oldIndex, newIndex) });
@@ -203,10 +282,17 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     }
   };
 
+  const handleDragCancel = () => {
+    setActiveId(null);
+  };
+
   const weekCount = weeklyPlan.length;
   const midPoint = Math.ceil(weekCount / 2);
   const leftWeeks = weeklyPlan.slice(0, midPoint);
   const rightWeeks = weeklyPlan.slice(midPoint);
+
+  // SortableContext에 전달할 ID 배열 (반드시 item.id 사용)
+  const sortableIds = weeklyPlan.map(item => item.id!);
 
   return (
     <div className="flex flex-col p-1.5 bg-white">
@@ -273,18 +359,20 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <SortableContext
-          items={weeklyPlan.map(item => item.id || weeklyPlan.indexOf(item).toString())}
+          items={sortableIds}
           strategy={verticalListSortingStrategy}
         >
           <div className="grid grid-cols-2 gap-1">
             {/* 왼쪽: 앞 절반 */}
-            <div className="flex flex-col border border-zinc-300 rounded-lg overflow-hidden bg-white divide-y divide-zinc-200">
+            <div className="flex flex-col border border-zinc-300 rounded-lg bg-white divide-y divide-zinc-200">
               {leftWeeks.map((week, idx) => (
                 <SortableWeekRow
-                  key={week.id || idx}
+                  key={week.id}
                   week={week}
                   index={idx}
                   weekCount={weekCount}
@@ -295,10 +383,10 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </div>
             
             {/* 오른쪽: 뒤 절반 */}
-            <div className="flex flex-col border border-zinc-300 rounded-lg overflow-hidden bg-white divide-y divide-zinc-200">
+            <div className="flex flex-col border border-zinc-300 rounded-lg bg-white divide-y divide-zinc-200">
               {rightWeeks.map((week, idx) => (
                 <SortableWeekRow
-                  key={week.id || (midPoint + idx)}
+                  key={week.id}
                   week={week}
                   index={midPoint + idx}
                   weekCount={weekCount}
@@ -309,6 +397,13 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </div>
           </div>
         </SortableContext>
+
+        {/* DragOverlay: 드래그 중인 항목의 복제본 표시 */}
+        <DragOverlay>
+          {activeItem && activeIndex !== -1 ? (
+            <DragOverlayWeekRow week={activeItem} index={activeIndex} />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );
