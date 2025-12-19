@@ -170,24 +170,23 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
     plan: ClassPlan,
     templateConfig: TeacherTemplateConfig
   ): Promise<Blob | null> => {
-    // 임시 컨테이너 생성 - 화면에 보이지만 시각적으로 숨김
-    // left: -9999px 대신 opacity: 0과 pointer-events: none 사용
-    // 이렇게 해야 html-to-image/html2canvas가 제대로 렌더링함
+    // 임시 컨테이너 생성
+    // html2canvas는 화면 밖 요소도 캡처 가능하지만, html-to-image는 제한이 있음
+    // 따라서 html2canvas를 우선 사용
     const container = document.createElement('div');
     container.id = 'bulk-download-container';
-    container.style.position = 'fixed';
-    container.style.left = '0';
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
     container.style.top = '0';
-    container.style.width = '794px';
+    container.style.width = '794px'; // A4 width at 96dpi
     container.style.backgroundColor = '#ffffff';
-    container.style.zIndex = '9999';
-    container.style.opacity = '0';
-    container.style.pointerEvents = 'none';
+    container.style.zIndex = '-1';
+    container.style.overflow = 'visible';
     document.body.appendChild(container);
 
-    try {
-      const { getJpgAsBlob } = await import('@/lib/download');
+    let root: ReturnType<typeof createRoot> | null = null;
 
+    try {
       const props = { classPlan: plan, colorTheme: templateConfig.color };
       let TemplateComponent: React.ComponentType<{ classPlan: ClassPlan; colorTheme: ColorTheme }>;
 
@@ -206,40 +205,115 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
       }
 
       // React 컴포넌트 렌더링
-      const root = createRoot(container);
+      root = createRoot(container);
       root.render(React.createElement(TemplateComponent, props));
 
-      // 렌더링 대기 (이미지 로딩 등 고려)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // 렌더링 대기
+      await new Promise(resolve => setTimeout(resolve, 300));
 
-      // 이미지 캡처 전에 opacity를 1로 변경 (html-to-image가 제대로 캡처하도록)
-      container.style.opacity = '1';
+      // 폰트 로딩 대기
+      try {
+        if (document.fonts && document.fonts.ready) {
+          await document.fonts.ready;
+        }
+      } catch {
+        // 폰트 대기 실패 시 계속 진행
+      }
 
-      // 스타일 변경 후 렌더링 대기
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // 추가 렌더링 대기 (이미지, 스타일 적용 등)
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-      // JPG Blob 생성
-      const ref: React.RefObject<HTMLDivElement> = { current: container };
-      const blob = await getJpgAsBlob(ref);
+      // html2canvas 사용 (화면 밖 요소도 안정적으로 캡처)
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(container, {
+        scale: 2, // 2배 스케일 (파일 크기 감소, 여전히 선명한 출력)
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 0, // 이미지 로딩 타임아웃 없음
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        width: container.scrollWidth,
+        height: container.scrollHeight,
+        windowWidth: container.scrollWidth,
+        windowHeight: container.scrollHeight,
+        onclone: (clonedDoc) => {
+          // 클론된 문서에서 컨테이너를 화면 내로 이동
+          const clonedContainer = clonedDoc.getElementById('bulk-download-container');
+          if (clonedContainer) {
+            clonedContainer.style.left = '0';
+            clonedContainer.style.position = 'relative';
+          }
+        },
+      });
 
       // 정리
       root.unmount();
+      root = null;
 
-      return blob;
+      // Canvas를 JPG Blob으로 변환 (품질 0.85로 파일 크기 감소)
+      return new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Canvas to Blob conversion failed'));
+          }
+        }, 'image/jpeg', 0.85);
+      });
     } catch (error) {
       console.error('JPG 생성 중 오류:', error);
       return null;
     } finally {
+      if (root) {
+        try {
+          root.unmount();
+        } catch {
+          // unmount 실패 무시
+        }
+      }
       if (container.parentNode) {
         document.body.removeChild(container);
       }
     }
   };
 
-  if (!isOpen) return null;
+  // 다운로드 중이 아니고 모달이 닫혀있으면 상태바도 숨김
+  if (!isOpen && !isDownloading) return null;
+
+  // 다운로드 중에는 화면 하단에 상태바만 표시
+  if (!isOpen && isDownloading) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50 bg-white rounded-lg shadow-2xl border border-zinc-200 p-4 w-80">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-blue-900">일괄 다운로드 중...</span>
+          <span className="text-xs font-semibold text-blue-700">
+            {downloadProgress.current} / {downloadProgress.total}
+          </span>
+        </div>
+        {downloadProgress.currentPlan && (
+          <div className="text-xs text-zinc-600 truncate mb-2">
+            {downloadProgress.currentPlan}
+          </div>
+        )}
+        <div className="w-full bg-blue-100 rounded-full h-2">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${(downloadProgress.current / downloadProgress.total) * 100}%` }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      onClick={isDownloading ? undefined : onClose}
+    >
       <div 
         className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] p-6 relative flex flex-col"
         onClick={(e) => e.stopPropagation()}
