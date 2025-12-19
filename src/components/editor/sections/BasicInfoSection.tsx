@@ -426,39 +426,115 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               onChange={(size) => handleFieldFontSizeChange('classDay', size)}
             />
           </div>
-          <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500 resize-none flex-1 min-h-[48px]"
-            value={classPlan.classDay || ''}
-            onChange={handleChange('classDay')}
-            onKeyDown={(e) => {
-              // Enter만 누르면 blur, Shift+Enter는 줄바꿈 허용
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-              }
-            }}
-            placeholder="월수금 (Shift+Enter로 줄바꿈)"
-            aria-label="수업요일"
-            rows={2}
-          />
+          <div className="flex flex-col gap-1 flex-1">
+            {/* 첫 번째 줄: 기간 | 요일 */}
+            <div className="flex gap-1">
+              <input
+                type="text"
+                className="w-14 text-xs px-1.5 py-1.5 bg-amber-50 border border-amber-200 rounded-md focus:border-amber-400 focus:ring-1 focus:ring-amber-300 outline-none transition text-amber-700 placeholder:text-amber-400 text-center font-medium"
+                value={(() => {
+                  const line = (classPlan.classDay || '').split('\n')[0] || '';
+                  return line.includes('|') ? line.split('|')[0] : '';
+                })()}
+                onChange={(e) => {
+                  const lines = (classPlan.classDay || '').split('\n');
+                  const currentLine = lines[0] || '';
+                  const dayPart = currentLine.includes('|') ? currentLine.split('|')[1] : currentLine;
+                  lines[0] = e.target.value ? `${e.target.value}|${dayPart}` : dayPart;
+                  onChange({ classDay: lines.filter((l, i) => i === 0 || l).join('\n') });
+                }}
+                placeholder="12월"
+                aria-label="수업요일 1 기간"
+              />
+              <input
+                type="text"
+                className="flex-1 text-xs px-2.5 py-1.5 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
+                value={(() => {
+                  const line = (classPlan.classDay || '').split('\n')[0] || '';
+                  return line.includes('|') ? line.split('|')[1] : line;
+                })()}
+                onChange={(e) => {
+                  const lines = (classPlan.classDay || '').split('\n');
+                  const currentLine = lines[0] || '';
+                  const periodPart = currentLine.includes('|') ? currentLine.split('|')[0] : '';
+                  lines[0] = periodPart ? `${periodPart}|${e.target.value}` : e.target.value;
+                  onChange({ classDay: lines.filter((l, i) => i === 0 || l).join('\n') });
+                }}
+                placeholder="월수금"
+                aria-label="수업요일 1"
+              />
+            </div>
+            {/* 두 번째 줄: 기간 | 요일 */}
+            <div className="flex gap-1">
+              <input
+                type="text"
+                className="w-14 text-xs px-1.5 py-1.5 bg-amber-50/50 border border-amber-100 rounded-md focus:border-amber-400 focus:ring-1 focus:ring-amber-300 focus:bg-amber-50 outline-none transition text-amber-600 placeholder:text-amber-300 text-center font-medium"
+                value={(() => {
+                  const line = (classPlan.classDay || '').split('\n')[1] || '';
+                  return line.includes('|') ? line.split('|')[0] : '';
+                })()}
+                onChange={(e) => {
+                  const lines = (classPlan.classDay || '').split('\n');
+                  const currentLine = lines[1] || '';
+                  const dayPart = currentLine.includes('|') ? currentLine.split('|')[1] : currentLine;
+                  const newLine = e.target.value ? `${e.target.value}|${dayPart}` : dayPart;
+                  onChange({ classDay: newLine ? `${lines[0] || ''}\n${newLine}` : (lines[0] || '') });
+                }}
+                placeholder="1월"
+                aria-label="수업요일 2 기간"
+              />
+              <input
+                type="text"
+                className="flex-1 text-xs px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white outline-none transition text-zinc-800 placeholder:text-zinc-400"
+                value={(() => {
+                  const line = (classPlan.classDay || '').split('\n')[1] || '';
+                  return line.includes('|') ? line.split('|')[1] : line;
+                })()}
+                onChange={(e) => {
+                  const lines = (classPlan.classDay || '').split('\n');
+                  const currentLine = lines[1] || '';
+                  const periodPart = currentLine.includes('|') ? currentLine.split('|')[0] : '';
+                  const newLine = periodPart ? `${periodPart}|${e.target.value}` : e.target.value;
+                  onChange({ classDay: newLine ? `${lines[0] || ''}\n${newLine}` : (lines[0] || '') });
+                }}
+                placeholder="(추가 요일)"
+                aria-label="수업요일 2"
+              />
+            </div>
+          </div>
         </div>
         <div className="col-span-3 flex flex-col">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[13px] font-bold text-blue-600 uppercase">수업시간</label>
           </div>
-          <textarea
-            className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500 resize-none flex-1 min-h-[48px]"
-            value={classPlan.classTime || ''}
-            onChange={handleChange('classTime')}
-            onKeyDown={(e) => {
-              // Enter만 누르면 blur, Shift+Enter는 줄바꿈 허용
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-              }
-            }}
-            placeholder="13:00-17:00 (Shift+Enter로 줄바꿈)"
-            aria-label="수업시간"
-            rows={2}
-          />
+          <div className="flex flex-col gap-1 flex-1">
+            {/* 첫 번째 줄 */}
+            <input
+              type="text"
+              className="w-full text-xs px-2.5 py-1.5 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
+              value={(classPlan.classTime || '').split('\n')[0] || ''}
+              onChange={(e) => {
+                const lines = (classPlan.classTime || '').split('\n');
+                lines[0] = e.target.value;
+                onChange({ classTime: lines.filter((_, i) => i === 0 || lines[i]).join('\n') });
+              }}
+              placeholder="13:00-17:00"
+              aria-label="수업시간 1"
+            />
+            {/* 두 번째 줄 */}
+            <input
+              type="text"
+              className="w-full text-xs px-2.5 py-1.5 bg-zinc-50 border border-zinc-200 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white outline-none transition text-zinc-800 placeholder:text-zinc-400"
+              value={(classPlan.classTime || '').split('\n')[1] || ''}
+              onChange={(e) => {
+                const lines = (classPlan.classTime || '').split('\n');
+                lines[1] = e.target.value;
+                onChange({ classTime: e.target.value ? `${lines[0] || ''}\n${e.target.value}` : (lines[0] || '') });
+              }}
+              placeholder="(추가 시간)"
+              aria-label="수업시간 2"
+            />
+          </div>
         </div>
         
         {/* Row 4: 학습과정1, 교재1, 학습과정2, 교재2 (각각 25%) */}
