@@ -167,18 +167,22 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
 
   // 개별 강좌 JPG를 Blob으로 반환 (템플릿 적용)
   const getPngBlobFromPlan = async (
-    plan: ClassPlan, 
+    plan: ClassPlan,
     templateConfig: TeacherTemplateConfig
   ): Promise<Blob | null> => {
-    // 임시 컨테이너 생성
+    // 임시 컨테이너 생성 - 화면에 보이지만 시각적으로 숨김
+    // left: -9999px 대신 opacity: 0과 pointer-events: none 사용
+    // 이렇게 해야 html-to-image/html2canvas가 제대로 렌더링함
     const container = document.createElement('div');
     container.id = 'bulk-download-container';
     container.style.position = 'fixed';
-    container.style.left = '-9999px';
+    container.style.left = '0';
     container.style.top = '0';
     container.style.width = '794px';
     container.style.backgroundColor = '#ffffff';
-    container.style.zIndex = '-1';
+    container.style.zIndex = '9999';
+    container.style.opacity = '0';
+    container.style.pointerEvents = 'none';
     document.body.appendChild(container);
 
     try {
@@ -186,7 +190,7 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
 
       const props = { classPlan: plan, colorTheme: templateConfig.color };
       let TemplateComponent: React.ComponentType<{ classPlan: ClassPlan; colorTheme: ColorTheme }>;
-      
+
       switch (templateConfig.category) {
         case 'style1':
           TemplateComponent = TemplateStyle1;
@@ -206,16 +210,21 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
       root.render(React.createElement(TemplateComponent, props));
 
       // 렌더링 대기 (이미지 로딩 등 고려)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // 이미지 캡처 전에 opacity를 1로 변경 (html-to-image가 제대로 캡처하도록)
+      container.style.opacity = '1';
+
+      // 스타일 변경 후 렌더링 대기
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // JPG Blob 생성
       const ref: React.RefObject<HTMLDivElement> = { current: container };
       const blob = await getJpgAsBlob(ref);
 
       // 정리
-      await new Promise(resolve => setTimeout(resolve, 200));
       root.unmount();
-      
+
       return blob;
     } catch (error) {
       console.error('JPG 생성 중 오류:', error);
