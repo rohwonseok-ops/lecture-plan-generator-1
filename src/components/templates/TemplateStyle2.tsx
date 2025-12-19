@@ -6,7 +6,7 @@ import React from 'react';
 import { ClassPlan, ColorTheme, FieldFontSizes, TemplateLayoutConfig } from '@/lib/types';
 import { sectionIdToConfigKey, isValidPosition, isValidSize } from '@/store/templateEditStore';
 import { ColorPalette, colorThemes } from '@/lib/colorThemes';
-import { getFontClassName, getDefaultTypography, getFieldFontSize, buildScheduleRows } from '@/lib/utils';
+import { getFontClassName, getDefaultTypography, getFieldFontSize, buildScheduleRows, calculateTeacherScheduleRatio } from '@/lib/utils';
 import MonthlyCalendar from './MonthlyCalendar';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -110,6 +110,8 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
 
   const weeklyPlan = classPlan.weeklyPlan || [];
   const scheduleRows = buildScheduleRows(classPlan.classDay, classPlan.classTime);
+  // 수업일정 텍스트 길이에 따른 그리드 비율 계산
+  const gridRatio = calculateTeacherScheduleRatio(classPlan.classDay, classPlan.classTime);
   const courseRows = [
     {
       label: '과정 1',
@@ -263,7 +265,7 @@ const TemplateStyle2: React.FC<Props> = ({ classPlan, colorTheme }) => {
       <div className="px-8 flex-1 flex flex-col gap-5 mb-4" style={{ fontSize: `${typography.bodySize}pt` }}>
         {/* 두 번째 줄: 좌측(담임강사+수업일정) 50%, 우측(학습과정/교재) 50% — 스타일1 비율 준수 */}
         <div className="grid gap-3 items-stretch" style={{ gridTemplateColumns: '1fr 1fr' }}>
-          <div className="grid gap-3 h-full" style={{ gridTemplateColumns: '0.78fr 1.22fr' }}>
+          <div className="grid gap-3 h-full" style={{ gridTemplateColumns: `${gridRatio.teacher}fr ${gridRatio.schedule}fr` }}>
             {/* 담임강사 */}
             <div className="space-y-1.5 flex flex-col h-full">
             <div className="flex items-center gap-2">

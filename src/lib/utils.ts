@@ -202,3 +202,75 @@ export function buildInlineScheduleSegments(classDay: string | undefined, classT
   }));
 }
 
+/**
+ * 수업일정 텍스트 길이를 기반으로 담임강사/수업일정 그리드 비율 계산
+ * - 기본 비율: 담임강사 0.8fr, 수업일정 1.2fr
+ * - 수업시간/요일 텍스트가 길면 수업일정 비율 증가, 담임강사 비율 감소
+ * - 최소/최대 비율 제한으로 레이아웃 안정성 보장
+ */
+export interface TeacherScheduleGridRatio {
+  teacher: number;  // 담임강사 비율 (fr)
+  schedule: number; // 수업일정 비율 (fr)
+}
+
+export function calculateTeacherScheduleRatio(
+  classDay: string | undefined,
+  classTime: string | undefined
+): TeacherScheduleGridRatio {
+  // 기본 비율
+  const DEFAULT_TEACHER = 0.8;
+  const DEFAULT_SCHEDULE = 1.2;
+
+  // 최소/최대 비율 (담임강사 기준)
+  const MIN_TEACHER = 0.55;
+  const MAX_TEACHER = 0.85;
+
+  // 텍스트가 없으면 기본 비율 반환
+  if (!classDay && !classTime) {
+    return { teacher: DEFAULT_TEACHER, schedule: DEFAULT_SCHEDULE };
+  }
+
+  const rows = buildScheduleRows(classDay, classTime);
+  if (rows.length === 0) {
+    return { teacher: DEFAULT_TEACHER, schedule: DEFAULT_SCHEDULE };
+  }
+
+  // 각 행의 총 문자 수 계산 (기간 + 요일 + 시간)
+  const maxRowLength = Math.max(...rows.map(row => {
+    const periodLen = row.period?.length || 0;
+    const dayLen = row.day?.length || 0;
+    const timeLen = row.time?.length || 0;
+    return periodLen + dayLen + timeLen;
+  }));
+
+  // 문자 수 기준 비율 조정
+  // - 15자 이하: 기본 비율
+  // - 15~25자: 점진적 조정
+  // - 25자 이상: 최대 조정
+  const THRESHOLD_MIN = 15;
+  const THRESHOLD_MAX = 25;
+
+  let teacherRatio: number;
+
+  if (maxRowLength <= THRESHOLD_MIN) {
+    teacherRatio = DEFAULT_TEACHER;
+  } else if (maxRowLength >= THRESHOLD_MAX) {
+    teacherRatio = MIN_TEACHER;
+  } else {
+    // 선형 보간
+    const ratio = (maxRowLength - THRESHOLD_MIN) / (THRESHOLD_MAX - THRESHOLD_MIN);
+    teacherRatio = DEFAULT_TEACHER - ratio * (DEFAULT_TEACHER - MIN_TEACHER);
+  }
+
+  // 비율 범위 제한
+  teacherRatio = Math.max(MIN_TEACHER, Math.min(MAX_TEACHER, teacherRatio));
+
+  // 합이 2가 되도록 수업일정 비율 계산
+  const scheduleRatio = 2 - teacherRatio;
+
+  return {
+    teacher: Math.round(teacherRatio * 100) / 100,
+    schedule: Math.round(scheduleRatio * 100) / 100,
+  };
+}
+
