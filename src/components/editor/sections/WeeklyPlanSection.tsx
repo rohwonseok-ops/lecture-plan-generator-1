@@ -1,28 +1,10 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ClassPlan, WeeklyItem, FieldFontSizes } from '@/lib/types';
 import { getFieldFontSize, getDefaultTypography } from '@/lib/utils';
 import FontSizeControl from '../FontSizeControl';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useSortableList } from '@/hooks/useSortableList';
 import { GripVertical } from 'lucide-react';
 
 interface Props {
@@ -30,78 +12,49 @@ interface Props {
   onChange: (patch: Partial<ClassPlan>) => void;
 }
 
-interface SortableWeekRowProps {
+interface WeekRowProps {
   week: WeeklyItem;
   index: number;
   weekCount: number;
   onWeekChange: (index: number, field: keyof WeeklyItem, value: string) => void;
   onRemoveWeek: (index: number) => void;
-  isDragOverlay?: boolean;
+  dragHandleProps: ReturnType<ReturnType<typeof useSortableList>['dragHandleProps']>;
+  itemProps: ReturnType<ReturnType<typeof useSortableList>['itemProps']>;
+  isDragging: boolean;
+  isDragOver: boolean;
 }
 
-// ID가 없는 항목에 대해 안정적인 ID 생성
-const ensureId = (item: WeeklyItem, index: number): string => {
-  return item.id || `fallback-${index}`;
-};
-
-const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
+const WeekRow: React.FC<WeekRowProps> = ({
   week,
   index,
   weekCount,
   onWeekChange,
   onRemoveWeek,
-  isDragOverlay = false,
+  dragHandleProps,
+  itemProps,
+  isDragging,
+  isDragOver,
 }) => {
-  const itemId = ensureId(week, index);
-  
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: itemId });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  // 드래그 중인 원본 항목 스타일 (플레이스홀더)
-  if (isDragging && !isDragOverlay) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="flex items-center gap-2 px-1.5 py-0.5 bg-blue-50 border-2 border-dashed border-blue-300 rounded opacity-60"
-      >
-        <div className="flex-shrink-0 p-1 text-transparent">
-          <GripVertical size={14} />
-        </div>
-        <div className="flex-shrink-0 w-12 h-8 bg-blue-100/50 border border-blue-200 rounded" />
-        <div className="flex-1 min-w-0 flex items-center gap-1">
-          <div className="w-full min-h-[32px] bg-blue-100/50 border border-blue-200 rounded" />
-          <div className="w-8 h-8" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-2 px-1.5 py-0.5 bg-white ${
-        isDragOverlay 
-          ? 'shadow-lg border border-blue-400 rounded-lg scale-[1.02]' 
+      ref={itemProps.ref}
+      style={itemProps.style}
+      className={`flex items-center gap-2 px-1.5 py-0.5 bg-white transition-all ${
+        isDragging
+          ? 'opacity-50 border-2 border-dashed border-blue-300 rounded bg-blue-50'
+          : ''
+      } ${
+        isDragOver && !isDragging
+          ? 'bg-blue-50 border-t-2 border-blue-400'
           : ''
       }`}
+      data-dragging={itemProps['data-dragging']}
+      data-drag-over={itemProps['data-drag-over']}
     >
       <div
-        {...attributes}
-        {...listeners}
-        className="flex-shrink-0 cursor-grab-outline p-1 rounded text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 active:bg-zinc-200 transition"
+        {...dragHandleProps}
+        className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 rounded text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 active:bg-zinc-200 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+        aria-label={`${index + 1}주차 항목 이동. 화살표 키로 순서 변경`}
       >
         <GripVertical size={14} />
       </div>
@@ -137,31 +90,7 @@ const SortableWeekRow: React.FC<SortableWeekRowProps> = ({
   );
 };
 
-// DragOverlay에서 사용할 정적 컴포넌트 (드래그 핸들 없음)
-const DragOverlayWeekRow: React.FC<{ week: WeeklyItem }> = ({ week }) => {
-  return (
-    <div className="flex items-center gap-2 px-1.5 py-0.5 bg-white shadow-xl border-2 border-blue-400 rounded-lg scale-[1.02]">
-      <div className="flex-shrink-0 p-1 text-blue-500">
-        <GripVertical size={14} />
-      </div>
-      <div className="flex-shrink-0 w-12 h-8 bg-white border border-zinc-300 rounded flex items-center justify-center">
-        <span className="text-zinc-700 font-medium text-[10px]">{week.weekLabel || ''}</span>
-      </div>
-      <div className="flex-1 min-w-0 flex items-center gap-1">
-        <div className="w-full text-xs font-medium px-2 py-1 min-h-[32px] bg-white border border-zinc-300 rounded text-zinc-800">
-          {week.topic || ''}
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center text-sm text-red-500/50">
-          🗑
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
-  const [activeId, setActiveId] = useState<string | null>(null);
-
   // weeklyPlan에 ID가 없는 항목이 있으면 ID를 부여
   const weeklyPlan = useMemo(() => {
     const plan = classPlan.weeklyPlan || Array.from({ length: 8 }, (_, i) => ({
@@ -169,7 +98,7 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
       weekLabel: '',
       topic: ''
     }));
-    
+
     // 모든 항목에 ID가 있는지 확인하고, 없으면 생성
     return plan.map((item) => ({
       ...item,
@@ -177,27 +106,18 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     }));
   }, [classPlan.weeklyPlan]);
 
-  // 현재 드래그 중인 항목 찾기
-  const activeItem = useMemo(() => {
-    if (!activeId) return null;
-    return weeklyPlan.find(item => item.id === activeId) || null;
-  }, [activeId, weeklyPlan]);
-
-  const activeIndex = useMemo(() => {
-    if (!activeId) return -1;
-    return weeklyPlan.findIndex(item => item.id === activeId);
-  }, [activeId, weeklyPlan]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  // Custom sortable list hook
+  const {
+    dragHandleProps,
+    itemProps,
+    draggedId,
+    overIndex,
+  } = useSortableList({
+    items: weeklyPlan,
+    onReorder: (newItems) => onChange({ weeklyPlan: newItems }),
+    getId: (item) => item.id!,
+    activationDistance: 5,
+  });
 
   // 타이포그래피 설정
   const typography = classPlan.typography || getDefaultTypography();
@@ -264,40 +184,21 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
     onChange({ weeklyPlan: weeklyPlan.slice(0, clamped) });
   }, [weeklyPlan, onChange]);
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-
-    if (over && active.id !== over.id) {
-      const oldIndex = weeklyPlan.findIndex((item) => item.id === active.id);
-      const newIndex = weeklyPlan.findIndex((item) => item.id === over.id);
-
-      if (oldIndex !== -1 && newIndex !== -1) {
-        onChange({ weeklyPlan: arrayMove(weeklyPlan, oldIndex, newIndex) });
-      }
-    }
-  };
-
-  const handleDragCancel = () => {
-    setActiveId(null);
-  };
-
   const weekCount = weeklyPlan.length;
   const midPoint = Math.ceil(weekCount / 2);
   const leftWeeks = weeklyPlan.slice(0, midPoint);
   const rightWeeks = weeklyPlan.slice(midPoint);
 
-  // SortableContext에 전달할 ID 배열 (반드시 item.id 사용)
-  const sortableIds = weeklyPlan.map(item => item.id!);
-
   return (
     <div className="flex flex-col p-1.5 bg-white">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
+      {/* Screen reader instructions for keyboard navigation */}
+      <div id="sortable-instructions" className="sr-only">
+        화살표 위/아래 키로 항목 순서를 변경할 수 있습니다.
+        Home 키는 맨 위로, End 키는 맨 아래로 이동합니다.
+      </div>
+
+      <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
+        <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-[14px] font-bold text-blue-600">📅 주차별 학습계획 ({weekCount}주)</h3>
           <div className="flex items-center gap-1">
             <span className="text-[9px] text-zinc-500">주차</span>
@@ -355,56 +256,44 @@ const WeeklyPlanSection: React.FC<Props> = ({ classPlan, onChange }) => {
           </button>
         </div>
       </div>
-      
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
-      >
-        <SortableContext
-          items={sortableIds}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="grid grid-cols-2 gap-1">
-            {/* 왼쪽: 앞 절반 */}
-            <div className="flex flex-col border border-zinc-300 rounded-lg bg-white divide-y divide-zinc-200">
-              {leftWeeks.map((week, idx) => (
-                <SortableWeekRow
-                  key={week.id}
-                  week={week}
-                  index={idx}
-                  weekCount={weekCount}
-                  onWeekChange={handleWeekChange}
-                  onRemoveWeek={handleRemoveWeek}
-                />
-              ))}
-            </div>
-            
-            {/* 오른쪽: 뒤 절반 */}
-            <div className="flex flex-col border border-zinc-300 rounded-lg bg-white divide-y divide-zinc-200">
-              {rightWeeks.map((week, idx) => (
-                <SortableWeekRow
-                  key={week.id}
-                  week={week}
-                  index={midPoint + idx}
-                  weekCount={weekCount}
-                  onWeekChange={handleWeekChange}
-                  onRemoveWeek={handleRemoveWeek}
-                />
-              ))}
-            </div>
-          </div>
-        </SortableContext>
 
-        {/* DragOverlay: 드래그 중인 항목의 복제본 표시 */}
-        <DragOverlay>
-          {activeItem && activeIndex !== -1 ? (
-            <DragOverlayWeekRow week={activeItem} />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+        {/* 왼쪽: 앞 절반 */}
+        <div className="flex flex-col border border-zinc-300 rounded-lg bg-white divide-y divide-zinc-200">
+          {leftWeeks.map((week, idx) => (
+            <WeekRow
+              key={week.id}
+              week={week}
+              index={idx}
+              weekCount={weekCount}
+              onWeekChange={handleWeekChange}
+              onRemoveWeek={handleRemoveWeek}
+              dragHandleProps={dragHandleProps(week.id!)}
+              itemProps={itemProps(week.id!)}
+              isDragging={draggedId === week.id}
+              isDragOver={overIndex === idx}
+            />
+          ))}
+        </div>
+
+        {/* 오른쪽: 뒤 절반 */}
+        <div className="flex flex-col border border-zinc-300 rounded-lg bg-white divide-y divide-zinc-200">
+          {rightWeeks.map((week, idx) => (
+            <WeekRow
+              key={week.id}
+              week={week}
+              index={midPoint + idx}
+              weekCount={weekCount}
+              onWeekChange={handleWeekChange}
+              onRemoveWeek={handleRemoveWeek}
+              dragHandleProps={dragHandleProps(week.id!)}
+              itemProps={itemProps(week.id!)}
+              isDragging={draggedId === week.id}
+              isDragOver={overIndex === (midPoint + idx)}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

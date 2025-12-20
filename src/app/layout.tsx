@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 // 제주고딕체 로컬 폰트
@@ -41,6 +42,17 @@ export default function RootLayout({
         <main id="main-content">
           {children}
         </main>
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          toastOptions={{
+            duration: 3000,
+            style: {
+              fontSize: '13px',
+            },
+          }}
+        />
       </body>
     </html>
   );

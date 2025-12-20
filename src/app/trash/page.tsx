@@ -7,6 +7,7 @@ import { listDeletedClassPlans, restoreClassPlan, permanentlyDeleteClassPlan, em
 import { recordActivity } from '@/lib/activityLogger';
 import type { Tables } from '@/lib/supabase.types';
 import { Trash2, RotateCcw, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner';
 
 type ClassPlanRow = Tables<'class_plans'>;
 
@@ -48,8 +49,9 @@ export default function TrashPage() {
     setActionLoading(plan.id);
     const { error } = await restoreClassPlan(plan.id);
     if (error) {
-      alert('복원 실패: ' + error.message);
+      toast.error('복원 실패', { description: error.message });
     } else {
+      toast.success('복원 완료', { description: `"${plan.title || '무제 강의'}"이(가) 복원되었습니다.` });
       recordActivity('class.restore', `강의 복원: ${plan.title || '무제 강의'}`);
       await fetchDeletedPlans();
     }
@@ -63,8 +65,9 @@ export default function TrashPage() {
     setActionLoading(plan.id);
     const { error } = await permanentlyDeleteClassPlan(plan.id);
     if (error) {
-      alert('영구 삭제 실패: ' + error.message);
+      toast.error('영구 삭제 실패', { description: error.message });
     } else {
+      toast.success('영구 삭제 완료');
       recordActivity('class.permanent_delete', `강의 영구 삭제: ${plan.title || '무제 강의'}`);
       await fetchDeletedPlans();
     }
@@ -79,8 +82,9 @@ export default function TrashPage() {
     setActionLoading('empty');
     const { count, error } = await emptyTrash(session.userId);
     if (error) {
-      alert('휴지통 비우기 실패: ' + error.message);
+      toast.error('휴지통 비우기 실패', { description: error.message });
     } else {
+      toast.success('휴지통 비우기 완료', { description: `${count}개 항목이 영구 삭제되었습니다.` });
       recordActivity('class.empty_trash', `휴지통 비우기: ${count}개 영구 삭제`);
       await fetchDeletedPlans();
     }

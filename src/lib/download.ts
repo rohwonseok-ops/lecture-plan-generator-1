@@ -1,53 +1,18 @@
 import html2canvas from 'html2canvas';
 import { toJpeg } from 'html-to-image';
 import React from 'react';
-
-// A4 비율 상수 (210mm x 297mm)
-const A4_RATIO = 297 / 210; // ≈ 1.414
+import { toast } from 'sonner';
+import { calculateA4Scale } from './a4Utils';
 
 /**
- * 템플릿을 A4 비율로 리사이징
+ * 템플릿을 A4 비율로 리사이징 (a4Utils 활용)
  * - 현재 콘텐츠 높이를 기준으로 A4 비율에 맞는 너비 계산
  * - CSS transform scale을 적용하여 A4 박스에 맞춤
  */
 export const resizeToA4 = (element: HTMLElement): { scale: number; width: number; height: number } => {
-  // 현재 실제 크기 측정
   const currentWidth = element.scrollWidth;
   const currentHeight = element.scrollHeight;
-  
-  // A4 기준 치수 (픽셀, 96dpi 기준 약 794 x 1123)
-  const A4_WIDTH_PX = 794; // 210mm at 96dpi
-  const A4_HEIGHT_PX = 1123; // 297mm at 96dpi
-  
-  // 현재 비율
-  const currentRatio = currentHeight / currentWidth;
-  
-  let scale = 1;
-  let targetWidth = A4_WIDTH_PX;
-  let targetHeight = A4_HEIGHT_PX;
-  
-  if (currentRatio > A4_RATIO) {
-    // 콘텐츠가 A4보다 세로로 길다 → 높이 기준으로 스케일 다운
-    scale = A4_HEIGHT_PX / currentHeight;
-    targetWidth = currentWidth * scale;
-    // 너비가 A4보다 작아지면 A4 너비로 맞춤
-    if (targetWidth < A4_WIDTH_PX) {
-      targetWidth = A4_WIDTH_PX;
-    }
-    targetHeight = targetWidth * A4_RATIO;
-    scale = targetHeight / currentHeight;
-  } else {
-    // 콘텐츠가 A4보다 가로로 넓거나 같다 → 너비 기준
-    scale = A4_WIDTH_PX / currentWidth;
-    targetHeight = currentHeight * scale;
-    if (targetHeight < A4_HEIGHT_PX) {
-      targetHeight = A4_HEIGHT_PX;
-    }
-    targetWidth = targetHeight / A4_RATIO;
-    scale = targetWidth / currentWidth;
-  }
-  
-  return { scale, width: targetWidth, height: targetHeight };
+  return calculateA4Scale(currentWidth, currentHeight);
 };
 
 /**
@@ -203,7 +168,7 @@ export const downloadAsJpg = async (
 ) => {
   const blob = await getJpgAsBlob(targetRef);
   if (!blob) {
-    alert('다운로드에 실패했습니다.');
+    toast.error('다운로드에 실패했습니다.');
     return;
   }
 

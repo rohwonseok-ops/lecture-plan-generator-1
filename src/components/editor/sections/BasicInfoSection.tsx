@@ -6,6 +6,7 @@ import { Sparkles } from 'lucide-react';
 import { generateTextForClassPlan, AiGenerateOptions } from '@/lib/ai';
 import { getFieldFontSize, getDefaultTypography } from '@/lib/utils';
 import FontSizeControl from '../FontSizeControl';
+import { DebouncedInput, DebouncedTextarea } from '@/components/ui/DebouncedTextField';
 
 interface Props {
   classPlan: ClassPlan;
@@ -101,8 +102,9 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
     );
   };
 
-  const handleChange = useCallback((field: keyof ClassPlan) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    onChange({ [field]: e.target.value });
+  // 디바운싱된 필드 변경 핸들러 (값 직접 전달)
+  const handleFieldChange = useCallback((field: keyof ClassPlan) => (value: string) => {
+    onChange({ [field]: value });
   }, [onChange]);
 
   // 타이포그래피 설정
@@ -141,15 +143,15 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
   };
 
   return (
-    <div className="p-3 bg-zinc-100">
+    <div className="p-2 sm:p-3 bg-zinc-100">
       {errorMsg && (
         <div className="mb-2 text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-md px-2.5 py-1.5">
           {errorMsg}
         </div>
       )}
-      <div className="grid grid-cols-12 gap-3.5">
+      <div className="grid grid-cols-12 gap-2 sm:gap-3.5">
         {/* Row 1: 수강대상 20%, 홍보문구 및 특이사항 80% */}
-        <div className="col-span-2">
+        <div className="col-span-4 sm:col-span-2">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <label className="relative inline-flex items-center cursor-pointer">
@@ -175,18 +177,19 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               onChange={(size) => handleFieldFontSizeChange('targetStudent', size)}
             />
           </div>
-          <input
+          <DebouncedInput
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
             value={classPlan.targetStudent || ''}
-            onChange={handleChange('targetStudent')}
+            onChange={handleFieldChange('targetStudent')}
             placeholder="초등 5-6"
             disabled={!classPlan.showTargetStudent}
             aria-label="수강대상"
+            debounceMs={150}
           />
         </div>
-        <div className="col-span-10">
-          <div className="flex items-center justify-between mb-1">
+        <div className="col-span-8 sm:col-span-10">
+          <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
             <div className="flex items-center gap-2">
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -263,13 +266,14 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               </button>
             </div>
           </div>
-          <textarea
+          <DebouncedTextarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-16 text-zinc-800 placeholder:text-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-500 disabled:cursor-not-allowed"
             value={classPlan.etc || ''}
-            onChange={handleChange('etc')}
+            onChange={handleFieldChange('etc')}
             placeholder="강좌 홍보 문구, 특이사항 (템플릿에는 타이틀 없이 표시)"
             disabled={!classPlan.showEtc}
             aria-label="홍보문구 및 특이사항"
+            debounceMs={150}
           />
           {renderPreview('etc', 'promoCopy')}
         </div>
@@ -328,18 +332,19 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
                 </button>
               </div>
             </div>
-          <textarea
+          <DebouncedTextarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none h-16 text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.parentIntro || ''}
-            onChange={handleChange('parentIntro')}
+            onChange={handleFieldChange('parentIntro')}
             placeholder="학부모님께 전하는 인사말 및 안내 문구"
             aria-label="학부모 안내글"
+            debounceMs={150}
           />
           {renderPreview('parentIntro', 'parentIntro')}
         </div>
 
         {/* Row 3: 반명/강좌명, 강사명, 수업요일, 수업시간 */}
-        <div className="col-span-3 flex flex-col">
+        <div className="col-span-6 sm:col-span-3 flex flex-col">
           <div className="flex items-center justify-between mb-1">
             <div className="flex bg-zinc-100 rounded-md p-0.5 gap-0.5">
               <button
@@ -372,16 +377,17 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               label="폰트 13" // 표시용 주석: 실 폰트는 입력 필드에서 조정
             />
           </div>
-          <input
+          <DebouncedInput
             type="text"
             className="w-full text-[13px] px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500 whitespace-nowrap overflow-x-auto flex-1 min-h-[48px]"
             value={classPlan.title || ''}
-            onChange={handleChange('title')}
+            onChange={handleFieldChange('title')}
             placeholder={classPlan.titleType === 'name' ? "예: 수학 몰입특강" : "예: A반"}
             aria-label={classPlan.titleType === 'name' ? "강좌명" : "반명"}
+            debounceMs={150}
           />
         </div>
-        <div className="col-span-2 flex flex-col">
+        <div className="col-span-6 sm:col-span-2 flex flex-col">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[13px] font-bold text-blue-600 uppercase">강사명</label>
             <FontSizeControl
@@ -418,7 +424,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             />
           </div>
         </div>
-        <div className="col-span-4 flex flex-col">
+        <div className="col-span-6 sm:col-span-4 flex flex-col">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[13px] font-bold text-blue-600 uppercase">수업요일</label>
             <FontSizeControl
@@ -503,7 +509,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </div>
           </div>
         </div>
-        <div className="col-span-3 flex flex-col">
+        <div className="col-span-6 sm:col-span-3 flex flex-col">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[13px] font-bold text-blue-600 uppercase">수업시간</label>
           </div>
@@ -538,7 +544,7 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
         </div>
         
         {/* Row 4: 학습과정1, 교재1, 학습과정2, 교재2 (각각 25%) */}
-        <div className="col-span-3">
+        <div className="col-span-6 sm:col-span-3">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[13px] font-bold text-blue-600 uppercase">학습과정1</label>
             <FontSizeControl
@@ -546,16 +552,17 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               onChange={(size) => handleFieldFontSizeChange('course1', size)}
             />
           </div>
-          <input
+          <DebouncedInput
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.course1 || ''}
-            onChange={handleChange('course1')}
+            onChange={handleFieldChange('course1')}
             placeholder="3-1 개념"
             aria-label="학습과정1"
+            debounceMs={150}
           />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-6 sm:col-span-3">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[13px] font-bold text-blue-600 uppercase">교재1</label>
             <FontSizeControl
@@ -563,16 +570,17 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               onChange={(size) => handleFieldFontSizeChange('material1', size)}
             />
           </div>
-          <input
+          <DebouncedInput
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.material1 || ''}
-            onChange={handleChange('material1')}
+            onChange={handleFieldChange('material1')}
             placeholder="개념플러스유형"
             aria-label="교재1"
+            debounceMs={150}
           />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-6 sm:col-span-3">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[13px] font-bold text-blue-600 uppercase">학습과정2</label>
             <FontSizeControl
@@ -580,16 +588,17 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               onChange={(size) => handleFieldFontSizeChange('course2', size)}
             />
           </div>
-          <input
+          <DebouncedInput
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.course2 || ''}
-            onChange={handleChange('course2')}
+            onChange={handleFieldChange('course2')}
             placeholder="3-1 응용"
             aria-label="학습과정2"
+            debounceMs={150}
           />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-6 sm:col-span-3">
           <div className="flex items-center justify-between mb-1">
             <label className="text-[13px] font-bold text-blue-600 uppercase">교재2</label>
             <FontSizeControl
@@ -597,18 +606,19 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
               onChange={(size) => handleFieldFontSizeChange('material2', size)}
             />
           </div>
-          <input
+          <DebouncedInput
             type="text"
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-zinc-800 placeholder:text-zinc-500"
             value={classPlan.material2 || ''}
-            onChange={handleChange('material2')}
+            onChange={handleFieldChange('material2')}
             placeholder="쎈"
             aria-label="교재2"
+            debounceMs={150}
           />
         </div>
         
         {/* Row 5: 학습목표와 학습관리 (각각 50%), 폰트 파란색 */}
-        <div className="col-span-6">
+        <div className="col-span-12 sm:col-span-6">
           <div className="flex items-center justify-between mb-1">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
@@ -663,17 +673,18 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </div>
             </div>
           </div>
-          <textarea
+          <DebouncedTextarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none text-zinc-800 placeholder:text-zinc-500"
             style={{ height: '7.875rem' }}
             value={classPlan.learningGoal || ''}
-            onChange={handleChange('learningGoal')}
+            onChange={handleFieldChange('learningGoal')}
             placeholder="학습 목표"
             aria-label="학습목표"
+            debounceMs={150}
           />
           {renderPreview('learningGoal', 'learningGoal')}
         </div>
-        <div className="col-span-6">
+        <div className="col-span-12 sm:col-span-6">
           <div className="flex items-center justify-between mb-1">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
@@ -728,13 +739,14 @@ const BasicInfoSection: React.FC<Props> = ({ classPlan, onChange }) => {
             </div>
             </div>
           </div>
-          <textarea
+          <DebouncedTextarea
             className="w-full text-xs px-2.5 py-2 bg-white border border-zinc-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition resize-none text-zinc-800 placeholder:text-zinc-500"
             style={{ height: '7.875rem' }}
             value={classPlan.management || ''}
-            onChange={handleChange('management')}
+            onChange={handleFieldChange('management')}
             placeholder="테스트/클리닉/피드백"
             aria-label="학습관리"
+            debounceMs={150}
           />
           {renderPreview('management', 'management')}
         </div>

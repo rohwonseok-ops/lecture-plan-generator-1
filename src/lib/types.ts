@@ -295,3 +295,165 @@ export const classPlanStatusNames: Record<ClassPlanStatus, string> = {
   'teacher-reviewed': '담임 검수완료',
   'admin-reviewed': '운영진 검토완료',
 };
+
+// =====================================
+// Zod 스키마 (타입 안전성 강화)
+// =====================================
+import { z } from 'zod';
+
+// 레이아웃 위치/크기 제한 상수
+export const LAYOUT_LIMITS = {
+  POSITION_MIN: -100,
+  POSITION_MAX: 100,
+  SIZE_MIN: -50,
+  SIZE_MAX: 50,
+} as const;
+
+// ElementLayout 스키마
+export const elementLayoutSchema = z.object({
+  x: z.number()
+    .min(LAYOUT_LIMITS.POSITION_MIN)
+    .max(LAYOUT_LIMITS.POSITION_MAX)
+    .optional(),
+  y: z.number()
+    .min(LAYOUT_LIMITS.POSITION_MIN)
+    .max(LAYOUT_LIMITS.POSITION_MAX)
+    .optional(),
+  width: z.number()
+    .min(LAYOUT_LIMITS.SIZE_MIN)
+    .max(LAYOUT_LIMITS.SIZE_MAX)
+    .optional(),
+  height: z.number()
+    .min(LAYOUT_LIMITS.SIZE_MIN)
+    .max(LAYOUT_LIMITS.SIZE_MAX)
+    .optional(),
+  visible: z.boolean().optional(),
+});
+
+// TemplateLayoutConfig 스키마
+export const templateLayoutConfigSchema = z.object({
+  header: elementLayoutSchema.optional(),
+  targetStudent: elementLayoutSchema.optional(),
+  etc: elementLayoutSchema.optional(),
+  parentIntro: elementLayoutSchema.optional(),
+  teacherInfo: elementLayoutSchema.optional(),
+  scheduleInfo: elementLayoutSchema.optional(),
+  courseInfo: elementLayoutSchema.optional(),
+  learningGoal: elementLayoutSchema.optional(),
+  management: elementLayoutSchema.optional(),
+  weeklyPlan: elementLayoutSchema.optional(),
+  monthlyCalendar: elementLayoutSchema.optional(),
+  feeTable: elementLayoutSchema.optional(),
+  applyToCategory: z.boolean().optional(),
+});
+
+// WeeklyItem 스키마
+export const weeklyItemSchema = z.object({
+  id: z.string().optional(),
+  weekLabel: z.string(),
+  topic: z.string(),
+  detail: z.string().optional(),
+  note: z.string().optional(),
+});
+
+// FeeRow 스키마
+export const feeRowSchema = z.object({
+  month: z.string(),
+  classType: z.string(),
+  day: z.string(),
+  time: z.string(),
+  unitFee: z.number().nonnegative(),
+  sessions: z.number().int().nonnegative(),
+  subtotal: z.number().nonnegative(),
+});
+
+// FeeInfo 스키마
+export const feeInfoSchema = z.object({
+  title: z.string(),
+  rows: z.array(feeRowSchema),
+  monthlyTotals: z.array(z.object({
+    month: z.string(),
+    total: z.number().nonnegative(),
+  })),
+});
+
+// ColorTheme 스키마
+export const colorThemeSchema = z.enum(['green', 'blue', 'purple', 'orange', 'teal', 'dancheong']);
+
+// TemplateCategory 스키마
+export const templateCategorySchema = z.enum(['style1', 'style2', 'style3']);
+
+// FontFamily 스키마
+export const fontFamilySchema = z.enum([
+  'jeju', 'nanum-square', 'nanum-human', 'nanum-barun', 'pretendard', 'noto-sans-kr', 'korail'
+]);
+
+// TypographySettings 스키마
+export const typographySettingsSchema = z.object({
+  titleFont: fontFamilySchema,
+  titleSize: z.number().min(8).max(32),
+  titleWeight: z.number().min(100).max(900).optional(),
+  bodyFont: fontFamilySchema,
+  bodySize: z.number().min(6).max(24),
+  bodyWeight: z.number().min(100).max(900).optional(),
+  enableFontSizeChange: z.boolean().optional(),
+  fieldFontSizes: z.record(z.string(), z.number().min(6).max(24)).optional(),
+  _layoutConfig: templateLayoutConfigSchema.optional(),
+});
+
+// ClassPlanStatus 스키마
+export const classPlanStatusSchema = z.enum(['draft', 'teacher-reviewed', 'admin-reviewed']);
+
+// ClassPlan 스키마 (부분 검증용)
+export const classPlanPartialSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().optional(),
+  titleType: z.enum(['class', 'name']).optional(),
+  showTitle: z.boolean().optional(),
+  subject: z.string().optional(),
+  targetStudent: z.string().optional(),
+  showTargetStudent: z.boolean().optional(),
+  targetStudentDetail: z.string().optional(),
+  teacherName: z.string().optional(),
+  classDay: z.string().optional(),
+  classTime: z.string().optional(),
+  schedule: z.string().optional(),
+  course1: z.string().optional(),
+  material1: z.string().optional(),
+  course2: z.string().optional(),
+  material2: z.string().optional(),
+  learningGoal: z.string().optional(),
+  management: z.string().optional(),
+  parentIntro: z.string().optional(),
+  keywords: z.string().optional(),
+  etc: z.string().optional(),
+  showEtc: z.boolean().optional(),
+  etcPosition: z.enum(['top', 'bottom']).optional(),
+  weeklyPlan: z.array(weeklyItemSchema).optional(),
+  feeInfo: feeInfoSchema.optional(),
+  templateId: z.string().optional(),
+  sizePreset: z.enum(['A4', '4x5', '1x1']).optional(),
+  typography: typographySettingsSchema.optional(),
+  layoutConfig: templateLayoutConfigSchema.optional(),
+  lastSaved: z.string().optional(),
+  status: classPlanStatusSchema.optional(),
+}).partial();
+
+// 레이아웃 값 검증 헬퍼 함수
+export const validateElementLayout = (layout: unknown): ElementLayout | null => {
+  const result = elementLayoutSchema.safeParse(layout);
+  return result.success ? result.data : null;
+};
+
+// 템플릿 레이아웃 설정 검증 헬퍼 함수
+export const validateTemplateLayoutConfig = (config: unknown): TemplateLayoutConfig | null => {
+  const result = templateLayoutConfigSchema.safeParse(config);
+  return result.success ? result.data : null;
+};
+
+// ClassPlan 부분 업데이트 검증 헬퍼 함수
+export const validateClassPlanPatch = (patch: unknown): Partial<ClassPlan> | null => {
+  const result = classPlanPartialSchema.safeParse(patch);
+  // Type assertion needed because Zod infers string for templateId, but we know it's TemplateId
+  return result.success ? (result.data as Partial<ClassPlan>) : null;
+};

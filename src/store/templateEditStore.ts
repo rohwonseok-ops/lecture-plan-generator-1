@@ -5,11 +5,11 @@ import { ElementLayout, TemplateLayoutConfig, TemplateCategory } from '@/lib/typ
 // 레이아웃 값 범위 제한 상수
 // ========================================
 
-/** 위치 이동(x, y)의 최대 절대값 (px) */
-export const LAYOUT_POSITION_LIMIT = 50;
+/** 위치 이동(x, y)의 최대 절대값 (px) - Phase 1에서 완화됨 */
+export const LAYOUT_POSITION_LIMIT = 100;
 
-/** 크기 조정(width, height)의 최대 절대값 (px) */
-export const LAYOUT_SIZE_LIMIT = 30;
+/** 크기 조정(width, height)의 최대 절대값 (px) - Phase 1에서 완화됨 */
+export const LAYOUT_SIZE_LIMIT = 50;
 
 // ========================================
 // 값 범위 제한 함수
@@ -108,6 +108,12 @@ interface TemplateEditState {
   // 저장 플래그 (저장 vs 취소 구분)
   isSaving: boolean;
   setIsSaving: (saving: boolean) => void;
+
+  // 편집 시작 시점의 전체 스냅샷 (취소 시 완벽 복구용)
+  initialLayoutSnapshot: TemplateLayoutConfig | null;
+  saveInitialSnapshot: (config: TemplateLayoutConfig | null) => void;
+  getInitialSnapshot: () => TemplateLayoutConfig | null;
+  restoreFromSnapshot: () => void;
 }
 
 // 요소 ID를 TemplateLayoutConfig 키로 매핑 (DOM data-section-id → config key)
@@ -199,5 +205,21 @@ export const useTemplateEditStore = create<TemplateEditState>()((set, get) => ({
   // 저장 플래그
   isSaving: false,
   setIsSaving: (saving) => set({ isSaving: saving }),
+
+  // 편집 시작 시점의 전체 스냅샷 (취소 시 완벽 복구용)
+  initialLayoutSnapshot: null,
+  saveInitialSnapshot: (config) => set({
+    initialLayoutSnapshot: config ? JSON.parse(JSON.stringify(config)) : null
+  }),
+  getInitialSnapshot: () => get().initialLayoutSnapshot,
+  restoreFromSnapshot: () => {
+    const snapshot = get().initialLayoutSnapshot;
+    if (snapshot) {
+      set({
+        baseLayoutConfig: JSON.parse(JSON.stringify(snapshot)),
+        pendingLayoutChanges: {},
+      });
+    }
+  },
 }));
 

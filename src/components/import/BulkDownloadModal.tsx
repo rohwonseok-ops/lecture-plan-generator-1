@@ -3,8 +3,11 @@
 import React, { useState, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { X, Download } from 'lucide-react';
+import { toast } from 'sonner';
 import JSZip from 'jszip';
+import { toBlob } from 'html-to-image';
 import { ClassPlan, TemplateCategory, ColorTheme } from '@/lib/types';
+import { A4_WIDTH_PX, A4_HEIGHT_PX, calculateA4Scale } from '@/lib/a4Utils';
 import TemplateStyle1 from '@/components/templates/TemplateStyle1';
 import TemplateStyle2 from '@/components/templates/TemplateStyle2';
 import TemplateStyle3 from '@/components/templates/TemplateStyle3';
@@ -91,7 +94,7 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
   // 일괄 다운로드 실행 (ZIP 압축)
   const handleBulkDownload = async () => {
     if (selectedTeachers.size === 0) {
-      alert('다운로드할 강사를 선택해주세요.');
+      toast.warning('다운로드할 강사를 선택해주세요.');
       return;
     }
 
@@ -107,7 +110,7 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
     });
 
     if (plansToDownload.length === 0) {
-      alert('다운로드할 강좌가 없습니다.');
+      toast.warning('다운로드할 강좌가 없습니다.');
       return;
     }
 
@@ -156,31 +159,34 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
 
       setIsDownloading(false);
       setDownloadProgress({ current: 0, total: 0, currentPlan: null });
-      alert(`다운로드 완료: ${plansToDownload.length}개 파일이 ZIP으로 압축되었습니다.`);
+      toast.success('다운로드 완료', { description: `${plansToDownload.length}개 파일이 ZIP으로 압축되었습니다.` });
     } catch (error) {
       console.error('ZIP 다운로드 실패:', error);
       setIsDownloading(false);
       setDownloadProgress({ current: 0, total: 0, currentPlan: null });
-      alert('다운로드에 실패했습니다: ' + (error as Error).message);
+      toast.error('다운로드 실패', { description: (error as Error).message });
     }
   };
 
   // 개별 강좌 JPG를 Blob으로 반환 (템플릿 적용)
+  // Phase 4: html2canvas → html-to-image 전환, 오프스크린 렌더링 개선
   const getPngBlobFromPlan = async (
     plan: ClassPlan,
     templateConfig: TeacherTemplateConfig
   ): Promise<Blob | null> => {
     // 임시 컨테이너 생성
-    // html2canvas는 화면 밖 요소도 캡처 가능하지만, html-to-image는 제한이 있음
-    // 따라서 html2canvas를 우선 사용
+    // html-to-image는 화면 내 요소가 필요하므로 opacity: 0으로 숨김 (렌더링은 유지)
     const container = document.createElement('div');
     container.id = 'bulk-download-container';
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
+    container.style.position = 'fixed';
     container.style.top = '0';
-    container.style.width = '794px'; // A4 width at 96dpi
+    container.style.left = '0';
+    container.style.width = `${A4_WIDTH_PX}px`;
+    container.style.minHeight = `${A4_HEIGHT_PX}px`;
     container.style.backgroundColor = '#ffffff';
-    container.style.zIndex = '-1';
+    container.style.zIndex = '-9999';
+    container.style.opacity = '0';           // 보이지 않지만 렌더링됨
+    container.style.pointerEvents = 'none';  // 클릭 불가
     container.style.overflow = 'visible';
     document.body.appendChild(container);
 
@@ -208,45 +214,45 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
       root = createRoot(container);
       root.render(React.createElement(TemplateComponent, props));
 
-      // 렌더링 대기
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // 렌더링 대기 (React가 DOM에 반영되도록)
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      // 폰트 로딩 대기
+      // 폰트 로딩 대기 (고정 시간 대신 Promise 사용)
       try {
         if (document.fonts && document.fonts.ready) {
-          await document.fonts.ready;
+          await Promise.race([
+            document.fonts.ready,
+            new Promise(resolve => setTimeout(resolve, 2000)) // 최대 2초 대기
+          ]);
         }
       } catch {
         // 폰트 대기 실패 시 계속 진행
       }
 
       // 추가 렌더링 대기 (이미지, 스타일 적용 등)
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      // html2canvas 사용 (화면 밖 요소도 안정적으로 캡처)
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(container, {
-        scale: 2, // 2배 스케일 (파일 크기 감소, 여전히 선명한 출력)
-        useCORS: true,
-        allowTaint: true,
+      // A4 비율 계산 (a4Utils 활용)
+      const contentWidth = container.scrollWidth;
+      const contentHeight = container.scrollHeight;
+      const { width: targetWidth, height: targetHeight } = calculateA4Scale(contentWidth, contentHeight);
+
+      // html-to-image 사용 (opacity: 0이어도 렌더링된 요소 캡처 가능)
+      const blob = await toBlob(container, {
+        quality: 0.92,
+        pixelRatio: 2,                  // 2배 해상도
         backgroundColor: '#ffffff',
-        logging: false,
-        imageTimeout: 0, // 이미지 로딩 타임아웃 없음
-        scrollX: 0,
-        scrollY: 0,
-        x: 0,
-        y: 0,
-        width: container.scrollWidth,
-        height: container.scrollHeight,
-        windowWidth: container.scrollWidth,
-        windowHeight: container.scrollHeight,
-        onclone: (clonedDoc) => {
-          // 클론된 문서에서 컨테이너를 화면 내로 이동
-          const clonedContainer = clonedDoc.getElementById('bulk-download-container');
-          if (clonedContainer) {
-            clonedContainer.style.left = '0';
-            clonedContainer.style.position = 'relative';
+        width: targetWidth,
+        height: targetHeight,
+        style: {
+          opacity: '1',                 // 캡처 시에만 opacity 복원
+        },
+        filter: (node) => {
+          // data-no-export 속성을 가진 요소 제외
+          if (node instanceof HTMLElement && node.getAttribute('data-no-export') === 'true') {
+            return false;
           }
+          return true;
         },
       });
 
@@ -254,16 +260,7 @@ const BulkDownloadModal: React.FC<Props> = ({ isOpen, onClose, classPlans }) => 
       root.unmount();
       root = null;
 
-      // Canvas를 JPG Blob으로 변환 (품질 0.85로 파일 크기 감소)
-      return new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Canvas to Blob conversion failed'));
-          }
-        }, 'image/jpeg', 0.85);
-      });
+      return blob;
     } catch (error) {
       console.error('JPG 생성 중 오류:', error);
       return null;

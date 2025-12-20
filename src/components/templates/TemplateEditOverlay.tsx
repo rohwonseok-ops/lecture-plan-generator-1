@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { Rnd, DraggableData, ResizableDelta, Position } from 'react-rnd';
 import { useTemplateEditStore, clampPosition, clampSize } from '@/store/templateEditStore';
 import { useClassPlanStore } from '@/store/classPlanStore';
 import { AlignLeft, AlignCenter, AlignRight, AlignVerticalJustifyCenter, Maximize2, RotateCcw, AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween, Ruler, ArrowDownUp, ArrowLeftRight } from 'lucide-react';
@@ -15,14 +16,9 @@ interface DetectedSection {
   originalHeight: string;
 }
 
-interface DragState {
+interface ActiveDragInfo {
   sectionId: string;
   type: 'move' | 'resize';
-  handle?: string;
-  startX: number;
-  startY: number;
-  startTransform: { x: number; y: number };
-  startSize: { width: number; height: number };
 }
 
 // 섹션 ID와 한글 라벨 매핑
@@ -63,25 +59,18 @@ const TemplateEditOverlay: React.FC = () => {
   const prevEditModeRef = useRef(isEditMode);
   const [detectedSections, setDetectedSections] = useState<DetectedSection[]>([]);
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
-  const [dragState, setDragState] = useState<DragState | null>(null);
+  const [activeDrag, setActiveDrag] = useState<ActiveDragInfo | null>(null);
   const [snapGuides, setSnapGuides] = useState<{ type: 'vertical' | 'horizontal'; position: number; label?: string }[]>([]);
+  const [containerScale, setContainerScale] = useState(1);
   const overlayRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // 스냅 계산을 위한 RAF ID
+  const snapRafRef = useRef<number | null>(null);
   // 섹션 레퍼런스 보관 (취소 시 복구용)
   const sectionElementsRef = useRef<Map<string, HTMLElement>>(new Map());
 
-  // 템플릿 내 섹션 요소들 탐지
-  const detectSections = useCallback((isInitialDetection = false) => {
-    if (!overlayRef.current) return;
-    
-    // 부모 컨테이너 (canvasRef) 찾기
-    const container = overlayRef.current.parentElement;
-    if (!container) return;
-    
-    containerRef.current = container as HTMLDivElement;
-    const containerRect = container.getBoundingClientRect();
-    
-    // scale 계산 (부모 요소의 transform scale 확인)
+  // scale 계산 헬퍼 함수
+  const calculateScale = useCallback((container: HTMLElement): number => {
     let scale = 1;
     let scaleElement = container.parentElement;
     while (scaleElement) {
@@ -95,6 +84,23 @@ const TemplateEditOverlay: React.FC = () => {
       }
       scaleElement = scaleElement.parentElement;
     }
+    return scale;
+  }, []);
+
+  // 템플릿 내 섹션 요소들 탐지
+  const detectSections = useCallback((isInitialDetection = false) => {
+    if (!overlayRef.current) return;
+
+    // 부모 컨테이너 (canvasRef) 찾기
+    const container = overlayRef.current.parentElement;
+    if (!container) return;
+
+    containerRef.current = container as HTMLDivElement;
+    const containerRect = container.getBoundingClientRect();
+
+    // scale 계산 및 상태 업데이트
+    const scale = calculateScale(container);
+    setContainerScale(scale);
     
     // data-section-id 속성을 가진 요소들 탐지
     const sectionElements = container.querySelectorAll('[data-section-id]');
@@ -151,7 +157,7 @@ const TemplateEditOverlay: React.FC = () => {
     });
     
     setDetectedSections(sections);
-  }, [saveOriginalDOMStyle]);
+  }, [saveOriginalDOMStyle, calculateScale]);
 
   // 편집 모드 변경 시 섹션 탐지
   useEffect(() => {
@@ -196,38 +202,31 @@ const TemplateEditOverlay: React.FC = () => {
     };
   }, [pendingLayoutChanges, getBaseLayoutForSection]);
 
-  // 드래그 시작
-  const handleMouseDown = useCallback((
-    e: React.MouseEvent,
-    section: DetectedSection,
-    type: 'move' | 'resize',
-    handle?: string
+  // 섹션 클릭 핸들러 (선택 처리)
+  const handleSectionClick = useCallback((
+    e: MouseEvent,
+    sectionId: string
   ) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const transform = getTransformValues(section.id);
-    setDragState({
-      sectionId: section.id,
-      type,
-      handle,
-      startX: e.clientX,
-      startY: e.clientY,
-      startTransform: { x: transform.x, y: transform.y },
-      startSize: { width: transform.width, height: transform.height },
-    });
-
     // Ctrl/Cmd 클릭으로 다중 선택
     if (e.ctrlKey || e.metaKey) {
-      setSelectedSections(prev => 
-        prev.includes(section.id) 
-          ? prev.filter(id => id !== section.id)
-          : [...prev, section.id]
+      setSelectedSections(prev =>
+        prev.includes(sectionId)
+          ? prev.filter(id => id !== sectionId)
+          : [...prev, sectionId]
       );
     } else {
-      setSelectedSections([section.id]);
+      setSelectedSections([sectionId]);
     }
-  }, [getTransformValues]);
+  }, []);
+
+  // Rnd 드래그/리사이즈 시작 핸들러
+  const handleDragStart = useCallback((sectionId: string) => {
+    setActiveDrag({ sectionId, type: 'move' });
+  }, []);
+
+  const handleResizeStart = useCallback((sectionId: string) => {
+    setActiveDrag({ sectionId, type: 'resize' });
+  }, []);
 
   // 스냅 거리 임계값 (픽셀) - 더 촘촘하게 조정
   const SNAP_THRESHOLD = 6;
@@ -394,155 +393,93 @@ const TemplateEditOverlay: React.FC = () => {
     return { x: snappedX, y: snappedY };
   }, [detectedSections, getTransformValues]);
 
-  // 드래그 중
-  useEffect(() => {
-    if (!dragState) return;
+  // Rnd 드래그 중 (스냅 가이드 표시)
+  const handleDrag = useCallback((
+    sectionId: string,
+    d: DraggableData
+  ) => {
+    const section = detectedSections.find(s => s.id === sectionId);
+    if (!section) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      // scale 계산
-      let scale = 1;
-      if (containerRef.current) {
-        let scaleElement = containerRef.current.parentElement;
-        while (scaleElement) {
-          const transform = window.getComputedStyle(scaleElement).transform;
-          if (transform && transform !== 'none') {
-            const matrix = new DOMMatrix(transform);
-            if (matrix.a !== 1 || matrix.d !== 1) {
-              scale = matrix.a || matrix.d || 1;
-              break;
-            }
-          }
-          scaleElement = scaleElement.parentElement;
-        }
-      }
-      
-      const deltaX = (e.clientX - dragState.startX) / scale;
-      const deltaY = (e.clientY - dragState.startY) / scale;
+    // RAF로 스냅 계산 최적화
+    if (snapRafRef.current !== null) {
+      cancelAnimationFrame(snapRafRef.current);
+    }
+    snapRafRef.current = requestAnimationFrame(() => {
+      const currentWidth = section.rect.width + (getTransformValues(sectionId).width || 0);
+      const currentHeight = section.rect.height + (getTransformValues(sectionId).height || 0);
+      calculateSnapPosition(d.x, d.y, currentWidth, currentHeight, sectionId);
+    });
+  }, [detectedSections, getTransformValues, calculateSnapPosition]);
 
-      if (dragState.type === 'move') {
-        // 이동
-        const section = detectedSections.find(s => s.id === dragState.sectionId);
-        if (!section) return;
-        
-        const newX = dragState.startTransform.x + deltaX;
-        const newY = dragState.startTransform.y + deltaY;
-        const currentWidth = section.rect.width + dragState.startSize.width;
-        const currentHeight = section.rect.height + dragState.startSize.height;
-        
-        // 스냅 위치 계산
-        const snapped = calculateSnapPosition(newX, newY, currentWidth, currentHeight, dragState.sectionId);
-        
-        // 값 범위 제한 적용 (위치: -50px ~ 50px)
-        const clampedX = clampPosition(snapped.x);
-        const clampedY = clampPosition(snapped.y);
-        
-        // pendingLayoutChanges에 저장하고 편집 모드에서는 실시간으로 DOM에 반영
-        updateElementLayout(dragState.sectionId, {
-          x: clampedX,
-          y: clampedY,
-        });
-        
-        // 편집 모드에서는 실시간으로 DOM에 반영 (미리보기)
-        section.element.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
-      } else if (dragState.type === 'resize' && dragState.handle) {
-        // 크기 조절
-        const section = detectedSections.find(s => s.id === dragState.sectionId);
-        if (!section) return;
+  // Rnd 드래그 종료
+  const handleDragStop = useCallback((
+    sectionId: string,
+    d: DraggableData
+  ) => {
+    const section = detectedSections.find(s => s.id === sectionId);
+    if (!section) return;
 
-        let widthDelta = dragState.startSize.width;
-        let heightDelta = dragState.startSize.height;
-        let xDelta = dragState.startTransform.x;
-        let yDelta = dragState.startTransform.y;
+    const currentWidth = section.rect.width + (getTransformValues(sectionId).width || 0);
+    const currentHeight = section.rect.height + (getTransformValues(sectionId).height || 0);
 
-        if (dragState.handle.includes('e')) {
-          widthDelta = dragState.startSize.width + deltaX;
-        }
-        if (dragState.handle.includes('w')) {
-          widthDelta = dragState.startSize.width - deltaX;
-          xDelta = dragState.startTransform.x + deltaX;
-        }
-        if (dragState.handle.includes('s')) {
-          heightDelta = dragState.startSize.height + deltaY;
-        }
-        if (dragState.handle.includes('n')) {
-          heightDelta = dragState.startSize.height - deltaY;
-          yDelta = dragState.startTransform.y + deltaY;
-        }
+    // 최종 스냅 위치 계산
+    const snapped = calculateSnapPosition(d.x, d.y, currentWidth, currentHeight, sectionId);
+    const clampedX = clampPosition(snapped.x);
+    const clampedY = clampPosition(snapped.y);
 
-        const newWidth = section.rect.width + widthDelta;
-        const newHeight = section.rect.height + heightDelta;
-        
-        // 리사이즈 시에도 스냅 적용 (크기만)
-        const snappedX = xDelta;
-        const snappedY = yDelta;
-        let snappedWidth = widthDelta;
-        let snappedHeight = heightDelta;
-        
-        // 다른 섹션과의 크기 스냅
-        detectedSections.forEach((otherSection) => {
-          if (otherSection.id === dragState.sectionId) return;
-          
-          const otherTransform = getTransformValues(otherSection.id);
-          const otherWidth = otherSection.rect.width + otherTransform.width;
-          const otherHeight = otherSection.rect.height + otherTransform.height;
-          
-          // 너비 스냅
-          if (dragState.handle?.includes('e') || dragState.handle?.includes('w')) {
-            const widthDiff = Math.abs(newWidth - otherWidth);
-            if (widthDiff < SNAP_THRESHOLD) {
-              snappedWidth = otherWidth - section.rect.width;
-            }
-          }
-          
-          // 높이 스냅
-          if (dragState.handle?.includes('s') || dragState.handle?.includes('n')) {
-            const heightDiff = Math.abs(newHeight - otherHeight);
-            if (heightDiff < SNAP_THRESHOLD) {
-              snappedHeight = otherHeight - section.rect.height;
-            }
-          }
-        });
+    updateElementLayout(sectionId, { x: clampedX, y: clampedY });
 
-        // 값 범위 제한 적용
-        const clampedX = clampPosition(snappedX);
-        const clampedY = clampPosition(snappedY);
-        const clampedWidth = clampSize(snappedWidth);
-        const clampedHeight = clampSize(snappedHeight);
-        
-        // pendingLayoutChanges에 저장하고 편집 모드에서는 실시간으로 DOM에 반영
-        updateElementLayout(dragState.sectionId, {
-          x: clampedX,
-          y: clampedY,
-          width: clampedWidth,
-          height: clampedHeight,
-        });
-        
-        // 편집 모드에서는 실시간으로 DOM에 반영 (미리보기)
-        section.element.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
-        if (clampedWidth !== 0) {
-          section.element.style.width = `calc(100% + ${clampedWidth}px)`;
-        }
-        if (clampedHeight !== 0) {
-          section.element.style.height = `calc(100% + ${clampedHeight}px)`;
-        }
-      }
-    };
+    // DOM에도 반영
+    section.element.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
 
-    const handleMouseUp = () => {
-      setDragState(null);
-      setSnapGuides([]);
-      // 섹션 위치 재탐지 (초기 감지 아님)
-      setTimeout(() => detectSections(false), 50);
-    };
+    setActiveDrag(null);
+    setSnapGuides([]);
+    setTimeout(() => detectSections(false), 50);
+  }, [detectedSections, getTransformValues, calculateSnapPosition, updateElementLayout, detectSections]);
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+  // Rnd 리사이즈 종료
+  const handleResizeStop = useCallback((
+    sectionId: string,
+    ref: HTMLElement,
+    position: Position,
+    delta: ResizableDelta
+  ) => {
+    const section = detectedSections.find(s => s.id === sectionId);
+    if (!section) return;
 
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [dragState, detectedSections, updateElementLayout, detectSections, calculateSnapPosition, getTransformValues]);
+    const transform = getTransformValues(sectionId);
+
+    // 새 크기 계산 (delta 기반)
+    const newWidthDelta = transform.width + delta.width;
+    const newHeightDelta = transform.height + delta.height;
+
+    // 클램핑
+    const clampedX = clampPosition(position.x);
+    const clampedY = clampPosition(position.y);
+    const clampedWidth = clampSize(newWidthDelta);
+    const clampedHeight = clampSize(newHeightDelta);
+
+    updateElementLayout(sectionId, {
+      x: clampedX,
+      y: clampedY,
+      width: clampedWidth,
+      height: clampedHeight,
+    });
+
+    // DOM에도 반영
+    section.element.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
+    if (clampedWidth !== 0) {
+      section.element.style.width = `calc(100% + ${clampedWidth}px)`;
+    }
+    if (clampedHeight !== 0) {
+      section.element.style.height = `calc(100% + ${clampedHeight}px)`;
+    }
+
+    setActiveDrag(null);
+    setSnapGuides([]);
+    setTimeout(() => detectSections(false), 50);
+  }, [detectedSections, getTransformValues, updateElementLayout, detectSections]);
 
   // 정렬 기능
   const alignSections = useCallback((alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
@@ -863,22 +800,6 @@ const TemplateEditOverlay: React.FC = () => {
 
   if (!isEditMode) return null;
 
-  const resizeHandles = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
-  const handleCursors: Record<string, string> = {
-    n: 'ns-resize', ne: 'nesw-resize', e: 'ew-resize', se: 'nwse-resize',
-    s: 'ns-resize', sw: 'nesw-resize', w: 'ew-resize', nw: 'nwse-resize',
-  };
-  const handlePositions: Record<string, React.CSSProperties> = {
-    n: { top: -4, left: '50%', transform: 'translateX(-50%)' },
-    ne: { top: -4, right: -4 },
-    e: { top: '50%', right: -4, transform: 'translateY(-50%)' },
-    se: { bottom: -4, right: -4 },
-    s: { bottom: -4, left: '50%', transform: 'translateX(-50%)' },
-    sw: { bottom: -4, left: -4 },
-    w: { top: '50%', left: -4, transform: 'translateY(-50%)' },
-    nw: { top: -4, left: -4 },
-  };
-
   return (
     <div 
       ref={overlayRef}
@@ -1005,34 +926,69 @@ const TemplateEditOverlay: React.FC = () => {
         </button>
       </div>
 
-      {/* 감지된 섹션들에 대한 편집 핸들 */}
+      {/* 감지된 섹션들에 대한 편집 핸들 (react-rnd 사용) */}
       {detectedSections.map((section) => {
         const transform = getTransformValues(section.id);
         const isSelected = selectedSections.includes(section.id);
-        const isDragging = dragState?.sectionId === section.id;
-        const isResizing = isDragging && dragState?.type === 'resize';
-        const isMoving = isDragging && dragState?.type === 'move';
+        const isDragging = activeDrag?.sectionId === section.id;
+        const isResizing = isDragging && activeDrag?.type === 'resize';
+        const isMoving = isDragging && activeDrag?.type === 'move';
 
         return (
-          <div
+          <Rnd
             key={section.id}
-            className={`absolute border-2 pointer-events-auto ${
-              isSelected 
-                ? 'border-blue-500 bg-blue-500/10' 
+            position={{
+              x: section.rect.left + transform.x,
+              y: section.rect.top + transform.y,
+            }}
+            size={{
+              width: section.rect.width + transform.width,
+              height: section.rect.height + transform.height,
+            }}
+            scale={containerScale}
+            dragGrid={[1, 1]}
+            bounds="parent"
+            enableResizing={isSelected}
+            resizeHandleStyles={{
+              top: { cursor: 'ns-resize' },
+              right: { cursor: 'ew-resize' },
+              bottom: { cursor: 'ns-resize' },
+              left: { cursor: 'ew-resize' },
+              topRight: { cursor: 'nesw-resize' },
+              bottomRight: { cursor: 'nwse-resize' },
+              bottomLeft: { cursor: 'nesw-resize' },
+              topLeft: { cursor: 'nwse-resize' },
+            }}
+            resizeHandleClasses={{
+              top: 'absolute w-full h-2 -top-1 left-0',
+              right: 'absolute w-2 h-full top-0 -right-1',
+              bottom: 'absolute w-full h-2 -bottom-1 left-0',
+              left: 'absolute w-2 h-full top-0 -left-1',
+              topRight: 'absolute w-3 h-3 -top-1.5 -right-1.5 bg-blue-500 rounded-full border border-white shadow-sm hover:bg-blue-600 hover:scale-125 transition-transform z-10',
+              bottomRight: 'absolute w-3 h-3 -bottom-1.5 -right-1.5 bg-blue-500 rounded-full border border-white shadow-sm hover:bg-blue-600 hover:scale-125 transition-transform z-10',
+              bottomLeft: 'absolute w-3 h-3 -bottom-1.5 -left-1.5 bg-blue-500 rounded-full border border-white shadow-sm hover:bg-blue-600 hover:scale-125 transition-transform z-10',
+              topLeft: 'absolute w-3 h-3 -top-1.5 -left-1.5 bg-blue-500 rounded-full border border-white shadow-sm hover:bg-blue-600 hover:scale-125 transition-transform z-10',
+            }}
+            onDragStart={() => handleDragStart(section.id)}
+            onDrag={(e, d) => handleDrag(section.id, d)}
+            onDragStop={(e, d) => handleDragStop(section.id, d)}
+            onResizeStart={() => handleResizeStart(section.id)}
+            onResizeStop={(e, direction, ref, delta, position) =>
+              handleResizeStop(section.id, ref, position, delta)
+            }
+            onMouseDown={(e) => handleSectionClick(e, section.id)}
+            className={`pointer-events-auto border-2 ${
+              isSelected
+                ? 'border-blue-500 bg-blue-500/10'
                 : 'border-dashed border-zinc-400/50 hover:border-blue-400 hover:bg-blue-400/5'
             } ${isDragging ? 'z-[60]' : ''} ${isMoving ? 'ring-2 ring-blue-300 ring-opacity-50' : ''} ${isResizing ? 'ring-2 ring-green-300 ring-opacity-50' : ''}`}
             style={{
-              top: `${section.rect.top + transform.y}px`,
-              left: `${section.rect.left + transform.x}px`,
-              width: `${section.rect.width + transform.width}px`,
-              height: `${section.rect.height + transform.height}px`,
               cursor: isMoving ? 'grabbing' : 'grab',
               transition: isDragging ? 'none' : 'border-color 0.15s, background-color 0.15s',
             }}
-            onMouseDown={(e) => handleMouseDown(e, section, 'move')}
           >
             {/* 섹션 라벨 */}
-            <div 
+            <div
               className={`absolute -top-5 left-1 text-[9px] px-1.5 py-0.5 rounded whitespace-nowrap shadow-sm transition-colors ${
                 isSelected ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-white'
               }`}
@@ -1047,19 +1003,6 @@ const TemplateEditOverlay: React.FC = () => {
               </div>
             )}
 
-            {/* 리사이즈 핸들 */}
-            {isSelected && resizeHandles.map((handle) => (
-              <div
-                key={handle}
-                className="absolute w-2.5 h-2.5 bg-blue-500 rounded-full border border-white shadow-sm hover:bg-blue-600 hover:scale-125 transition-transform"
-                style={{
-                  ...handlePositions[handle],
-                  cursor: handleCursors[handle],
-                }}
-                onMouseDown={(e) => handleMouseDown(e, section, 'resize', handle)}
-              />
-            ))}
-
             {/* 드래그 중 크기/위치 표시 */}
             {isDragging && (
               <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[8px] px-2 py-0.5 rounded shadow-lg whitespace-nowrap font-mono">
@@ -1067,7 +1010,7 @@ const TemplateEditOverlay: React.FC = () => {
                 {isResizing && `W: ${Math.round(section.rect.width + transform.width)} H: ${Math.round(section.rect.height + transform.height)}`}
               </div>
             )}
-          </div>
+          </Rnd>
         );
       })}
 
@@ -1120,19 +1063,20 @@ const TemplateEditOverlay: React.FC = () => {
         )
       ))}
 
-      {/* 상태바 */}
+      {/* 상태바 - 키보드 단축키 안내 포함 */}
       <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-4 pointer-events-none">
-        {/* 왼쪽: 안내 메시지 */}
+        {/* 왼쪽: 안내 메시지 + 키보드 단축키 */}
         <div className="text-[9px] text-zinc-500 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm border border-zinc-100">
           {detectedSections.length > 0 ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium text-zinc-700">{detectedSections.length}개 섹션</span>
-              <span className="text-zinc-400">|</span>
-              <span>드래그: 이동</span>
-              <span className="text-zinc-400">|</span>
-              <span>모서리: 크기 조절</span>
-              <span className="text-zinc-400">|</span>
-              <span className="text-blue-500">Ctrl+클릭: 다중 선택</span>
+              <span className="text-zinc-300">│</span>
+              <span className="text-blue-600 font-medium">단축키:</span>
+              <span><kbd className="px-1 py-0.5 bg-zinc-100 rounded text-[8px] font-mono">↑↓←→</kbd> 1px 이동</span>
+              <span><kbd className="px-1 py-0.5 bg-zinc-100 rounded text-[8px] font-mono">Shift</kbd>+<kbd className="px-1 py-0.5 bg-zinc-100 rounded text-[8px] font-mono">↑↓←→</kbd> 10px</span>
+              <span><kbd className="px-1 py-0.5 bg-zinc-100 rounded text-[8px] font-mono">Ctrl</kbd>+클릭 다중선택</span>
+              <span><kbd className="px-1 py-0.5 bg-zinc-100 rounded text-[8px] font-mono">Del</kbd> 초기화</span>
+              <span><kbd className="px-1 py-0.5 bg-zinc-100 rounded text-[8px] font-mono">Esc</kbd> 선택해제</span>
             </div>
           ) : (
             '템플릿에 data-section-id 속성을 가진 요소가 필요합니다'
