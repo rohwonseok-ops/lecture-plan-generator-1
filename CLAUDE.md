@@ -50,11 +50,91 @@ Required environment variables in `.env.local`:
 
 ### Template System
 Three template styles in `src/components/templates/`:
-- `TemplateStyle1.tsx` - Card-based clean layout
-- `TemplateStyle2.tsx` - Alternative layout
-- `TemplateStyle3.tsx` - Alternative layout
+- `TemplateStyle1.tsx` - Card-based clean layout (222 lines)
+- `TemplateStyle2.tsx` - Icon box + colored bar layout (~312 lines)
+- `TemplateStyle3.tsx` - Gradient header + decorative triangle layout (~659 lines)
 
 Each template receives `ClassPlan` and `ColorTheme` props. Layout customization is applied via `layoutConfig` property with `getLayoutStyle()` helper.
+
+### Template Section Architecture (`src/components/templates/sections/`)
+
+공유 헬퍼 및 섹션 컴포넌트를 통해 코드 중복을 최소화:
+
+#### Core Types & Helpers (`types.ts`)
+```typescript
+// 스타일 헬퍼 인터페이스
+interface SectionStyleHelpers {
+  getLayoutStyle: (sectionId: string) => CSSProperties;
+  getHeaderStyle: (index: number) => CSSProperties;
+  getHeaderTextClass: () => string;
+  getSize: (field: keyof FieldFontSizes) => number;
+}
+
+// 공통 섹션 Props
+interface BaseSectionProps {
+  classPlan: ClassPlan;
+  colors: ColorPalette;
+  typography: TypographySettings;
+  titleFontClass: string;
+  bodyFontClass: string;
+  titleWeight: number;
+  bodyWeight: number;
+  helpers: SectionStyleHelpers;
+}
+
+// 헬퍼 함수들
+createStyleHelpers(classPlan, colorTheme, colors)  // 타이포그래피, 레이아웃 헬퍼 생성
+createAccentHelpers(colors, isDancheong)           // Style2용 단청 액센트 헬퍼
+getColorPalette(colorTheme)                        // ColorTheme → ColorPalette 변환
+```
+
+#### 공유 상수
+- `textColors` - 기본 텍스트 색상 (`{ primary: '#3f3f46', strong: '#27272a' }`)
+- `dancheongHeaderGradients` - 단청 테마용 그라데이션 배열
+- `dancheongAccents` - 단청 테마용 액센트 색상 배열
+
+#### Section Components (TemplateStyle1용)
+| 컴포넌트 | 설명 |
+|----------|------|
+| `HeaderSection` | 템플릿 헤더 + 로고 |
+| `TeacherScheduleSection` | 담임강사 + 수업일정 카드 |
+| `CourseInfoSection` | 학습과정/교재 정보 |
+| `GoalsManagementSection` | 학습목표 + 학습관리 |
+| `WeeklyPlanTemplateSection` | 주차별 계획 그리드 |
+| `CalendarSection` | 월간계획 달력 래퍼 |
+| `FeeTableSection` | 수강료 테이블 (월별 그룹핑) |
+
+#### 패턴별 적용 방식
+- **TemplateStyle1**: 섹션 컴포넌트 직접 import하여 사용
+- **TemplateStyle2/3**: 공유 헬퍼 사용 + 렌더 함수 패턴 (고유 디자인 유지)
+
+```typescript
+// TemplateStyle1 예시
+import { HeaderSection, TeacherScheduleSection, createStyleHelpers } from './sections';
+
+// TemplateStyle2/3 예시 (렌더 함수 패턴)
+const renderSectionTitle = (icon, title, accentIndex) => ( ... );
+const renderScheduleRow = (row, i) => ( ... );
+```
+
+#### 폴더 구조
+```
+src/components/templates/
+├── sections/
+│   ├── index.ts                    # 모든 컴포넌트/헬퍼 re-export
+│   ├── types.ts                    # 공유 타입, 헬퍼 함수, 상수
+│   ├── HeaderSection.tsx           # 헤더 섹션
+│   ├── TeacherScheduleSection.tsx  # 담임강사 + 수업일정
+│   ├── CourseInfoSection.tsx       # 학습과정/교재
+│   ├── GoalsManagementSection.tsx  # 학습목표 + 학습관리
+│   ├── WeeklyPlanTemplateSection.tsx # 주차별 계획
+│   ├── CalendarSection.tsx         # 월간계획
+│   └── FeeTableSection.tsx         # 수강료 테이블
+├── TemplateStyle1.tsx              # 222줄 (섹션 컴포넌트 사용)
+├── TemplateStyle2.tsx              # ~312줄 (렌더 함수 패턴)
+├── TemplateStyle3.tsx              # ~659줄 (렌더 함수 패턴)
+└── MonthlyCalendar.tsx             # 월간 달력 컴포넌트
+```
 
 ### Supabase Clients (`src/lib/`)
 - `supabaseClient.ts` - Browser client with anon key
@@ -95,3 +175,50 @@ Multi-line schedule format: `기간|요일` (e.g., `12월|월수금\n1월|화목
 
 ### Image Export
 `downloadAsJpg()` in `src/lib/download.ts` uses html-to-image for JPG export. Template canvas ref is passed for capture.
+
+## Performance Optimizations
+
+### Input Debouncing (Phase 3.1.A)
+- `useDebounce` hook for delayed state updates
+- Prevents excessive re-renders during rapid typing
+- Applied to form inputs in BasicInfoSection
+
+### Template Memoization (Phase 3.1.B)
+- `React.memo()` wrapping for all template components
+- `useMemo()` for computed data:
+  - `scheduleRows` - 수업일정 행 계산
+  - `courseRows` - 학습과정/교재 데이터
+  - `weeklyPlan` split - 주차별 계획 2열 분할
+  - `groupedByMonth` - 수강료 월별 그룹핑
+  - `gridRatio` - 담임강사/수업일정 그리드 비율
+
+### Zod Schema Validation (Phase 5.1)
+- `classPlanSchema` in `src/lib/schemas.ts`
+- Type-safe validation for ClassPlan data
+- Used in API routes for input validation
+
+### ErrorBoundary (Phase 5.2)
+- Global error boundary for graceful error handling
+- Prevents entire app crash on component errors
+
+### Custom Drag Hook (Phase 4.1)
+- Replaced `@dnd-kit` with lightweight custom `useDrag` hook
+- Reduced bundle size
+- Located in `src/hooks/useDrag.ts`
+
+## Testing
+
+### Test Framework
+- Vitest for unit testing
+- Test files: `src/**/__tests__/*.test.ts`
+
+### Test Commands
+```bash
+npm run test:run      # Run all tests once
+npx vitest run        # Alternative: run tests directly
+npx vitest            # Watch mode
+```
+
+### Current Test Coverage
+- `src/lib/__tests__/a4Utils.test.ts` - A4 utility functions (13 tests)
+- `src/store/__tests__/templateEditStore.test.ts` - Template edit store (29 tests)

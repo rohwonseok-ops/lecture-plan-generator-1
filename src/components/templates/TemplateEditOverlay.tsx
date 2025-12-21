@@ -423,14 +423,20 @@ const TemplateEditOverlay: React.FC = () => {
     const currentWidth = section.rect.width + (getTransformValues(sectionId).width || 0);
     const currentHeight = section.rect.height + (getTransformValues(sectionId).height || 0);
 
-    // 최종 스냅 위치 계산
+    // 최종 스냅 위치 계산 (d.x, d.y는 오버레이 내 절대 위치)
     const snapped = calculateSnapPosition(d.x, d.y, currentWidth, currentHeight, sectionId);
-    const clampedX = clampPosition(snapped.x);
-    const clampedY = clampPosition(snapped.y);
+
+    // 오프셋 계산: 최종 절대 위치 - 원본 기준 위치
+    // section.rect.left/top은 transform이 없는 상태의 원본 위치
+    const offsetX = snapped.x - section.rect.left;
+    const offsetY = snapped.y - section.rect.top;
+
+    const clampedX = clampPosition(offsetX);
+    const clampedY = clampPosition(offsetY);
 
     updateElementLayout(sectionId, { x: clampedX, y: clampedY });
 
-    // DOM에도 반영
+    // DOM에도 반영 (오프셋으로)
     section.element.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
 
     setActiveDrag(null);
@@ -454,9 +460,13 @@ const TemplateEditOverlay: React.FC = () => {
     const newWidthDelta = transform.width + delta.width;
     const newHeightDelta = transform.height + delta.height;
 
+    // 오프셋 계산: 리사이즈 후 절대 위치 - 원본 기준 위치
+    const offsetX = position.x - section.rect.left;
+    const offsetY = position.y - section.rect.top;
+
     // 클램핑
-    const clampedX = clampPosition(position.x);
-    const clampedY = clampPosition(position.y);
+    const clampedX = clampPosition(offsetX);
+    const clampedY = clampPosition(offsetY);
     const clampedWidth = clampSize(newWidthDelta);
     const clampedHeight = clampSize(newHeightDelta);
 
@@ -467,7 +477,7 @@ const TemplateEditOverlay: React.FC = () => {
       height: clampedHeight,
     });
 
-    // DOM에도 반영
+    // DOM에도 반영 (오프셋으로)
     section.element.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
     if (clampedWidth !== 0) {
       section.element.style.width = `calc(100% + ${clampedWidth}px)`;
